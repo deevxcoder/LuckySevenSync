@@ -17,6 +17,7 @@ interface HeaderWalletProps {
 export function HeaderWallet({ socketId }: HeaderWalletProps) {
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const lastFetchTime = useRef<number>(0);
 
   const fetchPlayerData = async (showLoading = false) => {
@@ -25,6 +26,7 @@ export function HeaderWallet({ socketId }: HeaderWalletProps) {
     try {
       if (showLoading) {
         setLoading(true);
+        setError(null);
       }
       
       const response = await fetch('/api/player/me', {
@@ -39,9 +41,14 @@ export function HeaderWallet({ socketId }: HeaderWalletProps) {
 
       const data = await response.json();
       setPlayerData(data);
+      setError(null);
       lastFetchTime.current = Date.now();
     } catch (err) {
       console.error('Error fetching player data for header:', err);
+      setError('Failed to load wallet');
+      if (showLoading) {
+        setPlayerData(null);
+      }
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -85,13 +92,36 @@ export function HeaderWallet({ socketId }: HeaderWalletProps) {
     };
   }, [socketId]);
 
-  if (loading || !playerData) {
+  if (loading) {
     return (
       <Badge 
         variant="outline" 
         className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
       >
         💰 Loading...
+      </Badge>
+    );
+  }
+
+  if (error && !playerData) {
+    return (
+      <Badge 
+        variant="outline" 
+        className="bg-transparent border-red-400 text-red-400 hover:bg-red-400 hover:text-black cursor-pointer"
+        onClick={() => fetchPlayerData(true)}
+      >
+        💰 Retry
+      </Badge>
+    );
+  }
+
+  if (!playerData) {
+    return (
+      <Badge 
+        variant="outline" 
+        className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+      >
+        💰 --
       </Badge>
     );
   }
