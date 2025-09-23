@@ -4,7 +4,7 @@ import { useGameStore } from '../lib/stores/useGameStore';
 import { useAudio } from '../lib/stores/useAudio';
 import CountdownTimer from './CountdownTimer';
 import Card from './Card';
-import PlayersList from './PlayersList';
+import RoundResults from './RoundResults';
 import BettingPanel from './BettingPanel';
 import { Button } from './ui/button';
 import { Card as UICard, CardContent } from './ui/card';
@@ -193,8 +193,8 @@ export default function GameRoom() {
 
           {/* Sidebar - Players and Betting */}
           <div className="lg:col-span-4 space-y-4">
-            {/* Players List */}
-            <PlayersList players={currentRoom.players} />
+            {/* Round Results */}
+            <RoundResults />
             
             {/* Betting Panel */}
             <BettingPanel 

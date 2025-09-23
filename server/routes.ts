@@ -16,6 +16,17 @@ export async function registerRoutes(app: Express): Promise<void> {
     res.json({ rooms: [] });
   });
 
+  // Get recent game results
+  app.get("/api/games/recent", async (req, res) => {
+    try {
+      const games = await storage.getGameHistory(10);
+      res.json(games);
+    } catch (error) {
+      console.error('Error fetching recent games:', error);
+      res.status(500).json({ message: "Failed to fetch recent games" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
