@@ -150,8 +150,8 @@ export class GameManager {
     
     console.log(`Player ${socket.id} joined room ${roomId}`);
 
-    // Auto-start game if enough players (min 2)
-    if (room.players.length >= 2 && room.status === 'waiting') {
+    // Auto-start game immediately (no minimum player requirement)
+    if (room.status === 'waiting') {
       setTimeout(() => this.startGame(socket, roomId), 2000);
     }
   }
@@ -192,7 +192,7 @@ export class GameManager {
     console.log(`Starting game in room ${roomId}`);
     
     room.status = 'countdown';
-    room.countdownTime = 10; // 10 second countdown before card reveal
+    room.countdownTime = 60; // 60 second countdown before card reveal
     room.gameStartTime = Date.now();
 
     // Generate the card that will be revealed
@@ -259,10 +259,8 @@ export class GameManager {
       room
     });
 
-    // After 5 seconds, start next round
-    setTimeout(() => {
-      this.startNextRound(roomId);
-    }, 5000);
+    // Start next round immediately to maintain exact 60-second cycle
+    this.startNextRound(roomId);
   }
 
   private startNextRound(roomId: string) {
@@ -271,7 +269,7 @@ export class GameManager {
 
     room.status = 'waiting';
     room.currentCard = null;
-    room.countdownTime = 30;
+    room.countdownTime = 60;
     room.currentGameId = undefined; // Reset game ID for next round
     room.activeBets?.clear(); // Ensure bets are cleared
 
@@ -279,12 +277,8 @@ export class GameManager {
     const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
     this.io.to(roomId).emit('round-ended', { room: sanitizedRoom });
 
-    // Auto-start next round after 3 seconds
-    setTimeout(() => {
-      if (room.players.length >= 2) {
-        this.startGame(room.players[0] as any, roomId);
-      }
-    }, 3000);
+    // Auto-start next round immediately (no minimum player requirement)
+    this.startGame(room.players[0] as any, roomId);
   }
 
   handleDisconnect(socket: Socket) {
@@ -303,7 +297,7 @@ export class GameManager {
   private async handlePlaceBet(socket: Socket, data: { roomId: string; betType: string; betValue: string; amount: number }) {
     try {
       const room = this.rooms.get(data.roomId);
-      if (!room || room.status !== 'countdown' || room.countdownTime <= 3) {
+      if (!room || room.status !== 'countdown' || room.countdownTime <= 20) {
         socket.emit('bet-error', 'Cannot place bet at this time');
         return;
       }

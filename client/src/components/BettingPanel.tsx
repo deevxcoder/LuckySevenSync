@@ -52,7 +52,7 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
 
   const canPlaceBet = () => {
     return gameStatus === 'countdown' && 
-           countdownTime > 3 && 
+           countdownTime > 20 && 
            selectedBetType && 
            selectedAmount > 0 && 
            totalBetAmount + selectedAmount <= playerChips;
@@ -94,10 +94,10 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
     if (gameStatus !== 'countdown') {
       return 'Waiting for next round...';
     }
-    if (countdownTime <= 3) {
+    if (countdownTime <= 20) {
       return 'Betting closed! Get ready for reveal!';
     }
-    return `Place your bets! Time left: ${countdownTime}s`;
+    return `Place your bets! Betting time left: ${countdownTime - 20}s`;
   };
 
   return (
@@ -150,7 +150,7 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
                 variant={selectedBetType === betType.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedBetType(betType.id)}
-                disabled={gameStatus !== 'countdown' || countdownTime <= 3}
+                disabled={gameStatus !== 'countdown' || countdownTime <= 20}
                 className={`text-left justify-start h-auto py-2 px-3 ${
                   selectedBetType === betType.id 
                     ? 'bg-casino-red text-white border-casino-red' 
