@@ -156,19 +156,12 @@ export default function GameRoom() {
         <div className="flex justify-between items-center mb-6">
           <div className="text-white">
             <h1 className="text-responsive-2xl font-bold text-casino-gold">
-              🎰 Lucky 7 - Room {currentRoom.id}
+              🎰 Lucky 7
             </h1>
             <p className="text-lg">
               {getStatusMessage()}
             </p>
           </div>
-          <Button 
-            onClick={handleLeaveRoom}
-            variant="outline"
-            className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
-          >
-            Leave Room
-          </Button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
