@@ -4,7 +4,6 @@ import { useGameStore } from '../lib/stores/useGameStore';
 import { useAudio } from '../lib/stores/useAudio';
 import CountdownTimer from './CountdownTimer';
 import Card from './Card';
-import RoundResults from './RoundResults';
 import BettingPanel from './BettingPanel';
 import { Button } from './ui/button';
 import { Card as UICard, CardContent } from './ui/card';
@@ -16,7 +15,27 @@ export default function GameRoom() {
   const [countdownTime, setCountdownTime] = useState<number>(0);
   const [gameStatus, setGameStatus] = useState<string>('waiting');
   const [playerChips, setPlayerChips] = useState<number>(1000);
+  const [recentResults, setRecentResults] = useState<any[]>([]);
   const { playSuccess, playHit } = useAudio();
+
+  // Fetch recent results
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const response = await fetch('/api/games/recent');
+        if (response.ok) {
+          const data = await response.json();
+          setRecentResults(data.slice(0, 10));
+        }
+      } catch (error) {
+        console.error('Failed to fetch recent results:', error);
+      }
+    };
+
+    fetchResults();
+    const interval = setInterval(fetchResults, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     function onRoomUpdated(room: GameRoom) {
@@ -189,13 +208,39 @@ export default function GameRoom() {
                 </div>
               </CardContent>
             </UICard>
+
+            {/* Recent Results */}
+            <UICard className="bg-casino-black border-casino-gold">
+              <CardContent className="p-4">
+                <div className="text-white mb-3">
+                  <span className="font-semibold text-casino-gold">Recent Results:</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {recentResults.map((result, index) => (
+                    <div 
+                      key={result.id}
+                      className={`w-8 h-8 rounded flex items-center justify-center text-xs font-bold border ${
+                        result.cardColor === 'red' 
+                          ? 'bg-red-500 text-white border-red-400' 
+                          : 'bg-gray-800 text-white border-gray-600'
+                      }`}
+                      title={`Round ${result.id}: ${result.cardNumber} ${result.cardColor}`}
+                    >
+                      {result.cardNumber}
+                    </div>
+                  ))}
+                  {recentResults.length === 0 && (
+                    <div className="text-casino-gold text-sm opacity-75">
+                      No recent results
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </UICard>
           </div>
 
           {/* Sidebar - Players and Betting */}
           <div className="lg:col-span-4 space-y-4">
-            {/* Round Results */}
-            <RoundResults />
-            
             {/* Betting Panel */}
             <BettingPanel 
               playerChips={playerChips}
