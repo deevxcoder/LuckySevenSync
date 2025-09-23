@@ -1,6 +1,7 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { sql } from "drizzle-orm";
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
@@ -15,3 +16,90 @@ export const insertUserSchema = createInsertSchema(users).pick({
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+// Players table for game-specific data
+export const players = pgTable("players", {
+  id: serial("id").primaryKey(),
+  socketId: varchar("socket_id", { length: 255 }).notNull().unique(),
+  name: text("name").notNull(),
+  chips: integer("chips").default(1000).notNull(),
+  totalWins: integer("total_wins").default(0).notNull(),
+  totalLosses: integer("total_losses").default(0).notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Games table for game history
+export const games = pgTable("games", {
+  id: serial("id").primaryKey(),
+  roomId: varchar("room_id", { length: 50 }).notNull(),
+  cardNumber: integer("card_number").notNull(),
+  cardColor: varchar("card_color", { length: 10 }).notNull(),
+  totalBets: integer("total_bets").default(0).notNull(),
+  totalPlayers: integer("total_players").notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Bets table for betting records
+export const bets = pgTable("bets", {
+  id: serial("id").primaryKey(),
+  gameId: integer("game_id").references(() => games.id).notNull(),
+  playerId: integer("player_id").references(() => players.id).notNull(),
+  betAmount: integer("bet_amount").notNull(),
+  betType: varchar("bet_type", { length: 20 }).notNull(), // 'red', 'black', 'number', 'high', 'low'
+  betValue: varchar("bet_value", { length: 20 }), // specific number or color
+  won: boolean("won").notNull(),
+  winAmount: integer("win_amount").default(0).notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Chat messages table
+export const chatMessages = pgTable("chat_messages", {
+  id: serial("id").primaryKey(),
+  roomId: varchar("room_id", { length: 50 }).notNull(),
+  playerId: integer("player_id").references(() => players.id).notNull(),
+  message: text("message").notNull(),
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
+// Schema validation types
+export const insertPlayerSchema = createInsertSchema(players).pick({
+  socketId: true,
+  name: true,
+  chips: true,
+});
+
+export const insertGameSchema = createInsertSchema(games).pick({
+  roomId: true,
+  cardNumber: true,
+  cardColor: true,
+  totalBets: true,
+  totalPlayers: true,
+});
+
+export const insertBetSchema = createInsertSchema(bets).pick({
+  gameId: true,
+  playerId: true,
+  betAmount: true,
+  betType: true,
+  betValue: true,
+  won: true,
+  winAmount: true,
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
+  roomId: true,
+  playerId: true,
+  message: true,
+});
+
+// Type exports
+export type Player = typeof players.$inferSelect;
+export type Game = typeof games.$inferSelect;
+export type Bet = typeof bets.$inferSelect;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+
+export type InsertPlayer = z.infer<typeof insertPlayerSchema>;
+export type InsertGame = z.infer<typeof insertGameSchema>;
+export type InsertBet = z.infer<typeof insertBetSchema>;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;

@@ -8,7 +8,7 @@ export const socket = io(URL, {
   reconnection: true,
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
-  maxReconnectionAttempts: 5,
+  reconnectionAttempts: 5,
 });
 
 // Log connection events for debugging

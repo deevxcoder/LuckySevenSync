@@ -51,7 +51,7 @@ export class GameManager {
     // Find an available room or create a new one
     let availableRoom: GameRoom | null = null;
     
-    for (const room of this.rooms.values()) {
+    for (const room of Array.from(this.rooms.values())) {
       if (room.status === 'waiting' && room.players.length < room.maxPlayers) {
         availableRoom = room;
         break;
