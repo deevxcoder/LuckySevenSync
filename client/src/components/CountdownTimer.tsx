@@ -1,9 +1,25 @@
+import { useEffect, useRef } from 'react';
+import { useAudio } from '../lib/stores/useAudio';
+
 interface CountdownTimerProps {
   time: number;
   isActive: boolean;
 }
 
 export default function CountdownTimer({ time, isActive }: CountdownTimerProps) {
+  const { playCountdownTick } = useAudio();
+  const lastPlayedTime = useRef<number>(-1);
+  
+  // Play tick sound when timer counts down (prevent duplicate ticks)
+  useEffect(() => {
+    if (isActive && time > 0 && time <= 10 && time !== lastPlayedTime.current) {
+      playCountdownTick();
+      lastPlayedTime.current = time;
+    } else if (!isActive) {
+      lastPlayedTime.current = -1; // Reset for next countdown
+    }
+  }, [time, isActive, playCountdownTick]);
+  
   const getTimerColor = () => {
     if (time <= 3) return 'text-casino-red';
     if (time <= 5) return 'text-casino-gold';

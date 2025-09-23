@@ -5,6 +5,10 @@ interface AudioState {
   hitSound: HTMLAudioElement | null;
   successSound: HTMLAudioElement | null;
   isMuted: boolean;
+  isInitialized: boolean;
+  
+  // Initialize all sounds
+  initializeSounds: () => void;
   
   // Setter functions
   setBackgroundMusic: (music: HTMLAudioElement) => void;
@@ -15,6 +19,10 @@ interface AudioState {
   toggleMute: () => void;
   playHit: () => void;
   playSuccess: () => void;
+  playCountdownTick: () => void;
+  playCardReveal: () => void;
+  playBackgroundMusic: () => void;
+  stopBackgroundMusic: () => void;
 }
 
 export const useAudio = create<AudioState>((set, get) => ({
@@ -22,19 +30,60 @@ export const useAudio = create<AudioState>((set, get) => ({
   hitSound: null,
   successSound: null,
   isMuted: true, // Start muted by default
+  isInitialized: false,
+  
+  initializeSounds: () => {
+    try {
+      const backgroundMusic = new Audio('/sounds/background.mp3');
+      const hitSound = new Audio('/sounds/hit.mp3');
+      const successSound = new Audio('/sounds/success.mp3');
+      
+      // Configure background music
+      backgroundMusic.loop = true;
+      backgroundMusic.volume = 0.3;
+      
+      // Configure sound effects
+      hitSound.volume = 0.5;
+      successSound.volume = 0.6;
+      
+      set({ 
+        backgroundMusic, 
+        hitSound, 
+        successSound,
+        isInitialized: true 
+      });
+      
+      console.log('🔊 Audio system initialized');
+    } catch (error) {
+      console.error('Failed to initialize audio:', error);
+    }
+  },
   
   setBackgroundMusic: (music) => set({ backgroundMusic: music }),
   setHitSound: (sound) => set({ hitSound: sound }),
   setSuccessSound: (sound) => set({ successSound: sound }),
   
   toggleMute: () => {
-    const { isMuted } = get();
+    const { isMuted, backgroundMusic } = get();
     const newMutedState = !isMuted;
     
-    // Just update the muted state
+    // Control background music playback
+    if (backgroundMusic) {
+      if (newMutedState) {
+        // Muting - pause background music
+        backgroundMusic.pause();
+      } else {
+        // Unmuting - start background music (user gesture satisfies autoplay)
+        backgroundMusic.volume = 0.2;
+        backgroundMusic.play().catch(error => {
+          console.log('Background music play prevented:', error);
+        });
+      }
+    }
+    
+    // Update the muted state
     set({ isMuted: newMutedState });
     
-    // Log the change
     console.log(`Sound ${newMutedState ? 'muted' : 'unmuted'}`);
   },
   
@@ -58,17 +107,55 @@ export const useAudio = create<AudioState>((set, get) => ({
   
   playSuccess: () => {
     const { successSound, isMuted } = get();
-    if (successSound) {
-      // If sound is muted, don't play anything
-      if (isMuted) {
-        console.log("Success sound skipped (muted)");
-        return;
-      }
-      
+    if (successSound && !isMuted) {
       successSound.currentTime = 0;
+      successSound.volume = 0.6;
       successSound.play().catch(error => {
         console.log("Success sound play prevented:", error);
       });
+    }
+  },
+  
+  playCountdownTick: () => {
+    const { hitSound, isMuted } = get();
+    if (hitSound && !isMuted) {
+      const tickClone = hitSound.cloneNode() as HTMLAudioElement;
+      tickClone.volume = 0.4;
+      tickClone.playbackRate = 1.2; // Make it sound more like a tick
+      tickClone.play().catch(error => {
+        console.log("Countdown tick play prevented:", error);
+      });
+    }
+  },
+  
+  playCardReveal: () => {
+    const { successSound, isMuted } = get();
+    if (successSound && !isMuted) {
+      const revealClone = successSound.cloneNode() as HTMLAudioElement;
+      revealClone.volume = 0.7;
+      revealClone.playbackRate = 0.9; // Slightly slower for drama
+      revealClone.play().catch(error => {
+        console.log("Card reveal sound play prevented:", error);
+      });
+    }
+  },
+  
+  playBackgroundMusic: () => {
+    const { backgroundMusic, isMuted } = get();
+    if (backgroundMusic && !isMuted) {
+      backgroundMusic.volume = 0.2;
+      backgroundMusic.currentTime = 0; // Restart from beginning
+      backgroundMusic.play().catch(error => {
+        console.log("Background music play prevented:", error);
+      });
+    }
+  },
+  
+  stopBackgroundMusic: () => {
+    const { backgroundMusic } = get();
+    if (backgroundMusic) {
+      backgroundMusic.pause();
+      backgroundMusic.currentTime = 0;
     }
   }
 }));

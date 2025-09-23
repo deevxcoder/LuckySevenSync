@@ -3,15 +3,24 @@ import { socket } from './lib/socket';
 import GameLobby from './components/GameLobby';
 import GameRoom from './components/GameRoom';
 import { useGameStore } from './lib/stores/useGameStore';
+import { useAudio } from './lib/stores/useAudio';
+import { Button } from './components/ui/button';
 
 function App() {
   const [isConnected, setIsConnected] = useState(false);
   const { currentRoom, setCurrentRoom, setPlayers } = useGameStore();
+  const { initializeSounds, isInitialized, isMuted, toggleMute, playBackgroundMusic } = useAudio();
 
   useEffect(() => {
+    // Initialize sounds when app loads
+    if (!isInitialized) {
+      initializeSounds();
+    }
+    
     function onConnect() {
       setIsConnected(true);
       console.log('Connected to server');
+      // Don't auto-play music - wait for user to unmute (satisfies autoplay policies)
     }
 
     function onDisconnect() {
@@ -40,7 +49,7 @@ function App() {
       socket.off('room-updated', onRoomUpdated);
       socket.off('error', onError);
     };
-  }, [setCurrentRoom, setPlayers]);
+  }, [setCurrentRoom, setPlayers, initializeSounds, isInitialized, isMuted, playBackgroundMusic]);
 
   if (!isConnected) {
     return (
@@ -53,7 +62,19 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-casino-green">
+    <div className="min-h-screen bg-casino-green relative">
+      {/* Sound Control Button */}
+      <div className="absolute top-4 right-4 z-50">
+        <Button
+          onClick={toggleMute}
+          variant="outline"
+          size="sm"
+          className="bg-casino-black border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+        >
+          {isMuted ? '🔇 Unmute' : '🔊 Mute'}
+        </Button>
+      </div>
+      
       {currentRoom ? <GameRoom /> : <GameLobby />}
     </div>
   );

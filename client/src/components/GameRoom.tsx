@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { socket } from '../lib/socket';
 import { useGameStore } from '../lib/stores/useGameStore';
+import { useAudio } from '../lib/stores/useAudio';
 import CountdownTimer from './CountdownTimer';
 import Card from './Card';
 import PlayersList from './PlayersList';
@@ -13,6 +14,7 @@ export default function GameRoom() {
   const [currentCard, setCurrentCard] = useState<CardType | null>(null);
   const [countdownTime, setCountdownTime] = useState<number>(0);
   const [gameStatus, setGameStatus] = useState<string>('waiting');
+  const { playSuccess, playHit } = useAudio();
 
   useEffect(() => {
     function onGameStarting(data: { room: GameRoom; countdownTime: number }) {
@@ -20,6 +22,8 @@ export default function GameRoom() {
       setCountdownTime(data.countdownTime);
       setGameStatus('countdown');
       setGameState('countdown');
+      // Play game start sound
+      playSuccess();
     }
 
     function onCountdownTick(data: { time: number; room: GameRoom }) {
@@ -40,6 +44,8 @@ export default function GameRoom() {
       setGameState('waiting');
       setCurrentCard(null);
       setCountdownTime(0);
+      // Play round end sound
+      playHit();
     }
 
     socket.on('game-starting', onGameStarting);
@@ -53,7 +59,7 @@ export default function GameRoom() {
       socket.off('card-revealed', onCardRevealed);
       socket.off('round-ended', onRoundEnded);
     };
-  }, [setCurrentRoom, setGameState]);
+  }, [setCurrentRoom, setGameState, playSuccess, playHit]);
 
   const handleLeaveRoom = () => {
     socket.emit('leave-room');

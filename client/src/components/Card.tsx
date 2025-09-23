@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useAudio } from '../lib/stores/useAudio';
 
 interface CardProps {
   number: number;
@@ -9,16 +10,19 @@ interface CardProps {
 
 export default function Card({ number, color, revealed, large = false }: CardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
+  const { playCardReveal } = useAudio();
 
   useEffect(() => {
     if (revealed) {
+      // Play card reveal sound
+      playCardReveal();
       // Small delay for dramatic effect
       const timer = setTimeout(() => setIsFlipped(true), 100);
       return () => clearTimeout(timer);
     } else {
       setIsFlipped(false);
     }
-  }, [revealed]);
+  }, [revealed, playCardReveal]);
 
   const sizeClasses = large 
     ? 'w-48 h-72 text-6xl' 
