@@ -4,6 +4,7 @@ import { useGameStore } from '../lib/stores/useGameStore';
 import { useAudio } from '../lib/stores/useAudio';
 import CountdownTimer from './CountdownTimer';
 import Card from './Card';
+import CardBack from './CardBack';
 import BettingPanel from './BettingPanel';
 import { BetHistory } from './BetHistory';
 import { Button } from './ui/button';
@@ -185,8 +186,8 @@ export default function GameRoom() {
               <CardContent className="p-8 flex justify-center items-center min-h-[300px]">
                 {gameStatus === 'countdown' && (
                   <div className="text-center">
-                    <div className="text-casino-gold text-6xl mb-4">🎴</div>
-                    <p className="text-white text-xl">Card preparing...</p>
+                    <CardBack large={true} />
+                    <p className="text-white text-xl mt-4">Card preparing...</p>
                   </div>
                 )}
                 
