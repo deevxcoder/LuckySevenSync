@@ -5,6 +5,8 @@ import { useAudio } from '../lib/stores/useAudio';
 import CountdownTimer from './CountdownTimer';
 import Card from './Card';
 import BettingPanel from './BettingPanel';
+import { PlayerWallet } from './PlayerWallet';
+import { BetHistory } from './BetHistory';
 import { Button } from './ui/button';
 import { Card as UICard, CardContent } from './ui/card';
 import type { Card as CardType, GameRoom } from '../types/game';
@@ -16,6 +18,8 @@ export default function GameRoom() {
   const [gameStatus, setGameStatus] = useState<string>('waiting');
   const [playerChips, setPlayerChips] = useState<number>(1000);
   const [recentResults, setRecentResults] = useState<any[]>([]);
+  const [socketConnected, setSocketConnected] = useState<boolean>(false);
+  const [socketId, setSocketId] = useState<string>('');
   const { playSuccess, playHit } = useAudio();
 
   // Fetch recent results only when needed
@@ -30,6 +34,33 @@ export default function GameRoom() {
       console.error('Failed to fetch recent results:', error);
     }
   };
+
+  // Monitor socket connection
+  useEffect(() => {
+    const handleConnect = () => {
+      setSocketConnected(true);
+      setSocketId(socket.id || '');
+    };
+
+    const handleDisconnect = () => {
+      setSocketConnected(false);
+      setSocketId('');
+    };
+
+    // Check initial connection state
+    if (socket.connected && socket.id) {
+      setSocketConnected(true);
+      setSocketId(socket.id);
+    }
+
+    socket.on('connect', handleConnect);
+    socket.on('disconnect', handleDisconnect);
+
+    return () => {
+      socket.off('connect', handleConnect);
+      socket.off('disconnect', handleDisconnect);
+    };
+  }, []);
 
   // Initial fetch
   useEffect(() => {
@@ -242,6 +273,13 @@ export default function GameRoom() {
 
           {/* Sidebar - Players and Betting */}
           <div className="lg:col-span-4 space-y-4">
+            {/* Player Wallet */}
+            {socketConnected && socketId && (
+              <PlayerWallet 
+                socketId={socketId}
+              />
+            )}
+
             {/* Betting Panel */}
             <BettingPanel 
               playerChips={playerChips}
@@ -249,6 +287,14 @@ export default function GameRoom() {
               countdownTime={countdownTime}
               roomId={currentRoom.id}
             />
+
+            {/* Bet History */}
+            {socketConnected && socketId && (
+              <BetHistory 
+                socketId={socketId}
+                limit={10}
+              />
+            )}
           </div>
         </div>
       </div>
