@@ -192,7 +192,8 @@ export default function GameRoom() {
                 
                 {currentCard && gameStatus === 'revealed' ? (
                   <Card 
-                    number={currentCard.number} 
+                    number={currentCard.number}
+                    suit={currentCard.suit}
                     color={currentCard.color}
                     revealed={currentCard.revealed}
                     large={true}

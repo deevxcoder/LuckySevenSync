@@ -25,6 +25,7 @@ export interface GameRoom {
 
 export interface Card {
   number: number;
+  suit: 'spades' | 'hearts' | 'diamonds' | 'clubs';
   color: 'red' | 'black';
   revealed: boolean;
 }
@@ -62,9 +63,14 @@ export class GameManager {
   }
 
   private generateRandomCard(): Card {
+    const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
+    const suit = suits[Math.floor(Math.random() * suits.length)];
+    const color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+    
     return {
       number: Math.floor(Math.random() * 13) + 1,
-      color: Math.random() > 0.5 ? 'red' : 'black',
+      suit,
+      color,
       revealed: false
     };
   }

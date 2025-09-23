@@ -8,6 +8,7 @@ export interface Player {
 
 export interface Card {
   number: number;
+  suit: 'spades' | 'hearts' | 'diamonds' | 'clubs';
   color: 'red' | 'black';
   revealed: boolean;
 }
