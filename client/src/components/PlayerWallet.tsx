@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { socket } from '../lib/socket';
 
 interface PlayerData {
   id: number;
@@ -19,42 +20,74 @@ export function PlayerWallet({ socketId, onPlayerDataLoaded }: PlayerWalletProps
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const lastFetchTime = useRef<number>(0);
+
+  const fetchPlayerData = async (showLoading = false) => {
+    try {
+      if (showLoading) {
+        setLoading(true);
+      }
+      setError(null);
+      
+      const response = await fetch('/api/player/me', {
+        headers: {
+          'socket-id': socketId
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch player data');
+      }
+
+      const data = await response.json();
+      setPlayerData(data);
+      onPlayerDataLoaded?.(data);
+      lastFetchTime.current = Date.now();
+    } catch (err) {
+      setError('Failed to load wallet data');
+      console.error('Error fetching player data:', err);
+    } finally {
+      if (showLoading) {
+        setLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
-    const fetchPlayerData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await fetch('/api/player/me', {
-          headers: {
-            'socket-id': socketId
-          }
-        });
+    if (!socketId) return;
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch player data');
-        }
+    // Initial fetch with loading state
+    fetchPlayerData(true);
 
-        const data = await response.json();
-        setPlayerData(data);
-        onPlayerDataLoaded?.(data);
-      } catch (err) {
-        setError('Failed to load wallet data');
-        console.error('Error fetching player data:', err);
-      } finally {
-        setLoading(false);
+    // Socket event handlers for real-time updates
+    const handleRoomUpdated = (room: any) => {
+      // Update player chips from room data if available
+      const currentPlayer = room.players?.find((p: any) => p.socketId === socketId);
+      if (currentPlayer) {
+        setPlayerData(prev => prev ? {
+          ...prev,
+          chips: currentPlayer.chips
+        } : null);
       }
     };
 
-    if (socketId) {
-      fetchPlayerData();
-      
-      // Refresh wallet data every 5 seconds to keep it updated
-      const interval = setInterval(fetchPlayerData, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [socketId, onPlayerDataLoaded]);
+    const handleRoundEnded = () => {
+      // Refresh wallet after round ends (when bets are resolved)
+      const timeSinceLastFetch = Date.now() - lastFetchTime.current;
+      if (timeSinceLastFetch > 2000) { // Avoid too frequent fetches
+        fetchPlayerData(false); // No loading state for real-time updates
+      }
+    };
+
+    // Listen to socket events for real-time updates
+    socket.on('room-updated', handleRoomUpdated);
+    socket.on('round-ended', handleRoundEnded);
+
+    return () => {
+      socket.off('room-updated', handleRoomUpdated);
+      socket.off('round-ended', handleRoundEnded);
+    };
+  }, [socketId]); // Removed playerData?.id dependency to prevent double fetch
 
   if (loading) {
     return (

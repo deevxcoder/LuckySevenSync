@@ -43,7 +43,7 @@ export interface IStorage {
   // Bets
   createBet(bet: InsertBet): Promise<Bet>;
   getBetsByGame(gameId: number): Promise<Bet[]>;
-  getBetsByPlayer(playerId: number, limit?: number): Promise<Bet[]>;
+  getBetsByPlayer(playerId: number, limit?: number): Promise<(Bet & { gameStatus: string })[]>;
   
   // Chat Messages
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
@@ -268,8 +268,20 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(bets.createdAt));
   }
   
-  async getBetsByPlayer(playerId: number, limit: number = 50): Promise<Bet[]> {
-    return await db.select().from(bets)
+  async getBetsByPlayer(playerId: number, limit: number = 50): Promise<(Bet & { gameStatus: string })[]> {
+    return await db.select({
+      id: bets.id,
+      gameId: bets.gameId,
+      playerId: bets.playerId,
+      betAmount: bets.betAmount,
+      betType: bets.betType,
+      betValue: bets.betValue,
+      won: bets.won,
+      winAmount: bets.winAmount,
+      createdAt: bets.createdAt,
+      gameStatus: games.status
+    }).from(bets)
+      .innerJoin(games, eq(bets.gameId, games.id))
       .where(eq(bets.playerId, playerId))
       .orderBy(desc(bets.createdAt))
       .limit(limit);

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
+import { socket } from '../lib/socket';
 
 interface Bet {
   id: number;
@@ -13,6 +14,7 @@ interface Bet {
   won: boolean;
   winAmount: number;
   createdAt: string;
+  gameStatus: string;
 }
 
 interface BetHistoryProps {
@@ -24,40 +26,69 @@ export function BetHistory({ socketId, limit = 10 }: BetHistoryProps) {
   const [bets, setBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const lastFetchTime = useRef<number>(0);
+
+  const fetchBetHistory = async (showLoading = false) => {
+    try {
+      if (showLoading) {
+        setLoading(true);
+      }
+      setError(null);
+      
+      const response = await fetch(`/api/player/bets?limit=${limit}`, {
+        headers: {
+          'socket-id': socketId
+        }
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch bet history');
+      }
+
+      const data = await response.json();
+      setBets(data);
+      lastFetchTime.current = Date.now();
+    } catch (err) {
+      setError('Failed to load bet history');
+      console.error('Error fetching bet history:', err);
+    } finally {
+      if (showLoading) {
+        setLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
-    const fetchBetHistory = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const response = await fetch(`/api/player/bets?limit=${limit}`, {
-          headers: {
-            'socket-id': socketId
-          }
-        });
+    if (!socketId) return;
 
-        if (!response.ok) {
-          throw new Error('Failed to fetch bet history');
-        }
+    // Initial fetch with loading state
+    fetchBetHistory(true);
 
-        const data = await response.json();
-        setBets(data);
-      } catch (err) {
-        setError('Failed to load bet history');
-        console.error('Error fetching bet history:', err);
-      } finally {
-        setLoading(false);
+    // Socket event handlers for real-time updates
+    const handleGameStarting = () => {
+      // Refresh when new game starts (new bets might be placed)
+      const timeSinceLastFetch = Date.now() - lastFetchTime.current;
+      if (timeSinceLastFetch > 2000) {
+        fetchBetHistory(false);
       }
     };
 
-    if (socketId) {
-      fetchBetHistory();
-      
-      // Refresh bet history every 10 seconds
-      const interval = setInterval(fetchBetHistory, 10000);
-      return () => clearInterval(interval);
-    }
+    const handleRoundEnded = () => {
+      // Refresh when round ends (bet results are resolved)
+      const timeSinceLastFetch = Date.now() - lastFetchTime.current;
+      if (timeSinceLastFetch > 1000) {
+        fetchBetHistory(false);
+      }
+    };
+
+    // Listen to socket events for intelligent updates
+    socket.on('game-starting', handleGameStarting);
+    socket.on('round-ended', handleRoundEnded);
+
+    return () => {
+      socket.off('game-starting', handleGameStarting);
+      socket.off('round-ended', handleRoundEnded);
+    };
   }, [socketId, limit]);
 
   const getBetTypeDisplay = (betType: string, betValue: string | null) => {
@@ -153,20 +184,29 @@ export function BetHistory({ socketId, limit = 10 }: BetHistoryProps) {
                       
                       <div className="text-right">
                         <div className="flex items-center gap-2">
-                          <Badge 
-                            variant={bet.won ? "default" : "destructive"}
-                            className={bet.won 
-                              ? "bg-green-800/50 text-green-200 border-green-400/50" 
-                              : "bg-red-800/50 text-red-200 border-red-400/50"
-                            }
-                          >
-                            {bet.won ? 'WON' : 'LOST'}
-                          </Badge>
+                          {bet.gameStatus === 'completed' ? (
+                            <Badge 
+                              variant={bet.won ? "default" : "destructive"}
+                              className={bet.won 
+                                ? "bg-green-800/50 text-green-200 border-green-400/50" 
+                                : "bg-red-800/50 text-red-200 border-red-400/50"
+                              }
+                            >
+                              {bet.won ? 'WON' : 'LOST'}
+                            </Badge>
+                          ) : (
+                            <Badge 
+                              variant="secondary"
+                              className="bg-yellow-800/50 text-yellow-200 border-yellow-400/50"
+                            >
+                              PENDING
+                            </Badge>
+                          )}
                         </div>
                         <div className="text-sm text-white/70 mt-1">
                           Bet: 🪙{bet.betAmount}
                         </div>
-                        {bet.won && bet.winAmount > 0 && (
+                        {bet.gameStatus === 'completed' && bet.won && bet.winAmount > 0 && (
                           <div className="text-sm text-green-300">
                             Won: 🪙{bet.winAmount}
                           </div>
