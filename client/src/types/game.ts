@@ -2,6 +2,8 @@ export interface Player {
   id: string;
   name: string;
   socketId: string;
+  chips?: number;
+  dbId?: number;
 }
 
 export interface Card {

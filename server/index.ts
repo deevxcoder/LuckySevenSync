@@ -66,20 +66,20 @@ app.use((req, res, next) => {
   io.on('connection', (socket) => {
     log(`Player connected: ${socket.id}`);
     
-    socket.on('join-lobby', () => {
-      gameManager.addPlayerToLobby(socket);
+    socket.on('join-lobby', async () => {
+      await gameManager.addPlayerToLobby(socket);
     });
 
-    socket.on('join-room', (roomId: string) => {
-      gameManager.joinRoom(socket, roomId);
+    socket.on('join-room', async (roomId: string) => {
+      await gameManager.joinRoom(socket, roomId);
     });
 
     socket.on('leave-room', () => {
       gameManager.leaveRoom(socket);
     });
 
-    socket.on('start-game', (roomId: string) => {
-      gameManager.startGame(socket, roomId);
+    socket.on('start-game', async (roomId: string) => {
+      await gameManager.startGame(socket, roomId);
     });
 
     socket.on('disconnect', () => {

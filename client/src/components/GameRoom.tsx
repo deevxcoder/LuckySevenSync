@@ -5,6 +5,7 @@ import { useAudio } from '../lib/stores/useAudio';
 import CountdownTimer from './CountdownTimer';
 import Card from './Card';
 import PlayersList from './PlayersList';
+import BettingPanel from './BettingPanel';
 import { Button } from './ui/button';
 import { Card as UICard, CardContent } from './ui/card';
 import type { Card as CardType, GameRoom } from '../types/game';
@@ -14,9 +15,19 @@ export default function GameRoom() {
   const [currentCard, setCurrentCard] = useState<CardType | null>(null);
   const [countdownTime, setCountdownTime] = useState<number>(0);
   const [gameStatus, setGameStatus] = useState<string>('waiting');
+  const [playerChips, setPlayerChips] = useState<number>(1000);
   const { playSuccess, playHit } = useAudio();
 
   useEffect(() => {
+    function onRoomUpdated(room: GameRoom) {
+      setCurrentRoom(room);
+      // Update player chips from room data
+      const currentPlayer = room.players.find((p: any) => p.socketId === socket.id);
+      if (currentPlayer && currentPlayer.chips !== undefined) {
+        setPlayerChips(currentPlayer.chips);
+      }
+    }
+    
     function onGameStarting(data: { room: GameRoom; countdownTime: number }) {
       setCurrentRoom(data.room);
       setCountdownTime(data.countdownTime);
@@ -48,12 +59,14 @@ export default function GameRoom() {
       playHit();
     }
 
+    socket.on('room-updated', onRoomUpdated);
     socket.on('game-starting', onGameStarting);
     socket.on('countdown-tick', onCountdownTick);
     socket.on('card-revealed', onCardRevealed);
     socket.on('round-ended', onRoundEnded);
 
     return () => {
+      socket.off('room-updated', onRoomUpdated);
       socket.off('game-starting', onGameStarting);
       socket.off('countdown-tick', onCountdownTick);
       socket.off('card-revealed', onCardRevealed);
@@ -108,9 +121,9 @@ export default function GameRoom() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Main Game Area */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-8 space-y-6">
             {/* Countdown Timer */}
             {gameStatus === 'countdown' && (
               <UICard className="bg-casino-black border-casino-gold border-2">
@@ -178,9 +191,18 @@ export default function GameRoom() {
             </UICard>
           </div>
 
-          {/* Players List */}
-          <div className="lg:col-span-1">
+          {/* Sidebar - Players and Betting */}
+          <div className="lg:col-span-4 space-y-4">
+            {/* Players List */}
             <PlayersList players={currentRoom.players} />
+            
+            {/* Betting Panel */}
+            <BettingPanel 
+              playerChips={playerChips}
+              gameStatus={gameStatus}
+              countdownTime={countdownTime}
+              roomId={currentRoom.id}
+            />
           </div>
         </div>
       </div>
