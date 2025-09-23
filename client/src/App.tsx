@@ -15,7 +15,7 @@ import { Button } from './components/ui/button';
 function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [socketId, setSocketId] = useState<string>('');
-  const [currentView, setCurrentView] = useState<'game' | 'userDashboard' | 'adminDashboard'>('game');
+  const [currentView, setCurrentView] = useState<'game' | 'userDashboard' | 'adminDashboard'>('userDashboard');
   const [showHomePage, setShowHomePage] = useState(true); // New state for home vs auth
   const { currentRoom, setCurrentRoom, setPlayers } = useGameStore();
   const { initializeSounds, isInitialized, isMuted, toggleMute, playBackgroundMusic } = useAudio();
@@ -95,7 +95,7 @@ function App() {
 
   // Show dashboard views
   if (currentView === 'userDashboard') {
-    return <UserDashboard />;
+    return <UserDashboard onNavigateToGame={() => setCurrentView('game')} />;
   }
 
   if (currentView === 'adminDashboard') {
