@@ -184,7 +184,7 @@ export default function GameRoom() {
                   </div>
                   <div>
                     <span className="font-semibold">Round:</span>
-                    <span className="ml-2 text-casino-gold">#{Math.floor(Date.now() / 30000) % 100}</span>
+                    <span className="ml-2 text-casino-gold">#{currentRoom.roundNumber || 1}</span>
                   </div>
                 </div>
               </CardContent>

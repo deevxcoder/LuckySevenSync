@@ -20,6 +20,7 @@ export interface GameRoom {
   currentCard: Card | null;
   countdownTime: number;
   gameStartTime: number | null;
+  roundNumber?: number;
 }
 
 export type GameEvent = 

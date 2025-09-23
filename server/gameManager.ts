@@ -20,6 +20,7 @@ export interface GameRoom {
   gameStartTime: number | null;
   currentGameId?: number; // Database game ID for bet tracking
   activeBets?: Map<string, any[]>; // socketId -> bets array
+  roundNumber?: number; // Current round number
 }
 
 export interface Card {
@@ -48,7 +49,8 @@ export class GameManager {
       currentCard: null,
       countdownTime: 60,
       gameStartTime: null,
-      activeBets: new Map()
+      activeBets: new Map(),
+      roundNumber: 1
     };
     
     // Set up betting event handlers
@@ -230,8 +232,10 @@ export class GameManager {
       room
     });
 
-    // Start next round immediately to maintain exact 60-second cycle
-    this.startNextRound('GLOBAL');
+    // Wait 3 seconds to show results, then start next round
+    setTimeout(() => {
+      this.startNextRound('GLOBAL');
+    }, 3000);
   }
 
   private startNextRound(roomId: string) {
@@ -243,6 +247,7 @@ export class GameManager {
     room.countdownTime = 60;
     room.currentGameId = undefined; // Reset game ID for next round
     room.activeBets?.clear(); // Ensure bets are cleared
+    room.roundNumber = (room.roundNumber || 1) + 1; // Increment round number
 
     // Send sanitized room (card should be null at this point)
     const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
