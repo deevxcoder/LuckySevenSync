@@ -32,8 +32,9 @@ export default function GameLobby() {
             <ul className="text-sm space-y-2 mb-6">
               <li>🕐 Real-time synchronized countdown</li>
               <li>🃏 Cards numbered 1-13 in red and black</li>
-              <li>👥 Play with up to 10 players</li>
+              <li>👥 Play with unlimited players worldwide</li>
               <li>🎯 Everyone sees identical results</li>
+              <li>⏰ New game every 60 seconds</li>
             </ul>
           </div>
           
@@ -41,11 +42,11 @@ export default function GameLobby() {
             onClick={handleJoinGame}
             className="w-full bg-casino-red hover:bg-red-700 text-white font-bold py-4 text-lg glow-red"
           >
-            Join Game Room
+            🎰 Play Lucky 7 Now!
           </Button>
           
           <div className="text-center text-casino-gold text-sm">
-            Click to join an available room or create a new one
+            Join the global Lucky 7 game with players from around the world!
           </div>
         </CardContent>
       </Card>

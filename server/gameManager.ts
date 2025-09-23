@@ -30,15 +30,26 @@ export interface Card {
 
 export class GameManager {
   private io: Server;
-  private rooms: Map<string, GameRoom>;
-  private playerRooms: Map<string, string>; // socketId -> roomId
+  private globalRoom: GameRoom;
+  private playerRooms: Map<string, string>; // socketId -> roomId (kept for compatibility)
   private countdownIntervals: Map<string, NodeJS.Timeout>;
 
   constructor(io: Server) {
     this.io = io;
-    this.rooms = new Map();
     this.playerRooms = new Map();
     this.countdownIntervals = new Map();
+    
+    // Create one global room for everyone
+    this.globalRoom = {
+      id: 'GLOBAL',
+      players: [],
+      status: 'waiting',
+      maxPlayers: 999999, // No practical limit
+      currentCard: null,
+      countdownTime: 60,
+      gameStartTime: null,
+      activeBets: new Map()
+    };
     
     // Set up betting event handlers
     this.setupBettingHandlers();
@@ -72,51 +83,23 @@ export class GameManager {
         dbPlayer = existing;
       } else {
         console.error('Failed to create/find player:', error);
-        socket.emit('error', 'Failed to join lobby');
+        socket.emit('error', 'Failed to join game');
         return;
       }
     }
     
-    // Find an available room or create a new one
-    let availableRoom: GameRoom | null = null;
-    
-    for (const room of Array.from(this.rooms.values())) {
-      if (room.status === 'waiting' && room.players.length < room.maxPlayers) {
-        availableRoom = room;
-        break;
-      }
-    }
-
-    if (!availableRoom) {
-      // Create new room
-      const roomId = this.generateRoomId();
-      availableRoom = {
-        id: roomId,
-        players: [],
-        status: 'waiting',
-        maxPlayers: 10,
-        currentCard: null,
-        countdownTime: 30,
-        gameStartTime: null,
-        activeBets: new Map()
-      };
-      this.rooms.set(roomId, availableRoom);
-    }
-
-    await this.joinRoom(socket, availableRoom.id);
+    // Join the global room directly
+    await this.joinRoom(socket, 'GLOBAL');
   }
 
   async joinRoom(socket: Socket, roomId: string) {
-    const room = this.rooms.get(roomId);
+    const room = this.globalRoom; // Always use global room
     if (!room) {
-      socket.emit('error', 'Room not found');
+      socket.emit('error', 'Game not available');
       return;
     }
 
-    if (room.players.length >= room.maxPlayers) {
-      socket.emit('error', 'Room is full');
-      return;
-    }
+    // No player limit check - everyone can join
 
     // Remove player from any existing room first
     this.leaveRoom(socket);
@@ -141,18 +124,18 @@ export class GameManager {
     };
 
     room.players.push(player);
-    this.playerRooms.set(socket.id, roomId);
-    socket.join(roomId);
+    this.playerRooms.set(socket.id, 'GLOBAL');
+    socket.join('GLOBAL');
 
     // Emit updated room state (sanitized to prevent card leaks)
     const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
-    this.io.to(roomId).emit('room-updated', sanitizedRoom);
+    this.io.to('GLOBAL').emit('room-updated', sanitizedRoom);
     
-    console.log(`Player ${socket.id} joined room ${roomId}`);
+    console.log(`Player ${socket.id} joined Lucky 7 game`);
 
     // Auto-start game immediately (no minimum player requirement)
     if (room.status === 'waiting') {
-      setTimeout(() => this.startGame(socket, roomId), 2000);
+      setTimeout(() => this.startGame(socket, 'GLOBAL'), 2000);
     }
   }
 
@@ -160,36 +143,24 @@ export class GameManager {
     const roomId = this.playerRooms.get(socket.id);
     if (!roomId) return;
 
-    const room = this.rooms.get(roomId);
-    if (!room) return;
+    const room = this.globalRoom;
 
     // Remove player from room
-    room.players = room.players.filter(p => p.socketId !== socket.id);
+    room.players = room.players.filter((p: Player) => p.socketId !== socket.id);
     this.playerRooms.delete(socket.id);
     socket.leave(roomId);
 
-    // If room is empty, delete it
-    if (room.players.length === 0) {
-      const interval = this.countdownIntervals.get(roomId);
-      if (interval) {
-        clearInterval(interval);
-        this.countdownIntervals.delete(roomId);
-      }
-      this.rooms.delete(roomId);
-      console.log(`Room ${roomId} deleted - empty`);
-    } else {
-      // Emit updated room state (sanitized to prevent card leaks)
-      const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
-      this.io.to(roomId).emit('room-updated', sanitizedRoom);
-      console.log(`Player ${socket.id} left room ${roomId}`);
-    }
+    // Emit updated room state (sanitized to prevent card leaks)
+    const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
+    this.io.to('GLOBAL').emit('room-updated', sanitizedRoom);
+    console.log(`Player ${socket.id} left Lucky 7 game`);
   }
 
   async startGame(socket: Socket, roomId: string) {
-    const room = this.rooms.get(roomId);
+    const room = this.globalRoom;
     if (!room || room.status !== 'waiting') return;
 
-    console.log(`Starting game in room ${roomId}`);
+    console.log(`Starting Lucky 7 game for everyone`);
     
     room.status = 'countdown';
     room.countdownTime = 60; // 60 second countdown before card reveal
@@ -201,21 +172,21 @@ export class GameManager {
     // Create game record immediately to prevent race conditions
     try {
       const gameRecord = await storage.createGame({
-        roomId,
+        roomId: 'GLOBAL',
         cardNumber: room.currentCard.number,
         cardColor: room.currentCard.color,
         totalBets: 0,
         totalPlayers: room.players.length
       });
       room.currentGameId = gameRecord.id;
-      console.log(`Created game record ${gameRecord.id} for room ${roomId}`);
+      console.log(`Created game record ${gameRecord.id} for Lucky 7`);
     } catch (error) {
       console.error('Failed to create game record:', error);
     }
 
     // Send sanitized room without card details to prevent cheating
     const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
-    this.io.to(roomId).emit('game-starting', {
+    this.io.to('GLOBAL').emit('game-starting', {
       room: sanitizedRoom,
       countdownTime: room.countdownTime
     });
@@ -226,45 +197,45 @@ export class GameManager {
       
       // Send sanitized room without card details during countdown
       const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
-      this.io.to(roomId).emit('countdown-tick', {
+      this.io.to('GLOBAL').emit('countdown-tick', {
         time: room.countdownTime,
         room: sanitizedRoom
       });
 
       if (room.countdownTime <= 0) {
         clearInterval(interval);
-        this.countdownIntervals.delete(roomId);
-        this.revealCard(roomId);
+        this.countdownIntervals.delete('GLOBAL');
+        this.revealCard('GLOBAL');
       }
     }, 1000);
 
-    this.countdownIntervals.set(roomId, interval);
+    this.countdownIntervals.set('GLOBAL', interval);
   }
 
   private async revealCard(roomId: string) {
-    const room = this.rooms.get(roomId);
+    const room = this.globalRoom;
     if (!room || !room.currentCard) return;
 
     room.status = 'playing';
     room.currentCard.revealed = true;
 
-    console.log(`Revealing card in room ${roomId}:`, room.currentCard);
+    console.log(`Revealing card in Lucky 7:`, room.currentCard);
 
     // Resolve all bets for this game
     await this.resolveBets(room);
 
     // Now that card is revealed, send full room
-    this.io.to(roomId).emit('card-revealed', {
+    this.io.to('GLOBAL').emit('card-revealed', {
       card: room.currentCard,
       room
     });
 
     // Start next round immediately to maintain exact 60-second cycle
-    this.startNextRound(roomId);
+    this.startNextRound('GLOBAL');
   }
 
   private startNextRound(roomId: string) {
-    const room = this.rooms.get(roomId);
+    const room = this.globalRoom;
     if (!room) return;
 
     room.status = 'waiting';
@@ -275,10 +246,10 @@ export class GameManager {
 
     // Send sanitized room (card should be null at this point)
     const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
-    this.io.to(roomId).emit('round-ended', { room: sanitizedRoom });
+    this.io.to('GLOBAL').emit('round-ended', { room: sanitizedRoom });
 
     // Auto-start next round immediately (no minimum player requirement)
-    this.startGame(room.players[0] as any, roomId);
+    this.startGame(room.players[0] as any, 'GLOBAL');
   }
 
   handleDisconnect(socket: Socket) {
@@ -296,16 +267,16 @@ export class GameManager {
 
   private async handlePlaceBet(socket: Socket, data: { roomId: string; betType: string; betValue: string; amount: number }) {
     try {
-      const room = this.rooms.get(data.roomId);
+      const room = this.globalRoom;
       if (!room || room.status !== 'countdown' || room.countdownTime <= 20) {
         socket.emit('bet-error', 'Cannot place bet at this time');
         return;
       }
 
-      // Verify player is in this room
-      const playerInRoom = room.players.find(p => p.socketId === socket.id);
-      if (!playerInRoom || this.playerRooms.get(socket.id) !== data.roomId) {
-        socket.emit('bet-error', 'You must be in the room to place bets');
+      // Verify player is in the game
+      const playerInRoom = room.players.find((p: Player) => p.socketId === socket.id);
+      if (!playerInRoom) {
+        socket.emit('bet-error', 'You must be in the game to place bets');
         return;
       }
 
@@ -345,7 +316,7 @@ export class GameManager {
       );
 
       // Update room player chips
-      const roomPlayer = room.players.find(p => p.socketId === socket.id);
+      const roomPlayer = room.players.find((p: Player) => p.socketId === socket.id);
       if (roomPlayer) {
         roomPlayer.chips = betResult.updatedPlayer.chips;
       }
@@ -360,7 +331,7 @@ export class GameManager {
 
       // Notify room of updated player chips (sanitized to prevent card leaks)
       const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
-      this.io.to(data.roomId).emit('room-updated', sanitizedRoom);
+      this.io.to('GLOBAL').emit('room-updated', sanitizedRoom);
       socket.emit('bet-placed', { bet: betResult.bet, chips: betResult.updatedPlayer.chips });
       
       console.log(`Bet placed: ${data.amount} chips on ${data.betType} by ${socket.id}`);
@@ -386,7 +357,7 @@ export class GameManager {
           const result = await storage.resolveBet(bet.id, won, winAmount);
           
           // Update room player chips
-          const roomPlayer = room.players.find(p => p.socketId === socketId);
+          const roomPlayer = room.players.find((p: Player) => p.socketId === socketId);
           if (roomPlayer && result.updatedPlayer) {
             roomPlayer.chips = result.updatedPlayer.chips;
           }
