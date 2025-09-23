@@ -1,0 +1,58 @@
+# Overview
+
+Lucky 7 is a real-time multiplayer card game built with React, Express, and Socket.io. Players join synchronized game rooms where they can place bets on card properties (color, number ranges, or the lucky number 7) before a countdown reveals the result. The application features a comprehensive betting system with virtual chips, user authentication, game history tracking, and immersive audio/visual effects.
+
+# User Preferences
+
+Preferred communication style: Simple, everyday language.
+
+# System Architecture
+
+## Frontend Architecture
+The client is built with React and TypeScript using Vite as the build tool. The UI leverages Radix UI components with Tailwind CSS for styling, providing a cohesive casino-themed design system. State management is handled through Zustand stores for game state, audio controls, and authentication. The application includes Three.js integration for potential 3D visual effects and immersive gaming elements.
+
+## Backend Architecture
+The server uses Express.js with Socket.io for real-time multiplayer functionality. Game logic is centralized in a GameManager class that handles room management, synchronized countdowns, and betting mechanics. Session-based authentication is implemented with role-based access control (user/admin). The architecture separates concerns between HTTP routes for authentication/data access and WebSocket events for real-time game interactions.
+
+## Database Design
+PostgreSQL database with Drizzle ORM handles data persistence. The schema includes users for authentication, players for game-specific data (chips, stats), games for match history, bets for wagering records, and chat messages for in-game communication. The design supports tracking bet outcomes, player statistics, and complete game audit trails.
+
+## Real-time Communication
+Socket.io manages all real-time features including room joining/leaving, synchronized countdowns, simultaneous card reveals, and live chat. Events are structured to maintain game state consistency across all connected clients, ensuring fair gameplay and synchronized experiences.
+
+## Authentication & Authorization
+Session-based authentication with bcrypt password hashing provides secure user management. The system supports both regular users and admin roles, with middleware protecting sensitive routes and admin functionality like user management dashboards.
+
+## Audio System
+Custom audio management with support for background music, sound effects (card reveals, countdowns, betting actions), and user-controlled muting. Audio files are handled as Vite assets with proper loading and playback controls.
+
+# External Dependencies
+
+## Database Services
+- **PostgreSQL**: Primary database for user accounts, game history, betting records, and chat logs
+- **Neon Database**: Serverless PostgreSQL provider via `@neondatabase/serverless`
+
+## Real-time Communication
+- **Socket.io**: WebSocket library enabling real-time multiplayer game rooms, synchronized events, and live chat functionality
+
+## Authentication & Security
+- **bcrypt**: Password hashing for secure user credential storage
+- **express-session**: Session management for user authentication state
+
+## UI Framework & Styling
+- **Radix UI**: Comprehensive component library providing accessible UI primitives
+- **Tailwind CSS**: Utility-first CSS framework for responsive casino-themed styling
+- **React Three Fiber**: 3D rendering capabilities for enhanced visual effects
+
+## Development & Build Tools
+- **Vite**: Fast build tool and development server with HMR support
+- **TypeScript**: Type safety across frontend and backend code
+- **Drizzle**: Type-safe SQL ORM with migration support
+
+## State Management & Data Fetching
+- **Zustand**: Lightweight state management for game state, audio, and user data
+- **TanStack Query**: Server state management and caching for API interactions
+
+## Audio & Assets
+- **GLSL shader support**: For advanced visual effects
+- **Multi-format audio support**: MP3, OGG, WAV files for game sounds and music
