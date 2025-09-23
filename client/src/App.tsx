@@ -101,14 +101,16 @@ function App() {
             >
               📊 Dashboard
             </Button>
-            <Button
-              onClick={() => setCurrentView('adminDashboard')}
-              variant="outline"
-              size="sm"
-              className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
-            >
-              🛠️ Admin
-            </Button>
+            {user?.role === 'admin' && (
+              <Button
+                onClick={() => setCurrentView('adminDashboard')}
+                variant="outline"
+                size="sm"
+                className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+              >
+                🛠️ Admin
+              </Button>
+            )}
             <Button
               onClick={toggleMute}
               variant="outline"

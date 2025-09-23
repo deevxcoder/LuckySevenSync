@@ -25,6 +25,7 @@ export interface IStorage {
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  createAdminUser(user: InsertUser): Promise<User>;
   
   // Players
   getPlayer(id: number): Promise<Player | undefined>;
@@ -88,6 +89,17 @@ export class DatabaseStorage implements IStorage {
   async getAllUsers(): Promise<User[]> {
     const result = await db.select().from(users);
     return result;
+  }
+
+  async createAdminUser(user: InsertUser): Promise<User> {
+    // Hash password before storing
+    const hashedPassword = await bcrypt.hash(user.password, 10);
+    const result = await db.insert(users).values({
+      ...user,
+      password: hashedPassword,
+      role: 'admin'
+    }).returning();
+    return result[0];
   }
   
   // Players
