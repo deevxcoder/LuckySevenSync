@@ -18,23 +18,22 @@ export default function GameRoom() {
   const [recentResults, setRecentResults] = useState<any[]>([]);
   const { playSuccess, playHit } = useAudio();
 
-  // Fetch recent results
-  useEffect(() => {
-    const fetchResults = async () => {
-      try {
-        const response = await fetch('/api/games/recent');
-        if (response.ok) {
-          const data = await response.json();
-          setRecentResults(data.slice(0, 10));
-        }
-      } catch (error) {
-        console.error('Failed to fetch recent results:', error);
+  // Fetch recent results only when needed
+  const fetchResults = async () => {
+    try {
+      const response = await fetch('/api/games/recent');
+      if (response.ok) {
+        const data = await response.json();
+        setRecentResults(data.slice(0, 10));
       }
-    };
+    } catch (error) {
+      console.error('Failed to fetch recent results:', error);
+    }
+  };
 
+  // Initial fetch
+  useEffect(() => {
     fetchResults();
-    const interval = setInterval(fetchResults, 30000);
-    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -76,6 +75,8 @@ export default function GameRoom() {
       setCountdownTime(0);
       // Play round end sound
       playHit();
+      // Update recent results when new round starts (after 3-second delay)
+      fetchResults();
     }
 
     socket.on('room-updated', onRoomUpdated);
