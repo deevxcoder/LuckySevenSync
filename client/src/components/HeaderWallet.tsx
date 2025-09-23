@@ -36,6 +36,12 @@ export function HeaderWallet({ socketId }: HeaderWalletProps) {
       });
 
       if (!response.ok) {
+        // Don't treat 404 as an error - user may not have joined a game yet
+        if (response.status === 404) {
+          setPlayerData(null);
+          setError(null);
+          return;
+        }
         throw new Error('Failed to fetch player data');
       }
 
@@ -44,6 +50,7 @@ export function HeaderWallet({ socketId }: HeaderWalletProps) {
       setError(null);
       lastFetchTime.current = Date.now();
     } catch (err) {
+      // Only log actual errors, not 404s
       console.error('Error fetching player data for header:', err);
       setError('Failed to load wallet');
       if (showLoading) {

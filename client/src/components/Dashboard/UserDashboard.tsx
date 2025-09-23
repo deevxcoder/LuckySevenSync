@@ -5,12 +5,6 @@ import { HeaderWallet } from '../HeaderWallet';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
 import { socket } from '../../lib/socket';
 
-interface UserStats {
-  username: string;
-  gamesPlayed: number;
-  totalWins: number;
-  totalLosses: number;
-}
 
 interface UserDashboardProps {
   onNavigateToGame?: () => void;
@@ -18,9 +12,6 @@ interface UserDashboardProps {
 
 export default function UserDashboard({ onNavigateToGame }: UserDashboardProps) {
   const { user, logout } = useAuthStore();
-  const [stats, setStats] = useState<UserStats | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [socketId, setSocketId] = useState<string>('');
 
   useEffect(() => {
@@ -46,38 +37,11 @@ export default function UserDashboard({ onNavigateToGame }: UserDashboardProps) 
     };
   }, []);
 
-  useEffect(() => {
-    const fetchUserStats = async () => {
-      if (!user) return;
-      
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const response = await fetch(`/api/users/${user.id}/stats`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch user stats');
-        }
-        
-        const data = await response.json();
-        setStats(data);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load stats');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUserStats();
-  }, [user]);
 
   const handleLogout = () => {
     logout();
   };
 
-  const winRate = stats && stats.gamesPlayed > 0 
-    ? ((stats.totalWins / stats.gamesPlayed) * 100).toFixed(1)
-    : '0.0';
 
   return (
     <div className="min-h-screen bg-casino-green relative">
@@ -122,64 +86,6 @@ export default function UserDashboard({ onNavigateToGame }: UserDashboardProps) 
             <p className="text-white mt-1">Track your Lucky 7 performance</p>
           </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          {isLoading ? (
-            <div className="col-span-full text-center text-white py-8">
-              Loading stats...
-            </div>
-          ) : error ? (
-            <div className="col-span-full text-center text-red-300 py-8">
-              {error}
-            </div>
-          ) : (
-            <>
-              <Card className="bg-casino-black border-casino-gold">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-casino-gold text-lg">Games Played</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-white">
-                    {stats?.gamesPlayed || 0}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-casino-black border-casino-gold">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-casino-gold text-lg">Total Wins</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-400">
-                    {stats?.totalWins || 0}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-casino-black border-casino-gold">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-casino-gold text-lg">Total Losses</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-red-400">
-                    {stats?.totalLosses || 0}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-casino-black border-casino-gold">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-casino-gold text-lg">Win Rate</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-casino-gold">
-                    {winRate}%
-                  </div>
-                </CardContent>
-              </Card>
-            </>
-          )}
-        </div>
 
           {/* Game Actions */}
           <Card className="bg-casino-black border-casino-gold">
