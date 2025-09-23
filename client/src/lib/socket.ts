@@ -1,7 +1,10 @@
 import { io } from 'socket.io-client';
 
-// Connect to the same host and port as the web server
-const URL = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:5000';
+// Connect to the same host and port as the web server  
+// Let socket.io auto-detect the connection URL in development
+const URL = undefined; // Auto-detect connection
+
+console.log('🔌 Initializing socket with URL:', URL);
 
 export const socket = io(URL, {
   autoConnect: true,
@@ -9,6 +12,7 @@ export const socket = io(URL, {
   reconnectionDelay: 1000,
   reconnectionDelayMax: 5000,
   reconnectionAttempts: 5,
+  transports: ['polling', 'websocket'],  // Try polling first, then websocket
 });
 
 // Log connection events for debugging
@@ -27,3 +31,10 @@ socket.on('reconnect', (attemptNumber) => {
 socket.on('reconnect_error', (error) => {
   console.error('🔌 Reconnection error:', error);
 });
+
+socket.on('connect_error', (error) => {
+  console.error('🔌 Connection error:', error);
+});
+
+// Log initial connection state
+console.log('🔌 Socket connected state:', socket.connected);
