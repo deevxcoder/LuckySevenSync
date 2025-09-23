@@ -6,6 +6,7 @@ import AuthContainer from './components/Auth/AuthContainer';
 import HomePage from './components/HomePage';
 import UserDashboard from './components/Dashboard/UserDashboard';
 import AdminDashboard from './components/Dashboard/AdminDashboard';
+import { HeaderWallet } from './components/HeaderWallet';
 import { useGameStore } from './lib/stores/useGameStore';
 import { useAudio } from './lib/stores/useAudio';
 import { useAuthStore } from './lib/stores/useAuthStore';
@@ -13,6 +14,7 @@ import { Button } from './components/ui/button';
 
 function App() {
   const [isConnected, setIsConnected] = useState(false);
+  const [socketId, setSocketId] = useState<string>('');
   const [currentView, setCurrentView] = useState<'game' | 'userDashboard' | 'adminDashboard'>('game');
   const [showHomePage, setShowHomePage] = useState(true); // New state for home vs auth
   const { currentRoom, setCurrentRoom, setPlayers } = useGameStore();
@@ -25,14 +27,22 @@ function App() {
       initializeSounds();
     }
     
+    // Check if already connected
+    if (socket.connected && socket.id) {
+      setIsConnected(true);
+      setSocketId(socket.id);
+    }
+    
     function onConnect() {
       setIsConnected(true);
+      setSocketId(socket.id || '');
       console.log('Connected to server');
       // Don't auto-play music - wait for user to unmute (satisfies autoplay policies)
     }
 
     function onDisconnect() {
       setIsConnected(false);
+      setSocketId('');
       console.log('Disconnected from server');
     }
 
@@ -104,6 +114,7 @@ function App() {
           </div>
           
           <div className="flex items-center gap-2">
+            <HeaderWallet socketId={socketId} />
             <Button
               onClick={() => setCurrentView('userDashboard')}
               variant="outline"
