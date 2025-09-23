@@ -24,6 +24,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  getAllUsers(): Promise<User[]>;
   
   // Players
   getPlayer(id: number): Promise<Player | undefined>;
@@ -82,6 +83,11 @@ export class DatabaseStorage implements IStorage {
     
     const isValid = await bcrypt.compare(password, user.password);
     return isValid ? user : null;
+  }
+  
+  async getAllUsers(): Promise<User[]> {
+    const result = await db.select().from(users);
+    return result;
   }
   
   // Players

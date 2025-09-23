@@ -2,14 +2,20 @@ import { useEffect, useState } from 'react';
 import { socket } from './lib/socket';
 import GameLobby from './components/GameLobby';
 import GameRoom from './components/GameRoom';
+import AuthContainer from './components/Auth/AuthContainer';
+import UserDashboard from './components/Dashboard/UserDashboard';
+import AdminDashboard from './components/Dashboard/AdminDashboard';
 import { useGameStore } from './lib/stores/useGameStore';
 import { useAudio } from './lib/stores/useAudio';
+import { useAuthStore } from './lib/stores/useAuthStore';
 import { Button } from './components/ui/button';
 
 function App() {
   const [isConnected, setIsConnected] = useState(false);
+  const [currentView, setCurrentView] = useState<'game' | 'userDashboard' | 'adminDashboard'>('game');
   const { currentRoom, setCurrentRoom, setPlayers } = useGameStore();
   const { initializeSounds, isInitialized, isMuted, toggleMute, playBackgroundMusic } = useAudio();
+  const { isAuthenticated, user } = useAuthStore();
 
   useEffect(() => {
     // Initialize sounds when app loads
@@ -51,6 +57,11 @@ function App() {
     };
   }, [setCurrentRoom, setPlayers, initializeSounds, isInitialized, isMuted, playBackgroundMusic]);
 
+  // Show authentication if user is not logged in
+  if (!isAuthenticated) {
+    return <AuthContainer />;
+  }
+
   if (!isConnected) {
     return (
       <div className="min-h-screen bg-casino-green flex items-center justify-center">
@@ -61,21 +72,59 @@ function App() {
     );
   }
 
+  // Show dashboard views
+  if (currentView === 'userDashboard') {
+    return <UserDashboard />;
+  }
+
+  if (currentView === 'adminDashboard') {
+    return <AdminDashboard />;
+  }
+
+  // Show main game interface with navigation
   return (
     <div className="min-h-screen bg-casino-green relative">
-      {/* Sound Control Button */}
-      <div className="absolute top-4 right-4 z-50">
-        <Button
-          onClick={toggleMute}
-          variant="outline"
-          size="sm"
-          className="bg-casino-black border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
-        >
-          {isMuted ? '🔇 Unmute' : '🔊 Mute'}
-        </Button>
+      {/* Top Navigation Bar */}
+      <div className="absolute top-0 left-0 right-0 z-50 bg-casino-black/80 border-b border-casino-gold">
+        <div className="flex justify-between items-center px-4 py-2">
+          <div className="flex items-center gap-4">
+            <h2 className="text-casino-gold font-bold text-lg">🎰 Lucky 7</h2>
+            <span className="text-white">Welcome, {user?.username}</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setCurrentView('userDashboard')}
+              variant="outline"
+              size="sm"
+              className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+            >
+              📊 Dashboard
+            </Button>
+            <Button
+              onClick={() => setCurrentView('adminDashboard')}
+              variant="outline"
+              size="sm"
+              className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+            >
+              🛠️ Admin
+            </Button>
+            <Button
+              onClick={toggleMute}
+              variant="outline"
+              size="sm"
+              className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+            >
+              {isMuted ? '🔇' : '🔊'}
+            </Button>
+          </div>
+        </div>
       </div>
       
-      {currentRoom ? <GameRoom /> : <GameLobby />}
+      {/* Game Content with top padding for navigation */}
+      <div className="pt-16">
+        {currentRoom ? <GameRoom /> : <GameLobby />}
+      </div>
     </div>
   );
 }
