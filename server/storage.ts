@@ -114,6 +114,11 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+  async getPlayerByUserId(userId: number): Promise<Player | undefined> {
+    const result = await db.select().from(players).where(eq(players.userId, userId));
+    return result[0];
+  }
+  
   async createPlayer(player: InsertPlayer): Promise<Player> {
     // Check if player already exists with this socketId
     const existing = await this.getPlayerBySocketId(player.socketId);
@@ -122,6 +127,32 @@ export class DatabaseStorage implements IStorage {
     }
     const result = await db.insert(players).values(player).returning();
     return result[0];
+  }
+  
+  async createOrUpdatePlayerByUserId(userId: number, socketId: string, name: string): Promise<Player> {
+    // Check if player already exists for this user
+    const existing = await this.getPlayerByUserId(userId);
+    if (existing) {
+      // Update existing player's socketId (they've reconnected)
+      const result = await db.update(players)
+        .set({ 
+          socketId,
+          name, // Update name in case it changed
+          updatedAt: new Date() 
+        })
+        .where(eq(players.userId, userId))
+        .returning();
+      return result[0];
+    } else {
+      // Create new player for this user
+      const result = await db.insert(players).values({
+        userId,
+        socketId,
+        name,
+        chips: 1000, // Start with default chips only for new players
+      }).returning();
+      return result[0];
+    }
   }
   
   async updatePlayerChips(playerId: number, chips: number): Promise<Player | undefined> {

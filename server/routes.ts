@@ -28,18 +28,25 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   // Get player information (chips, stats)
-  app.get("/api/player/me", async (req, res) => {
+  app.get("/api/player/me", optionalAuth, async (req: AuthRequest, res) => {
     try {
-      // For now, get player by socket connection (could be improved with proper auth)
+      // Check if user is authenticated
+      if (!req.user) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      // Get socketId from header for current connection
       const socketId = req.headers['socket-id'] as string;
       if (!socketId) {
         return res.status(400).json({ message: "Socket ID required" });
       }
 
-      const player = await storage.getPlayerBySocketId(socketId);
-      if (!player) {
-        return res.status(404).json({ message: "Player not found" });
-      }
+      // Create or update player record for this user
+      const player = await storage.createOrUpdatePlayerByUserId(
+        req.user.id,
+        socketId,
+        req.user.username
+      );
 
       res.json({
         id: player.id,
@@ -55,16 +62,18 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   // Get player bet history
-  app.get("/api/player/bets", async (req, res) => {
+  app.get("/api/player/bets", optionalAuth, async (req: AuthRequest, res) => {
     try {
-      const socketId = req.headers['socket-id'] as string;
-      if (!socketId) {
-        return res.status(400).json({ message: "Socket ID required" });
+      // Check if user is authenticated
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
       }
 
-      const player = await storage.getPlayerBySocketId(socketId);
+      // Find the player record for this user
+      const player = await storage.getPlayerByUserId(req.user.id);
       if (!player) {
-        return res.status(404).json({ message: "Player not found" });
+        // User doesn't have a player record yet, return empty bets
+        return res.json([]);
       }
 
       const limit = parseInt(req.query.limit as string) || 20;

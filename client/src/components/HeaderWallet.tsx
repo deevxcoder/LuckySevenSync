@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Badge } from './ui/badge';
 import { socket } from '../lib/socket';
+import { useAuthStore } from '../lib/stores/useAuthStore';
 
 interface PlayerData {
   id: number;
@@ -15,6 +16,7 @@ interface HeaderWalletProps {
 }
 
 export function HeaderWallet({ socketId }: HeaderWalletProps) {
+  const { user, isAuthenticated } = useAuthStore();
   const [playerData, setPlayerData] = useState<PlayerData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +51,14 @@ export function HeaderWallet({ socketId }: HeaderWalletProps) {
       setPlayerData(data);
       setError(null);
       lastFetchTime.current = Date.now();
+      
+      // Notify gameManager about authenticated player if user is logged in
+      if (isAuthenticated && user && socketId) {
+        socket.emit('update-player-auth', {
+          userId: user.id,
+          username: user.username
+        });
+      }
     } catch (err) {
       // Only log actual errors, not 404s
       console.error('Error fetching player data for header:', err);

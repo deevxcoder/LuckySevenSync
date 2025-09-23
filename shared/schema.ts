@@ -22,7 +22,8 @@ export type User = typeof users.$inferSelect;
 // Players table for game-specific data
 export const players = pgTable("players", {
   id: serial("id").primaryKey(),
-  socketId: varchar("socket_id", { length: 255 }).notNull().unique(),
+  userId: integer("user_id").references(() => users.id).notNull(),
+  socketId: varchar("socket_id", { length: 255 }).notNull(),
   name: text("name").notNull(),
   chips: integer("chips").default(1000).notNull(),
   totalWins: integer("total_wins").default(0).notNull(),
@@ -67,6 +68,7 @@ export const chatMessages = pgTable("chat_messages", {
 
 // Schema validation types
 export const insertPlayerSchema = createInsertSchema(players).pick({
+  userId: true,
   socketId: true,
   name: true,
   chips: true,

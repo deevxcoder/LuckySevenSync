@@ -70,27 +70,7 @@ export class GameManager {
   }
 
   async addPlayerToLobby(socket: Socket) {
-    // Create or find persistent player in database
-    let dbPlayer: DBPlayer;
-    try {
-      dbPlayer = await storage.createPlayer({
-        socketId: socket.id,
-        name: `Player ${Math.floor(Math.random() * 1000)}`,
-        chips: 1000 // Starting chips
-      });
-    } catch (error) {
-      // Player might already exist, try to find them
-      const existing = await storage.getPlayerBySocketId(socket.id);
-      if (existing) {
-        dbPlayer = existing;
-      } else {
-        console.error('Failed to create/find player:', error);
-        socket.emit('error', 'Failed to join game');
-        return;
-      }
-    }
-    
-    // Join the global room directly
+    // Join the global room directly - player creation handled by API endpoints
     await this.joinRoom(socket, 'GLOBAL');
   }
 
@@ -106,23 +86,13 @@ export class GameManager {
     // Remove player from any existing room first
     this.leaveRoom(socket);
 
-    // Get or create persistent player
-    let dbPlayer = await storage.getPlayerBySocketId(socket.id);
-    if (!dbPlayer) {
-      dbPlayer = await storage.createPlayer({
-        socketId: socket.id,
-        name: `Player ${room.players.length + 1}`,
-        chips: 1000
-      });
-    }
-
-    // Add player to new room
+    // Create a basic room player object (database persistence handled by API endpoints)
     const player: Player = {
       id: socket.id,
-      name: dbPlayer.name,
+      name: `Player ${room.players.length + 1}`,
       socketId: socket.id,
-      chips: dbPlayer.chips,
-      dbId: dbPlayer.id
+      chips: 1000, // Default chips - real balance from database via API
+      dbId: undefined // Will be set when player authenticates and API creates database record
     };
 
     room.players.push(player);
@@ -277,7 +247,39 @@ export class GameManager {
       socket.on('place-bet', async (data: { roomId: string; betType: string; betValue: string; amount: number }) => {
         await this.handlePlaceBet(socket, data);
       });
+      
+      // Handle authentication updates
+      socket.on('update-player-auth', async (data: { userId: number; username: string }) => {
+        await this.handlePlayerAuth(socket, data);
+      });
     });
+  }
+
+  private async handlePlayerAuth(socket: Socket, data: { userId: number; username: string }) {
+    try {
+      const room = this.globalRoom;
+      if (!room) return;
+
+      // Find the room player for this socket
+      const roomPlayer = room.players.find((p: Player) => p.socketId === socket.id);
+      if (!roomPlayer) return;
+
+      // Get or create the database player record for this user
+      const dbPlayer = await storage.createOrUpdatePlayerByUserId(data.userId, socket.id, data.username);
+      
+      // Update the room player with database information
+      roomPlayer.name = dbPlayer.name;
+      roomPlayer.chips = dbPlayer.chips;
+      roomPlayer.dbId = dbPlayer.id;
+
+      // Broadcast updated room state
+      const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
+      this.io.to('GLOBAL').emit('room-updated', sanitizedRoom);
+      
+      console.log(`Player ${socket.id} authenticated as user ${data.userId} (${data.username}) with ${dbPlayer.chips} chips`);
+    } catch (error) {
+      console.error('Error handling player authentication:', error);
+    }
   }
 
   private async handlePlaceBet(socket: Socket, data: { roomId: string; betType: string; betValue: string; amount: number }) {
@@ -288,17 +290,23 @@ export class GameManager {
         return;
       }
 
-      // Verify player is in the game
+      // Verify player is in the game and authenticated
       const playerInRoom = room.players.find((p: Player) => p.socketId === socket.id);
       if (!playerInRoom) {
         socket.emit('bet-error', 'You must be in the game to place bets');
         return;
       }
 
-      // Find player in database
-      const dbPlayer = await storage.getPlayerBySocketId(socket.id);
+      // Check if player is authenticated (has dbId from authentication)
+      if (!playerInRoom.dbId) {
+        socket.emit('bet-error', 'Authentication required to place bets');
+        return;
+      }
+
+      // Get current database player state
+      const dbPlayer = await storage.getPlayer(playerInRoom.dbId);
       if (!dbPlayer) {
-        socket.emit('bet-error', 'Player not found');
+        socket.emit('bet-error', 'Player record not found');
         return;
       }
 
