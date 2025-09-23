@@ -36,6 +36,7 @@ export interface IStorage {
   
   // Games
   createGame(game: InsertGame): Promise<Game>;
+  markGameCompleted(gameId: number): Promise<Game | undefined>;
   getGameHistory(limit?: number): Promise<Game[]>;
   getGamesByRoom(roomId: string, limit?: number): Promise<Game[]>;
   
@@ -233,8 +234,17 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+  async markGameCompleted(gameId: number): Promise<Game | undefined> {
+    const result = await db.update(games)
+      .set({ status: 'completed' })
+      .where(eq(games.id, gameId))
+      .returning();
+    return result[0];
+  }
+
   async getGameHistory(limit: number = 50): Promise<Game[]> {
     return await db.select().from(games)
+      .where(eq(games.status, 'completed'))
       .orderBy(desc(games.createdAt))
       .limit(limit);
   }

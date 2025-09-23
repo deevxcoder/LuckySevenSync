@@ -226,6 +226,16 @@ export class GameManager {
     // Resolve all bets for this game
     await this.resolveBets(room);
 
+    // Mark game as completed
+    if (room.currentGameId) {
+      try {
+        await storage.markGameCompleted(room.currentGameId);
+        console.log(`Game ${room.currentGameId} marked as completed`);
+      } catch (error) {
+        console.error('Failed to mark game as completed:', error);
+      }
+    }
+
     // Now that card is revealed, send full room
     this.io.to('GLOBAL').emit('card-revealed', {
       card: room.currentCard,

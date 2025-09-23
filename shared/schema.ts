@@ -39,6 +39,7 @@ export const games = pgTable("games", {
   cardColor: varchar("card_color", { length: 10 }).notNull(),
   totalBets: integer("total_bets").default(0).notNull(),
   totalPlayers: integer("total_players").notNull(),
+  status: varchar("status", { length: 20 }).default("in_progress").notNull(),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
