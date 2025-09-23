@@ -27,6 +27,55 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Get player information (chips, stats)
+  app.get("/api/player/me", async (req, res) => {
+    try {
+      // For now, get player by socket connection (could be improved with proper auth)
+      const socketId = req.headers['socket-id'] as string;
+      if (!socketId) {
+        return res.status(400).json({ message: "Socket ID required" });
+      }
+
+      const player = await storage.getPlayerBySocketId(socketId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      res.json({
+        id: player.id,
+        name: player.name,
+        chips: player.chips,
+        totalWins: player.totalWins,
+        totalLosses: player.totalLosses
+      });
+    } catch (error) {
+      console.error('Error fetching player data:', error);
+      res.status(500).json({ message: "Failed to fetch player data" });
+    }
+  });
+
+  // Get player bet history
+  app.get("/api/player/bets", async (req, res) => {
+    try {
+      const socketId = req.headers['socket-id'] as string;
+      if (!socketId) {
+        return res.status(400).json({ message: "Socket ID required" });
+      }
+
+      const player = await storage.getPlayerBySocketId(socketId);
+      if (!player) {
+        return res.status(404).json({ message: "Player not found" });
+      }
+
+      const limit = parseInt(req.query.limit as string) || 20;
+      const bets = await storage.getBetsByPlayer(player.id, limit);
+      res.json(bets);
+    } catch (error) {
+      console.error('Error fetching bet history:', error);
+      res.status(500).json({ message: "Failed to fetch bet history" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
