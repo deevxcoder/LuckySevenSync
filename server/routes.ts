@@ -27,6 +27,17 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Get total game count (round number)
+  app.get("/api/games/count", async (req, res) => {
+    try {
+      const count = await storage.getTotalGameCount();
+      res.json({ totalGames: count });
+    } catch (error) {
+      console.error('Error fetching game count:', error);
+      res.status(500).json({ message: "Failed to fetch game count" });
+    }
+  });
+
   // Get player information (chips, stats)
   app.get("/api/player/me", optionalAuth, async (req: AuthRequest, res) => {
     try {

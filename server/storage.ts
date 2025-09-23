@@ -38,6 +38,7 @@ export interface IStorage {
   createGame(game: InsertGame): Promise<Game>;
   markGameCompleted(gameId: number): Promise<Game | undefined>;
   getGameHistory(limit?: number): Promise<Game[]>;
+  getTotalGameCount(): Promise<number>;
   getGamesByRoom(roomId: string, limit?: number): Promise<Game[]>;
   
   // Bets
@@ -278,6 +279,12 @@ export class DatabaseStorage implements IStorage {
       .where(eq(games.status, 'completed'))
       .orderBy(desc(games.createdAt))
       .limit(limit);
+  }
+
+  async getTotalGameCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(games)
+      .where(eq(games.status, 'completed'));
+    return result[0]?.count || 0;
   }
   
   async getGamesByRoom(roomId: string, limit: number = 20): Promise<Game[]> {

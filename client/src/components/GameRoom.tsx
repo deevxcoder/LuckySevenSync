@@ -20,6 +20,7 @@ export default function GameRoom() {
   const [recentResults, setRecentResults] = useState<any[]>([]);
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
   const [socketId, setSocketId] = useState<string>('');
+  const [totalGameCount, setTotalGameCount] = useState<number>(0);
   const { playSuccess, playHit } = useAudio();
 
   // Fetch recent results only when needed
@@ -32,6 +33,19 @@ export default function GameRoom() {
       }
     } catch (error) {
       console.error('Failed to fetch recent results:', error);
+    }
+  };
+
+  // Fetch total game count (real round number)
+  const fetchGameCount = async () => {
+    try {
+      const response = await fetch('/api/games/count');
+      if (response.ok) {
+        const data = await response.json();
+        setTotalGameCount(data.totalGames);
+      }
+    } catch (error) {
+      console.error('Failed to fetch game count:', error);
     }
   };
 
@@ -65,6 +79,7 @@ export default function GameRoom() {
   // Initial fetch
   useEffect(() => {
     fetchResults();
+    fetchGameCount();
   }, []);
 
   useEffect(() => {
@@ -109,6 +124,8 @@ export default function GameRoom() {
       playHit();
       // Update recent results when new round starts (after 3-second delay)
       fetchResults();
+      // Update game count to reflect the new round number
+      fetchGameCount();
     }
 
     socket.on('room-updated', onRoomUpdated);
@@ -230,7 +247,7 @@ export default function GameRoom() {
                   </div>
                   <div>
                     <span className="font-semibold">Round:</span>
-                    <span className="ml-2 text-casino-gold">#{currentRoom.roundNumber || 1}</span>
+                    <span className="ml-2 text-casino-gold">#{totalGameCount + 1}</span>
                   </div>
                 </div>
               </CardContent>
