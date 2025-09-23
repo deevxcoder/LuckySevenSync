@@ -87,7 +87,8 @@ export default function GameRoom() {
 
     function onCountdownTick(data: { time: number; room: GameRoom }) {
       setCountdownTime(data.time);
-      setCurrentRoom(data.room);
+      // Don't update room state on every tick to prevent frequent updates
+      // Room state will be updated by other events when needed
     }
 
     function onCardRevealed(data: { card: CardType; room: GameRoom }) {

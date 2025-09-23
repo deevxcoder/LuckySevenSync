@@ -35,13 +35,3 @@ export const useGameStore = create<GameStore>()(
   }))
 );
 
-// Subscribe to game state changes for logging
-useGameStore.subscribe(
-  (state) => state.gameState,
-  (gameState) => console.log('🎮 Game state changed:', gameState)
-);
-
-useGameStore.subscribe(
-  (state) => state.currentRoom,
-  (currentRoom) => console.log('🏠 Room changed:', currentRoom?.id || 'none')
-);

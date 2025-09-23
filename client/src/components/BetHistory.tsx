@@ -4,6 +4,7 @@ import { Badge } from './ui/badge';
 import { ScrollArea } from './ui/scroll-area';
 import { Separator } from './ui/separator';
 import { socket } from '../lib/socket';
+import { useAuthStore } from '../lib/stores/useAuthStore';
 
 interface Bet {
   id: number;
@@ -27,8 +28,19 @@ export function BetHistory({ socketId, limit = 10 }: BetHistoryProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const lastFetchTime = useRef<number>(0);
+  const { isAuthenticated } = useAuthStore();
 
   const fetchBetHistory = async (showLoading = false) => {
+    // Don't fetch if user is not authenticated
+    if (!isAuthenticated) {
+      if (showLoading) {
+        setLoading(false);
+      }
+      setBets([]);
+      setError(null);
+      return;
+    }
+
     try {
       if (showLoading) {
         setLoading(true);
@@ -38,19 +50,32 @@ export function BetHistory({ socketId, limit = 10 }: BetHistoryProps) {
       const response = await fetch(`/api/player/bets?limit=${limit}`, {
         headers: {
           'socket-id': socketId
-        }
+        },
+        credentials: 'include' // Include cookies for session
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch bet history');
+        // Handle authentication errors silently
+        if (response.status === 401 || response.status === 404) {
+          setBets([]);
+          setError(null);
+          return;
+        }
+        const errorData = await response.json().catch(() => ({ message: 'Failed to fetch bet history' }));
+        throw new Error(errorData.message || 'Failed to fetch bet history');
       }
 
       const data = await response.json();
       setBets(data);
       lastFetchTime.current = Date.now();
     } catch (err) {
-      setError('Failed to load bet history');
-      console.error('Error fetching bet history:', err);
+      // Don't log authentication errors to console
+      if (err instanceof Error && err.message.includes('fetch bet history')) {
+        // Only set error state for non-auth errors, don't log to console
+        setError(null);
+      } else {
+        setError('Failed to load bet history');
+      }
     } finally {
       if (showLoading) {
         setLoading(false);
@@ -66,6 +91,9 @@ export function BetHistory({ socketId, limit = 10 }: BetHistoryProps) {
 
     // Socket event handlers for real-time updates
     const handleGameStarting = () => {
+      // Only refresh if authenticated
+      if (!isAuthenticated) return;
+      
       // Refresh when new game starts (new bets might be placed)
       const timeSinceLastFetch = Date.now() - lastFetchTime.current;
       if (timeSinceLastFetch > 2000) {
@@ -74,6 +102,9 @@ export function BetHistory({ socketId, limit = 10 }: BetHistoryProps) {
     };
 
     const handleRoundEnded = () => {
+      // Only refresh if authenticated
+      if (!isAuthenticated) return;
+      
       // Refresh when round ends (bet results are resolved)
       const timeSinceLastFetch = Date.now() - lastFetchTime.current;
       if (timeSinceLastFetch > 1000) {
@@ -89,7 +120,7 @@ export function BetHistory({ socketId, limit = 10 }: BetHistoryProps) {
       socket.off('game-starting', handleGameStarting);
       socket.off('round-ended', handleRoundEnded);
     };
-  }, [socketId, limit]);
+  }, [socketId, limit, isAuthenticated]);
 
   const getBetTypeDisplay = (betType: string, betValue: string | null) => {
     switch (betType) {
