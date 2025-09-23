@@ -3,6 +3,7 @@ import { socket } from './lib/socket';
 import GameLobby from './components/GameLobby';
 import GameRoom from './components/GameRoom';
 import AuthContainer from './components/Auth/AuthContainer';
+import HomePage from './components/HomePage';
 import UserDashboard from './components/Dashboard/UserDashboard';
 import AdminDashboard from './components/Dashboard/AdminDashboard';
 import { useGameStore } from './lib/stores/useGameStore';
@@ -13,6 +14,7 @@ import { Button } from './components/ui/button';
 function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [currentView, setCurrentView] = useState<'game' | 'userDashboard' | 'adminDashboard'>('game');
+  const [showHomePage, setShowHomePage] = useState(true); // New state for home vs auth
   const { currentRoom, setCurrentRoom, setPlayers } = useGameStore();
   const { initializeSounds, isInitialized, isMuted, toggleMute, playBackgroundMusic } = useAudio();
   const { isAuthenticated, user } = useAuthStore();
@@ -57,9 +59,18 @@ function App() {
     };
   }, [setCurrentRoom, setPlayers, initializeSounds, isInitialized, isMuted, playBackgroundMusic]);
 
-  // Show authentication if user is not logged in
+  // Show home page or authentication if user is not logged in
   if (!isAuthenticated) {
-    return <AuthContainer />;
+    if (showHomePage) {
+      return (
+        <HomePage 
+          onLoginClick={() => setShowHomePage(false)}
+          onSignupClick={() => setShowHomePage(false)}
+        />
+      );
+    } else {
+      return <AuthContainer onBackToHome={() => setShowHomePage(true)} />;
+    }
   }
 
   if (!isConnected) {

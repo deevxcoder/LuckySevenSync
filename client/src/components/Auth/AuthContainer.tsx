@@ -3,7 +3,11 @@ import { useAuthStore } from '../../lib/stores/useAuthStore';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
 
-export default function AuthContainer() {
+interface AuthContainerProps {
+  onBackToHome?: () => void;
+}
+
+export default function AuthContainer({ onBackToHome }: AuthContainerProps) {
   const [isLoginMode, setIsLoginMode] = useState(true);
   const { login, register, isLoading, error, clearError } = useAuthStore();
 
@@ -38,6 +42,7 @@ export default function AuthContainer() {
       <LoginForm
         onLogin={handleLogin}
         onSwitchToRegister={switchToRegister}
+        onBackToHome={onBackToHome}
         isLoading={isLoading}
         error={error || undefined}
       />
@@ -48,6 +53,7 @@ export default function AuthContainer() {
     <RegisterForm
       onRegister={handleRegister}
       onSwitchToLogin={switchToLogin}
+      onBackToHome={onBackToHome}
       isLoading={isLoading}
       error={error || undefined}
     />

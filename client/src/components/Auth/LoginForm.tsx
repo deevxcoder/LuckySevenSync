@@ -7,11 +7,12 @@ import { Label } from '../ui/label';
 interface LoginFormProps {
   onLogin: (username: string, password: string) => Promise<void>;
   onSwitchToRegister: () => void;
+  onBackToHome?: () => void;
   isLoading?: boolean;
   error?: string;
 }
 
-export default function LoginForm({ onLogin, onSwitchToRegister, isLoading, error }: LoginFormProps) {
+export default function LoginForm({ onLogin, onSwitchToRegister, onBackToHome, isLoading, error }: LoginFormProps) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -77,7 +78,7 @@ export default function LoginForm({ onLogin, onSwitchToRegister, isLoading, erro
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
             
-            <div className="text-center pt-4">
+            <div className="text-center pt-4 space-y-2">
               <p className="text-white text-sm">
                 Don't have an account?{' '}
                 <button
@@ -89,6 +90,18 @@ export default function LoginForm({ onLogin, onSwitchToRegister, isLoading, erro
                   Sign Up
                 </button>
               </p>
+              {onBackToHome && (
+                <p className="text-white text-sm">
+                  <button
+                    type="button"
+                    onClick={onBackToHome}
+                    className="text-casino-gold hover:underline font-semibold"
+                    disabled={isLoading}
+                  >
+                    ← Back to Home
+                  </button>
+                </p>
+              )}
             </div>
           </form>
         </CardContent>
