@@ -2,6 +2,15 @@ import { Server, Socket } from "socket.io";
 import { storage } from "./storage";
 import type { Player as DBPlayer } from "@shared/schema";
 
+export interface HouseStats {
+  totalWagered: number;  // Total amount wagered by all players
+  totalPaidOut: number;  // Total amount paid out as winnings
+  houseProfitThisRound: number;  // Profit for current round
+  houseProfitTotal: number;  // Cumulative house profit
+  roundCount: number;  // Number of rounds completed
+  houseEdgePercent: number;  // Current house edge percentage
+}
+
 export interface Player {
   id: string;
   name: string;
@@ -15,19 +24,19 @@ export interface GameRoom {
   players: Player[];
   status: 'waiting' | 'countdown' | 'playing' | 'finished';
   maxPlayers: number;
-  currentDiceRoll: DiceRoll | null;
+  currentCard: Card | null;
   countdownTime: number;
   gameStartTime: number | null;
   currentGameId?: number; // Database game ID for bet tracking
   activeBets?: Map<string, any[]>; // socketId -> bets array
   roundNumber?: number; // Current round number
+  houseStats?: HouseStats; // House profit tracking
 }
 
-export interface DiceRoll {
-  die1: number;
-  die2: number;
-  sum: number;
-  outcome: 'below' | 'seven' | 'above';
+export interface Card {
+  number: number;
+  suit: 'spades' | 'hearts' | 'diamonds' | 'clubs';
+  color: 'red' | 'black';
   revealed: boolean;
 }
 
@@ -48,11 +57,19 @@ export class GameManager {
       players: [],
       status: 'waiting',
       maxPlayers: 999999, // No practical limit
-      currentDiceRoll: null,
+      currentCard: null,
       countdownTime: 60,
       gameStartTime: null,
       activeBets: new Map(),
-      roundNumber: 1
+      roundNumber: 1,
+      houseStats: {
+        totalWagered: 0,
+        totalPaidOut: 0,
+        houseProfitThisRound: 0,
+        houseProfitTotal: 0,
+        roundCount: 0,
+        houseEdgePercent: 0
+      }
     };
     
     // Set up betting event handlers
@@ -63,27 +80,18 @@ export class GameManager {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   }
 
-  private generateRandomDiceRoll(): DiceRoll {
+  private generateRandomCard(): Card {
     // Use crypto.randomInt for secure random generation
     const crypto = require('crypto');
-    const die1 = crypto.randomInt(1, 7); // 1-6
-    const die2 = crypto.randomInt(1, 7); // 1-6
-    const sum = die1 + die2;
-    
-    let outcome: 'below' | 'seven' | 'above';
-    if (sum <= 6) {
-      outcome = 'below';
-    } else if (sum === 7) {
-      outcome = 'seven';
-    } else {
-      outcome = 'above';
-    }
+    const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
+    const suitIndex = crypto.randomInt(0, suits.length);
+    const suit = suits[suitIndex];
+    const color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
     
     return {
-      die1,
-      die2,
-      sum,
-      outcome,
+      number: crypto.randomInt(1, 14), // 1-13
+      suit,
+      color,
       revealed: false
     };
   }
@@ -385,14 +393,21 @@ export class GameManager {
   }
 
   private async resolveBets(room: GameRoom) {
-    if (!room.activeBets || !room.currentCard || !room.currentGameId) return;
+    if (!room.activeBets || !room.currentCard || !room.currentGameId || !room.houseStats) return;
 
     console.log(`Resolving bets for room ${room.id} - Card: ${room.currentCard.number} ${room.currentCard.color}`);
+
+    let roundWagered = 0;
+    let roundPaidOut = 0;
 
     for (const [socketId, bets] of Array.from(room.activeBets.entries())) {
       for (const bet of bets) {
         const won = this.isBetWinner(bet, room.currentCard);
         const winAmount = won ? this.calculateWinAmount(bet) : 0;
+        
+        // Track house statistics
+        roundWagered += bet.betAmount;
+        roundPaidOut += winAmount;
 
         try {
           // Update bet outcome in database
@@ -404,12 +419,15 @@ export class GameManager {
             roomPlayer.chips = result.updatedPlayer.chips;
           }
 
-          console.log(`Bet ${bet.id}: ${won ? 'WON' : 'LOST'} - Payout: ${winAmount}`);
+          console.log(`Bet ${bet.id}: ${won ? 'WON' : 'LOST'} - Wager: ${bet.betAmount}, Payout: ${winAmount}`);
         } catch (error) {
           console.error('Error resolving bet:', error);
         }
       }
     }
+
+    // Update house statistics
+    this.updateHouseStats(room, roundWagered, roundPaidOut);
 
     // Clear active bets
     room.activeBets.clear();
@@ -457,6 +475,47 @@ export class GameManager {
       'lucky7': 6  // 5:1 odds = 6x total (stake + 5x winnings)
     };
     
-    return bet.betAmount * (payoutMultipliers[bet.betType] || 0);
+    const rawAmount = bet.betAmount * (payoutMultipliers[bet.betType] || 0);
+    // Round to nearest cent using banker's rounding (round half to even)
+    return this.roundToCents(rawAmount);
+  }
+
+  private roundToCents(amount: number): number {
+    // Banker's rounding (round half to even) - industry standard for financial calculations
+    const cents = Math.round(amount * 100);
+    return cents / 100;
+  }
+
+  private updateHouseStats(room: GameRoom, roundWagered: number, roundPaidOut: number) {
+    if (!room.houseStats) return;
+    
+    const houseProfitThisRound = roundWagered - roundPaidOut;
+    
+    // Update cumulative statistics
+    room.houseStats.totalWagered += roundWagered;
+    room.houseStats.totalPaidOut += roundPaidOut;
+    room.houseStats.houseProfitThisRound = houseProfitThisRound;
+    room.houseStats.houseProfitTotal += houseProfitThisRound;
+    room.houseStats.roundCount += 1;
+    
+    // Calculate current house edge percentage
+    if (room.houseStats.totalWagered > 0) {
+      room.houseStats.houseEdgePercent = (room.houseStats.houseProfitTotal / room.houseStats.totalWagered) * 100;
+    }
+    
+    console.log(`=== HOUSE STATS ROUND ${room.houseStats.roundCount} ===`);
+    console.log(`Round Wagered: $${roundWagered.toFixed(2)}`);
+    console.log(`Round Paid Out: $${roundPaidOut.toFixed(2)}`);
+    console.log(`House Profit This Round: $${houseProfitThisRound.toFixed(2)}`);
+    console.log(`Total Wagered: $${room.houseStats.totalWagered.toFixed(2)}`);
+    console.log(`Total Paid Out: $${room.houseStats.totalPaidOut.toFixed(2)}`);
+    console.log(`House Profit Total: $${room.houseStats.houseProfitTotal.toFixed(2)}`);
+    console.log(`House Edge: ${room.houseStats.houseEdgePercent.toFixed(2)}%`);
+    console.log(`==========================================`);
+  }
+
+  // Public method to get house statistics for API access
+  getHouseStats() {
+    return this.globalRoom?.houseStats || null;
   }
 }

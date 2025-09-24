@@ -34,6 +34,9 @@ const io = new Server(httpServer, {
 // Initialize game manager
 const gameManager = new GameManager(io);
 
+// Attach game manager to app for route access
+(app as any).gameManager = gameManager;
+
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;

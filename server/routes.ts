@@ -277,4 +277,39 @@ export async function registerRoutes(app: Express): Promise<void> {
       res.status(500).json({ message: "Failed to create admin user" });
     }
   });
+
+  // House statistics endpoint for admin monitoring
+  app.get("/api/admin/house-stats", async (req, res) => {
+    try {
+      // This would ideally check for admin authentication
+      // For now, we'll expose it but you may want to add auth later
+      
+      // Get house stats from game manager if available
+      const gameManager = (app as any).gameManager;
+      
+      if (gameManager && gameManager.getHouseStats) {
+        const stats = gameManager.getHouseStats();
+        if (stats) {
+          res.json(stats);
+        } else {
+          res.json({ 
+            message: "House statistics initialized but no data yet",
+            houseStats: {
+              totalWagered: 0,
+              totalPaidOut: 0,
+              houseProfitThisRound: 0,
+              houseProfitTotal: 0,
+              roundCount: 0,
+              houseEdgePercent: 0
+            }
+          });
+        }
+      } else {
+        res.json({ message: "House statistics not available" });
+      }
+    } catch (error) {
+      console.error('Error fetching house statistics:', error);
+      res.status(500).json({ message: "Failed to fetch house statistics" });
+    }
+  });
 }
