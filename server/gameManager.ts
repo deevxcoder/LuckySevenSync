@@ -1,6 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { storage } from "./storage";
 import type { Player as DBPlayer } from "@shared/schema";
+import crypto from "crypto";
 
 export interface HouseStats {
   totalWagered: number;  // Total amount wagered by all players
@@ -82,7 +83,6 @@ export class GameManager {
 
   private generateRandomCard(): Card {
     // Use crypto.randomInt for secure random generation
-    const crypto = require('crypto');
     const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
     const suitIndex = crypto.randomInt(0, suits.length);
     const suit = suits[suitIndex];
