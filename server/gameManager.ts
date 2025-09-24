@@ -15,7 +15,7 @@ export interface GameRoom {
   players: Player[];
   status: 'waiting' | 'countdown' | 'playing' | 'finished';
   maxPlayers: number;
-  currentCard: Card | null;
+  currentDiceRoll: DiceRoll | null;
   countdownTime: number;
   gameStartTime: number | null;
   currentGameId?: number; // Database game ID for bet tracking
@@ -23,10 +23,11 @@ export interface GameRoom {
   roundNumber?: number; // Current round number
 }
 
-export interface Card {
-  number: number;
-  suit: 'spades' | 'hearts' | 'diamonds' | 'clubs';
-  color: 'red' | 'black';
+export interface DiceRoll {
+  die1: number;
+  die2: number;
+  sum: number;
+  outcome: 'below' | 'seven' | 'above';
   revealed: boolean;
 }
 
@@ -47,7 +48,7 @@ export class GameManager {
       players: [],
       status: 'waiting',
       maxPlayers: 999999, // No practical limit
-      currentCard: null,
+      currentDiceRoll: null,
       countdownTime: 60,
       gameStartTime: null,
       activeBets: new Map(),
@@ -62,15 +63,27 @@ export class GameManager {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   }
 
-  private generateRandomCard(): Card {
-    const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
-    const suit = suits[Math.floor(Math.random() * suits.length)];
-    const color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+  private generateRandomDiceRoll(): DiceRoll {
+    // Use crypto.randomInt for secure random generation
+    const crypto = require('crypto');
+    const die1 = crypto.randomInt(1, 7); // 1-6
+    const die2 = crypto.randomInt(1, 7); // 1-6
+    const sum = die1 + die2;
+    
+    let outcome: 'below' | 'seven' | 'above';
+    if (sum <= 6) {
+      outcome = 'below';
+    } else if (sum === 7) {
+      outcome = 'seven';
+    } else {
+      outcome = 'above';
+    }
     
     return {
-      number: Math.floor(Math.random() * 13) + 1,
-      suit,
-      color,
+      die1,
+      die2,
+      sum,
+      outcome,
       revealed: false
     };
   }
