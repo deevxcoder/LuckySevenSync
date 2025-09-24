@@ -279,10 +279,9 @@ export async function registerRoutes(app: Express): Promise<void> {
   });
 
   // House statistics endpoint for admin monitoring
-  app.get("/api/admin/house-stats", async (req, res) => {
+  app.get("/api/admin/house-stats", requireAdmin, async (req: AuthRequest, res) => {
     try {
-      // This would ideally check for admin authentication
-      // For now, we'll expose it but you may want to add auth later
+      // Admin authentication required
       
       // Get house stats from game manager if available
       const gameManager = (app as any).gameManager;

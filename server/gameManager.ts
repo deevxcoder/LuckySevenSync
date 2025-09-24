@@ -481,7 +481,7 @@ export class GameManager {
   }
 
   private roundToCents(amount: number): number {
-    // Banker's rounding (round half to even) - industry standard for financial calculations
+    // Standard rounding to nearest cent for financial calculations
     const cents = Math.round(amount * 100);
     return cents / 100;
   }
