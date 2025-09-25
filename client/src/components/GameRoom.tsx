@@ -88,8 +88,13 @@ export default function GameRoom() {
     
     console.log(`showBetResults: Card ${card.number} ${card.color}, processing ${betsToProcess.length} bets`);
     
+    // Only show popup if user actually placed bets
     if (betsToProcess.length === 0) {
       console.log('No bets to process, skipping popup');
+      // Make sure popup is closed if it was somehow open
+      setShowBetResultPopup(false);
+      setBetResults([]);
+      setTotalWinAmount(0);
       return;
     }
 
@@ -113,9 +118,18 @@ export default function GameRoom() {
     
     console.log(`Results: Total bet: ${totalBet}, Total payout: ${totalWin}, Net winnings: ${netWinnings}`);
     
-    setBetResults(results);
-    setTotalWinAmount(totalWin);
-    setShowBetResultPopup(true);
+    // Additional safety check - only show popup if there are actually results to display
+    if (results.length > 0 && totalBet > 0) {
+      setBetResults(results);
+      setTotalWinAmount(totalWin);
+      setShowBetResultPopup(true);
+      console.log('Showing bet results popup');
+    } else {
+      console.log('No valid bet results to display, skipping popup');
+      setShowBetResultPopup(false);
+      setBetResults([]);
+      setTotalWinAmount(0);
+    }
     
     // Clear the ref after processing to prepare for next round
     lastValidBetsRef.current = [];
