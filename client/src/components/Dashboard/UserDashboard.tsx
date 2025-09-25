@@ -45,38 +45,47 @@ export default function UserDashboard({ onNavigateToGame }: UserDashboardProps) 
 
   return (
     <div className="min-h-screen bg-casino-green relative">
-      {/* Top Navigation Bar */}
+      {/* Top Navigation Bar - Responsive */}
       <div className="absolute top-0 left-0 right-0 z-50 bg-casino-black/80 border-b border-casino-gold">
-        <div className="flex justify-between items-center px-4 py-2">
-          <div className="flex items-center gap-4">
-            <h2 className="text-casino-gold font-bold text-lg">🎰 Lucky 7</h2>
-            <span className="text-white">Welcome, {user?.username}</span>
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-2 sm:px-4 py-2 gap-2 sm:gap-0">
+          {/* Left side - Title and Welcome */}
+          <div className="flex items-center gap-2 sm:gap-4 justify-center sm:justify-start">
+            <h2 className="text-casino-gold font-bold text-base sm:text-lg">🎰 Lucky 7</h2>
+            <span className="text-white text-sm sm:text-base hidden sm:inline">
+              Welcome, {user?.username}
+            </span>
+            <span className="text-white text-sm sm:hidden">
+              Hi, {user?.username}
+            </span>
           </div>
           
-          <div className="flex items-center gap-2">
+          {/* Right side - Wallet and Buttons */}
+          <div className="flex items-center gap-1 sm:gap-2 justify-center sm:justify-end">
             <HeaderWallet socketId={socketId} />
             <Button
               onClick={onNavigateToGame}
               variant="outline"
               size="sm"
-              className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+              className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
             >
-              🎮 Play Game
+              <span className="hidden sm:inline">🎮 Play Game</span>
+              <span className="sm:hidden">🎮 Play</span>
             </Button>
             <Button
               onClick={handleLogout}
               variant="outline"
               size="sm"
-              className="bg-transparent border-red-400 text-red-400 hover:bg-red-400 hover:text-black"
+              className="bg-transparent border-red-400 text-red-400 hover:bg-red-400 hover:text-black text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
             >
-              Sign Out
+              <span className="hidden sm:inline">Sign Out</span>
+              <span className="sm:hidden">Out</span>
             </Button>
           </div>
         </div>
       </div>
 
       {/* Dashboard Content with top padding for navigation */}
-      <div className="pt-16 p-4">
+      <div className="pt-20 sm:pt-16 p-4">
         <div className="max-w-4xl mx-auto">
           {/* Dashboard Title */}
           <div className="mb-6">

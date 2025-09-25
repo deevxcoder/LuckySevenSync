@@ -113,7 +113,7 @@ export function HeaderWallet({ socketId }: HeaderWalletProps) {
     return (
       <Badge 
         variant="outline" 
-        className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+        className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black text-xs sm:text-sm px-2 sm:px-3 py-1"
       >
         💰 Loading...
       </Badge>
@@ -124,7 +124,7 @@ export function HeaderWallet({ socketId }: HeaderWalletProps) {
     return (
       <Badge 
         variant="outline" 
-        className="bg-transparent border-red-400 text-red-400 hover:bg-red-400 hover:text-black cursor-pointer"
+        className="bg-transparent border-red-400 text-red-400 hover:bg-red-400 hover:text-black cursor-pointer text-xs sm:text-sm px-2 sm:px-3 py-1"
         onClick={() => fetchPlayerData(true)}
       >
         💰 Retry
@@ -136,7 +136,7 @@ export function HeaderWallet({ socketId }: HeaderWalletProps) {
     return (
       <Badge 
         variant="outline" 
-        className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+        className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black text-xs sm:text-sm px-2 sm:px-3 py-1"
       >
         💰 --
       </Badge>
@@ -146,9 +146,10 @@ export function HeaderWallet({ socketId }: HeaderWalletProps) {
   return (
     <Badge 
       variant="outline" 
-      className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black cursor-default"
+      className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black cursor-default text-xs sm:text-sm px-2 sm:px-3 py-1"
     >
-      🪙 {playerData.chips.toLocaleString()} Chips
+      <span className="hidden sm:inline">🪙 {playerData.chips.toLocaleString()} Chips</span>
+      <span className="sm:hidden">🪙 {playerData.chips.toLocaleString()}</span>
     </Badge>
   );
 }
