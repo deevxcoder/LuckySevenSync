@@ -239,10 +239,10 @@ export class GameManager {
       room
     });
 
-    // Wait 3 seconds to show results, then start next round
+    // Wait 6 seconds to show results and popup, then start next round
     setTimeout(() => {
       this.startNextRound('GLOBAL');
-    }, 3000);
+    }, 6000);
   }
 
   private startNextRound(roomId: string) {
