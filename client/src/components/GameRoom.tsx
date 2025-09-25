@@ -211,8 +211,10 @@ export default function GameRoom() {
       setGameStatus('revealed');
       setGameState('playing');
       
-      // Show bet results popup if player had bets
-      showBetResults(data.card);
+      // Show bet results popup after 3 seconds to let user see the card first
+      setTimeout(() => {
+        showBetResults(data.card);
+      }, 3000);
     }
 
     function onRoundEnded(data: { room: GameRoom }) {
