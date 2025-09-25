@@ -7,18 +7,25 @@ interface CountdownTimerProps {
 }
 
 export default function CountdownTimer({ time, isActive }: CountdownTimerProps) {
-  const { playCountdownTick } = useAudio();
+  const { playCountdownTick, playHeartbeat } = useAudio();
   const lastPlayedTime = useRef<number>(-1);
   
-  // Play tick sound when timer counts down (prevent duplicate ticks)
+  // Play dramatic heartbeat for final 5 seconds, regular tick for 6-10 seconds
   useEffect(() => {
     if (isActive && time > 0 && time <= 10 && time !== lastPlayedTime.current) {
-      playCountdownTick();
+      if (time <= 5) {
+        // Dramatic heartbeat for final countdown (5, 4, 3, 2, 1)
+        playHeartbeat();
+        console.log(`💓 Heartbeat at ${time} seconds`);
+      } else {
+        // Regular tick for 6-10 seconds
+        playCountdownTick();
+      }
       lastPlayedTime.current = time;
     } else if (!isActive) {
       lastPlayedTime.current = -1; // Reset for next countdown
     }
-  }, [time, isActive, playCountdownTick]);
+  }, [time, isActive, playCountdownTick, playHeartbeat]);
   
   const getTimerColor = () => {
     if (time <= 3) return 'text-casino-red';

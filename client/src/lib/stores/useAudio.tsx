@@ -20,6 +20,7 @@ interface AudioState {
   playHit: () => void;
   playSuccess: () => void;
   playCountdownTick: () => void;
+  playHeartbeat: () => void;
   playCardReveal: () => void;
   playBackgroundMusic: () => void;
   stopBackgroundMusic: () => void;
@@ -125,6 +126,31 @@ export const useAudio = create<AudioState>((set, get) => ({
       tickClone.play().catch(error => {
         console.log("Countdown tick play prevented:", error);
       });
+    }
+  },
+  
+  playHeartbeat: () => {
+    const { hitSound, isMuted } = get();
+    if (hitSound && !isMuted) {
+      // Create a dramatic heartbeat effect using the hit sound
+      const heartbeatClone = hitSound.cloneNode() as HTMLAudioElement;
+      heartbeatClone.volume = 0.7; // Louder for drama
+      heartbeatClone.playbackRate = 0.8; // Slower and deeper for heartbeat effect
+      heartbeatClone.play().catch(error => {
+        console.log("Heartbeat sound play prevented:", error);
+      });
+      
+      // Add a second beat after a short delay to simulate heartbeat
+      setTimeout(() => {
+        if (!get().isMuted) {
+          const secondBeat = hitSound.cloneNode() as HTMLAudioElement;
+          secondBeat.volume = 0.5; // Slightly quieter second beat
+          secondBeat.playbackRate = 0.9;
+          secondBeat.play().catch(error => {
+            console.log("Second heartbeat sound play prevented:", error);
+          });
+        }
+      }, 150); // Short delay for second beat
     }
   },
   
