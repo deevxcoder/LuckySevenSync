@@ -11,6 +11,7 @@ interface BettingPanelProps {
   gameStatus: string;
   countdownTime: number;
   roomId: string;
+  onBetsChange?: (bets: Bet[]) => void;
 }
 
 interface Bet {
@@ -29,18 +30,22 @@ const BET_TYPES = [
 
 const BET_AMOUNTS = [10, 25, 50, 100, 250];
 
-export default function BettingPanel({ playerChips, gameStatus, countdownTime, roomId }: BettingPanelProps) {
+export default function BettingPanel({ playerChips, gameStatus, countdownTime, roomId, onBetsChange }: BettingPanelProps) {
   const [selectedBetType, setSelectedBetType] = useState<string>('');
   const [selectedAmount, setSelectedAmount] = useState<number>(10);
   const [currentBets, setCurrentBets] = useState<Bet[]>([]);
   const [totalBetAmount, setTotalBetAmount] = useState<number>(0);
   const { playHit, playSuccess } = useAudio();
 
-  // Calculate total bet amount
+  // Calculate total bet amount and notify parent
   useEffect(() => {
     const total = currentBets.reduce((sum, bet) => sum + bet.amount, 0);
     setTotalBetAmount(total);
-  }, [currentBets]);
+    // Notify parent component about bet changes
+    if (onBetsChange) {
+      onBetsChange(currentBets);
+    }
+  }, [currentBets]); // Removed onBetsChange from dependencies to prevent infinite loop
 
   // Reset bets when game starts
   useEffect(() => {

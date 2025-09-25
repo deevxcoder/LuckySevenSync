@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { socket } from '../lib/socket';
 import { useGameStore } from '../lib/stores/useGameStore';
 import { useAudio } from '../lib/stores/useAudio';
@@ -7,6 +7,7 @@ import Card from './Card';
 import CardBack from './CardBack';
 import BettingPanel from './BettingPanel';
 import { BetHistory } from './BetHistory';
+import BetResultPopup from './BetResultPopup';
 import { Button } from './ui/button';
 import { Card as UICard, CardContent } from './ui/card';
 import type { Card as CardType, GameRoom } from '../types/game';
@@ -21,7 +22,104 @@ export default function GameRoom() {
   const [socketConnected, setSocketConnected] = useState<boolean>(false);
   const [socketId, setSocketId] = useState<string>('');
   const [totalGameCount, setTotalGameCount] = useState<number>(0);
+  const [showBetResultPopup, setShowBetResultPopup] = useState<boolean>(false);
+  const [storedBets, setStoredBets] = useState<any[]>([]);
+  const [betResults, setBetResults] = useState<any[]>([]);
+  const [totalWinAmount, setTotalWinAmount] = useState<number>(0);
+  const lastValidBetsRef = useRef<any[]>([]);
   const { playSuccess, playHit } = useAudio();
+
+  // Bet type mappings for display
+  const BET_TYPE_LABELS = {
+    'red': '🔴 Red',
+    'black': '⚫ Black',
+    'high': '📈 High (8-13)',
+    'low': '📉 Low (1-7)',
+    'lucky7': '🍀 Lucky 7'
+  };
+
+  // Function to calculate if a bet won based on the revealed card
+  const isBetWinner = (betType: string, card: CardType): boolean => {
+    switch (betType) {
+      case 'red':
+        return card.color === 'red';
+      case 'black':
+        return card.color === 'black';
+      case 'high':
+        return card.number >= 8;
+      case 'low':
+        return card.number <= 7;
+      case 'lucky7':
+        return card.number === 7;
+      default:
+        return false;
+    }
+  };
+
+  // Function to calculate win amount based on bet type and amount
+  const calculateWinAmount = (betType: string, betAmount: number): number => {
+    const payoutMultipliers: { [key: string]: number } = {
+      'red': 2,    // 1:1 odds = 2x total (stake + equal winnings)
+      'black': 2,  // 1:1 odds = 2x total (stake + equal winnings)
+      'high': 2,   // 1:1 odds = 2x total (stake + equal winnings)
+      'low': 2,    // 1:1 odds = 2x total (stake + equal winnings)
+      'lucky7': 6  // 5:1 odds = 6x total (stake + 5x winnings)
+    };
+    return betAmount * (payoutMultipliers[betType] || 0);
+  };
+
+  // Function to store current bets from BettingPanel
+  const storeBetsFromChild = (bets: any[]) => {
+    // Only store non-empty bets or when game is not in revealed/waiting state
+    if (bets.length > 0 || (gameStatus !== 'revealed' && gameStatus !== 'waiting')) {
+      console.log('Storing bets from BettingPanel:', bets.length, 'bets');
+      setStoredBets([...bets]);
+      // Keep a ref of the last non-empty bets to prevent race conditions
+      if (bets.length > 0) {
+        lastValidBetsRef.current = [...bets];
+      }
+    }
+  };
+
+  // Function to calculate bet results and show popup
+  const showBetResults = (card: CardType) => {
+    // Use ref to get the most recent valid bets to prevent race conditions
+    const betsToProcess = lastValidBetsRef.current.length > 0 ? lastValidBetsRef.current : storedBets;
+    
+    console.log(`showBetResults: Card ${card.number} ${card.color}, processing ${betsToProcess.length} bets`);
+    
+    if (betsToProcess.length === 0) {
+      console.log('No bets to process, skipping popup');
+      return;
+    }
+
+    const results = betsToProcess.map(bet => {
+      const won = isBetWinner(bet.type, card);
+      const winAmount = won ? calculateWinAmount(bet.type, bet.amount) : 0;
+      console.log(`Bet ${bet.type} ${bet.amount} chips: ${won ? 'WON' : 'LOST'} (payout: ${winAmount})`);
+      return {
+        type: bet.type,
+        value: bet.value,
+        amount: bet.amount,
+        won,
+        winAmount,
+        betTypeLabel: BET_TYPE_LABELS[bet.type as keyof typeof BET_TYPE_LABELS] || bet.type
+      };
+    });
+
+    const totalWin = results.reduce((sum, result) => sum + result.winAmount, 0);
+    const totalBet = results.reduce((sum, result) => sum + result.amount, 0);
+    const netWinnings = results.reduce((sum, result) => sum + (result.won ? result.winAmount - result.amount : 0), 0);
+    
+    console.log(`Results: Total bet: ${totalBet}, Total payout: ${totalWin}, Net winnings: ${netWinnings}`);
+    
+    setBetResults(results);
+    setTotalWinAmount(totalWin);
+    setShowBetResultPopup(true);
+    
+    // Clear the ref after processing to prepare for next round
+    lastValidBetsRef.current = [];
+  };
 
   // Fetch recent results only when needed
   const fetchResults = async () => {
@@ -112,6 +210,9 @@ export default function GameRoom() {
       setCurrentRoom(data.room);
       setGameStatus('revealed');
       setGameState('playing');
+      
+      // Show bet results popup if player had bets
+      showBetResults(data.card);
     }
 
     function onRoundEnded(data: { room: GameRoom }) {
@@ -291,6 +392,7 @@ export default function GameRoom() {
               gameStatus={gameStatus}
               countdownTime={countdownTime}
               roomId={currentRoom.id}
+              onBetsChange={storeBetsFromChild}
             />
 
             {/* Bet History */}
@@ -302,6 +404,21 @@ export default function GameRoom() {
             )}
           </div>
         </div>
+
+        {/* Bet Result Popup */}
+        {currentCard && (
+          <BetResultPopup
+            isOpen={showBetResultPopup}
+            onClose={() => setShowBetResultPopup(false)}
+            betResults={betResults}
+            totalWinAmount={totalWinAmount}
+            revealedCard={{
+              number: currentCard.number,
+              color: currentCard.color,
+              suit: currentCard.suit
+            }}
+          />
+        )}
       </div>
     </div>
   );
