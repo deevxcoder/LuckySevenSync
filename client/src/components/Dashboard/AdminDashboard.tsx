@@ -433,49 +433,6 @@ export default function AdminDashboard() {
                         </div>
                       </div>
                     )}
-                    <div className="text-blue-100 text-sm mb-4">
-                      The system will naturally generate a completely random card (1-13, Red/Black) with the following probabilities:
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                      <div className="bg-casino-green p-3 rounded border border-red-400">
-                        <div className="text-center">
-                          <div className="text-red-300 font-semibold text-sm">🔴 Red</div>
-                          <div className="text-white text-lg">50%</div>
-                          <div className="text-gray-300 text-xs">(26/52 cards)</div>
-                        </div>
-                      </div>
-                      <div className="bg-casino-green p-3 rounded border border-gray-400">
-                        <div className="text-center">
-                          <div className="text-gray-300 font-semibold text-sm">⚫ Black</div>
-                          <div className="text-white text-lg">50%</div>
-                          <div className="text-gray-300 text-xs">(26/52 cards)</div>
-                        </div>
-                      </div>
-                      <div className="bg-casino-green p-3 rounded border border-blue-400">
-                        <div className="text-center">
-                          <div className="text-blue-300 font-semibold text-sm">📉 Low</div>
-                          <div className="text-white text-lg">46%</div>
-                          <div className="text-gray-300 text-xs">(6/13 numbers)</div>
-                        </div>
-                      </div>
-                      <div className="bg-casino-green p-3 rounded border border-orange-400">
-                        <div className="text-center">
-                          <div className="text-orange-300 font-semibold text-sm">📈 High</div>
-                          <div className="text-white text-lg">46%</div>
-                          <div className="text-gray-300 text-xs">(6/13 numbers)</div>
-                        </div>
-                      </div>
-                      <div className="bg-casino-green p-3 rounded border border-yellow-400">
-                        <div className="text-center">
-                          <div className="text-yellow-300 font-semibold text-sm">🍀 Lucky 7</div>
-                          <div className="text-white text-lg">8%</div>
-                          <div className="text-gray-300 text-xs">(1/13 numbers)</div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-blue-100 text-xs mt-3">
-                      * These probabilities represent the natural system behavior without any admin intervention
-                    </div>
                   </div>
                 </div>
 
