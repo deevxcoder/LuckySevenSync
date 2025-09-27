@@ -321,7 +321,7 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(500).json({ message: "Game manager not available" });
       }
 
-      const currentRoundData = gameManager.getCurrentRoundData();
+      const currentRoundData = await gameManager.getCurrentRoundData();
       
       if (!currentRoundData) {
         return res.json({ message: "No active round found" });

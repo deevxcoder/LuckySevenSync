@@ -8,7 +8,7 @@ import {
 } from "@shared/schema";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 const pool = new Pool({
@@ -41,6 +41,7 @@ export interface IStorage {
   getGameHistory(limit?: number): Promise<Game[]>;
   getTotalGameCount(): Promise<number>;
   getGamesByRoom(roomId: string, limit?: number): Promise<Game[]>;
+  getLastCompletedGameBettingStats(roomId: string): Promise<{ totalBets: number; betsByType: { red: number; black: number; low: number; high: number; lucky7: number } } | null>;
   
   // Bets
   createBet(bet: InsertBet): Promise<Bet>;
@@ -301,6 +302,42 @@ export class DatabaseStorage implements IStorage {
       .where(eq(games.roomId, roomId))
       .orderBy(desc(games.createdAt))
       .limit(limit);
+  }
+
+  async getLastCompletedGameBettingStats(roomId: string): Promise<{ totalBets: number; betsByType: { red: number; black: number; low: number; high: number; lucky7: number } } | null> {
+    // Get the most recent completed game
+    const latestGame = await db.select().from(games)
+      .where(and(eq(games.roomId, roomId), eq(games.status, 'completed')))
+      .orderBy(desc(games.createdAt))
+      .limit(1);
+
+    if (!latestGame[0]) {
+      return null;
+    }
+
+    // Get all bets for that game
+    const gameBets = await db.select().from(bets)
+      .where(eq(bets.gameId, latestGame[0].id));
+
+    // Calculate betting statistics
+    const betsByType = {
+      red: 0,
+      black: 0,
+      low: 0,
+      high: 0,
+      lucky7: 0
+    };
+
+    let totalBets = 0;
+
+    gameBets.forEach(bet => {
+      totalBets += bet.betAmount;
+      if (betsByType.hasOwnProperty(bet.betType)) {
+        betsByType[bet.betType as keyof typeof betsByType] += bet.betAmount;
+      }
+    });
+
+    return { totalBets, betsByType };
   }
   
   // Bets

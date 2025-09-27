@@ -583,7 +583,7 @@ export class GameManager {
   }
 
   // Get current round data for admin control
-  getCurrentRoundData() {
+  async getCurrentRoundData() {
     const room = this.globalRoom;
     if (!room || !room.currentGameId) {
       return null;
@@ -599,6 +599,7 @@ export class GameManager {
     };
 
     let totalBets = 0;
+    let dataSource = 'current'; // Track if we're showing current or last round data
 
     // Sum up all bets in the current round
     room.activeBets?.forEach((bets, socketId) => {
@@ -610,12 +611,27 @@ export class GameManager {
       });
     });
 
+    // If no active bets, try to get data from the last completed round
+    if (totalBets === 0) {
+      try {
+        const lastRoundStats = await storage.getLastCompletedGameBettingStats(room.id);
+        if (lastRoundStats) {
+          totalBets = lastRoundStats.totalBets;
+          Object.assign(betsByType, lastRoundStats.betsByType);
+          dataSource = 'last';
+        }
+      } catch (error) {
+        console.error('Failed to get last round betting stats:', error);
+      }
+    }
+
     return {
       gameId: room.currentGameId,
       totalBets: totalBets,
       betsByType: betsByType,
       status: room.status,
-      timeRemaining: room.status === 'countdown' ? room.countdownTime : undefined
+      timeRemaining: room.status === 'countdown' ? room.countdownTime : undefined,
+      dataSource: dataSource // Include this for debugging/transparency
     };
   }
 
