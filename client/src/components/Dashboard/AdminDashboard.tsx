@@ -155,6 +155,117 @@ export default function AdminDashboard() {
     window.location.reload(); // Simple way to go back to game
   };
 
+  const handleViewUserStats = async (userId: number) => {
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/stats`);
+      if (response.ok) {
+        const data = await response.json();
+        alert(`User Stats for ${data.user.username}:\n\nChips: ${data.stats.chips}\nTotal Wins: ${data.stats.totalWins}\nTotal Losses: ${data.stats.totalLosses}\nWin Rate: ${data.stats.winRate}%\nTotal Bets Amount: ${data.stats.totalBetsAmount}`);
+      } else {
+        setShowErrorMessage('Failed to fetch user stats');
+        setTimeout(() => setShowErrorMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error fetching user stats:', err);
+      setShowErrorMessage('Error fetching user stats');
+      setTimeout(() => setShowErrorMessage(null), 3000);
+    }
+  };
+
+  const handleToggleUserStatus = async (userId: number, newStatus: string) => {
+    const action = newStatus === 'blocked' ? 'block' : 'unblock';
+    const confirmMessage = `Are you sure you want to ${action} this user?`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/status`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setShowSuccessMessage(`User ${result.user.username} has been ${action}ed successfully`);
+        setTimeout(() => setShowSuccessMessage(null), 3000);
+        
+        // Refresh users list
+        const usersResponse = await fetch('/api/admin/users');
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json();
+          setUsers(usersData);
+        }
+      } else {
+        const error = await response.json();
+        setShowErrorMessage(error.message || `Failed to ${action} user`);
+        setTimeout(() => setShowErrorMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error(`Error ${action}ing user:`, err);
+      setShowErrorMessage(`Error ${action}ing user`);
+      setTimeout(() => setShowErrorMessage(null), 3000);
+    }
+  };
+
+  const handleManageFunds = async (userId: number, username: string) => {
+    const amountStr = prompt(`Enter amount to add/remove from ${username}'s account:\n(Use negative numbers to remove chips)\nExample: 500 to add, -200 to remove`);
+    
+    if (amountStr === null) {
+      return; // User cancelled
+    }
+
+    const amount = parseFloat(amountStr);
+    if (isNaN(amount) || amount === 0) {
+      alert('Please enter a valid number (not zero)');
+      return;
+    }
+
+    const reason = prompt('Enter reason for fund adjustment (optional):') || 'Admin adjustment';
+    
+    const action = amount > 0 ? 'add' : 'remove';
+    const confirmMessage = `Confirm ${action} ${Math.abs(amount)} chips ${amount > 0 ? 'to' : 'from'} ${username}?\nReason: ${reason}`;
+    
+    if (!confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/admin/users/${userId}/funds`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ amount, reason }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setShowSuccessMessage(`${result.message}. ${username} now has ${result.player.chips} chips.`);
+        setTimeout(() => setShowSuccessMessage(null), 3000);
+        
+        // Refresh users list
+        const usersResponse = await fetch('/api/admin/users');
+        if (usersResponse.ok) {
+          const usersData = await usersResponse.json();
+          setUsers(usersData);
+        }
+      } else {
+        const error = await response.json();
+        setShowErrorMessage(error.message || 'Failed to update funds');
+        setTimeout(() => setShowErrorMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error updating funds:', err);
+      setShowErrorMessage('Error updating user funds');
+      setTimeout(() => setShowErrorMessage(null), 3000);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-casino-green p-4">
       <div className="max-w-6xl mx-auto">
@@ -250,6 +361,11 @@ export default function AdminDashboard() {
                     <TableRow className="border-casino-gold hover:bg-casino-green/20">
                       <TableHead className="text-casino-gold">ID</TableHead>
                       <TableHead className="text-casino-gold">Username</TableHead>
+                      <TableHead className="text-casino-gold">Status</TableHead>
+                      <TableHead className="text-casino-gold">Online</TableHead>
+                      <TableHead className="text-casino-gold">Chips</TableHead>
+                      <TableHead className="text-casino-gold">Stats</TableHead>
+                      <TableHead className="text-casino-gold">Last Activity</TableHead>
                       <TableHead className="text-casino-gold">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -262,25 +378,82 @@ export default function AdminDashboard() {
                         <TableCell className="text-white font-medium">
                           {user.id}
                         </TableCell>
-                        <TableCell className="text-white">
+                        <TableCell className="text-white font-semibold">
                           {user.username}
+                          {user.role === 'admin' && (
+                            <span className="ml-2 text-xs bg-casino-gold text-casino-black px-2 py-1 rounded">
+                              ADMIN
+                            </span>
+                          )}
                         </TableCell>
                         <TableCell>
-                          <div className="flex gap-2">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            user.status === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : user.status === 'blocked'
+                              ? 'bg-red-100 text-red-800'
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {user.status?.toUpperCase() || 'ACTIVE'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <span className={`w-2 h-2 rounded-full ${
+                              user.isOnline ? 'bg-green-400' : 'bg-gray-400'
+                            }`}></span>
+                            <span className="text-white text-sm">
+                              {user.isOnline ? 'Online' : 'Offline'}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-white font-medium">
+                          💰 {user.chips || 0}
+                        </TableCell>
+                        <TableCell className="text-white text-sm">
+                          <div>W: {user.totalWins || 0} / L: {user.totalLosses || 0}</div>
+                          <div className="text-gray-400">Rate: {user.winRate || 0}%</div>
+                        </TableCell>
+                        <TableCell className="text-white text-sm">
+                          {user.lastActivity 
+                            ? new Date(user.lastActivity).toLocaleString()
+                            : user.lastLogin
+                            ? new Date(user.lastLogin).toLocaleString()
+                            : 'Never'
+                          }
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap gap-1">
                             <Button
                               size="sm"
                               variant="outline"
                               className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                              onClick={() => handleViewUserStats(user.id)}
                             >
-                              View Stats
+                              📊
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-red-500 text-red-400 hover:bg-red-500 hover:text-white"
-                            >
-                              Manage
-                            </Button>
+                            {user.role !== 'admin' && (
+                              <>
+                                <Button
+                                  size="sm"
+                                  variant="outline" 
+                                  className={`${user.status === 'blocked' 
+                                    ? 'border-green-500 text-green-400 hover:bg-green-500' 
+                                    : 'border-red-500 text-red-400 hover:bg-red-500'} hover:text-white`}
+                                  onClick={() => handleToggleUserStatus(user.id, user.status === 'blocked' ? 'active' : 'blocked')}
+                                >
+                                  {user.status === 'blocked' ? '✅' : '🚫'}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
+                                  onClick={() => handleManageFunds(user.id, user.username)}
+                                >
+                                  💰
+                                </Button>
+                              </>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

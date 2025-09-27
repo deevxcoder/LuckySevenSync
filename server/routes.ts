@@ -144,6 +144,16 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(401).json({ message: "Invalid username or password" });
       }
 
+      // Check user status - deny login for blocked/suspended users
+      if (user.status !== 'active') {
+        return res.status(403).json({ 
+          message: `Account is ${user.status}. Please contact support.` 
+        });
+      }
+
+      // Update last login time
+      await storage.updateUserLastLogin(user.id);
+
       // Store user in session (without password hash)
       req.session.user = {
         id: user.id,
@@ -272,7 +282,8 @@ export async function registerRoutes(app: Express): Promise<void> {
       // Create admin user
       const adminUser = await storage.createAdminUser({ username, password });
       
-      // Store admin in session (without password hash)
+      // Store admin in session (without password hash) and update last login
+      await storage.updateUserLastLogin(adminUser.id);
       req.session.user = {
         id: adminUser.id,
         username: adminUser.username,
@@ -461,13 +472,13 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
-  // Get detailed user stats
+  // Get detailed user stats  
   app.get("/api/admin/users/:userId/stats", requireAdmin, async (req: AuthRequest, res) => {
     try {
       const userId = parseInt(req.params.userId);
 
-      if (!userId) {
-        return res.status(400).json({ message: "User ID is required" });
+      if (!userId || isNaN(userId)) {
+        return res.status(400).json({ message: "Valid User ID is required" });
       }
 
       const user = await storage.getUser(userId);
