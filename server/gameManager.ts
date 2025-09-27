@@ -46,11 +46,13 @@ export class GameManager {
   private globalRoom: GameRoom;
   private playerRooms: Map<string, string>; // socketId -> roomId (kept for compatibility)
   private countdownIntervals: Map<string, NodeJS.Timeout>;
+  private adminOverrides: Map<number, string>; // gameId -> override result
 
   constructor(io: Server) {
     this.io = io;
     this.playerRooms = new Map();
     this.countdownIntervals = new Map();
+    this.adminOverrides = new Map();
     
     // Create one global room for everyone
     this.globalRoom = {
@@ -90,6 +92,52 @@ export class GameManager {
     
     return {
       number: crypto.randomInt(1, 14), // 1-13
+      suit,
+      color,
+      revealed: false
+    };
+  }
+
+  private generateCardForResult(result: string): Card {
+    const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
+    const suitIndex = crypto.randomInt(0, suits.length);
+    const suit = suits[suitIndex];
+    
+    let number: number;
+    let color: 'red' | 'black';
+    
+    switch (result) {
+      case 'red':
+        color = 'red';
+        // Avoid 7 to ensure red wins
+        const redNumbers = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13];
+        number = redNumbers[crypto.randomInt(0, redNumbers.length)];
+        break;
+      case 'black':
+        color = 'black';
+        // Avoid 7 to ensure black wins
+        const blackNumbers = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13];
+        number = blackNumbers[crypto.randomInt(0, blackNumbers.length)];
+        break;
+      case 'low':
+        number = crypto.randomInt(1, 7); // 1-6
+        color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+        break;
+      case 'high':
+        number = crypto.randomInt(8, 14); // 8-13
+        color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+        break;
+      case 'lucky7':
+        number = 7;
+        color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+        break;
+      default:
+        // Fallback to random
+        return this.generateRandomCard();
+    }
+    
+    return {
+      number,
       suit,
       color,
       revealed: false
@@ -215,21 +263,33 @@ export class GameManager {
     const room = this.globalRoom;
     if (!room || !room.currentCard) return;
 
+    // Check for admin override
+    const gameId = room.currentGameId;
+    if (gameId && this.adminOverrides.has(gameId)) {
+      const overrideResult = this.adminOverrides.get(gameId)!;
+      room.currentCard = this.generateCardForResult(overrideResult);
+      this.adminOverrides.delete(gameId); // Remove override after use
+      console.log(`Admin override applied for game ${gameId}: ${overrideResult}`);
+    }
+
     room.status = 'playing';
-    room.currentCard.revealed = true;
+    if (room.currentCard) {
+      room.currentCard.revealed = true;
+    }
 
     console.log(`Revealing card in Lucky 7:`, room.currentCard);
 
     // Resolve all bets for this game
     await this.resolveBets(room);
 
-    // Mark game as completed
-    if (room.currentGameId) {
+    // Update game record with actual revealed card (in case of admin override) and mark as completed
+    if (room.currentGameId && room.currentCard) {
       try {
+        await storage.updateGameCard(room.currentGameId, room.currentCard.number, room.currentCard.color);
         await storage.markGameCompleted(room.currentGameId);
-        console.log(`Game ${room.currentGameId} marked as completed`);
+        console.log(`Game ${room.currentGameId} updated with final card and marked as completed`);
       } catch (error) {
-        console.error('Failed to mark game as completed:', error);
+        console.error('Failed to update game card or mark as completed:', error);
       }
     }
 
@@ -520,5 +580,62 @@ export class GameManager {
   // Public method to get house statistics for API access
   getHouseStats() {
     return this.globalRoom?.houseStats || null;
+  }
+
+  // Get current round data for admin control
+  getCurrentRoundData() {
+    const room = this.globalRoom;
+    if (!room || !room.currentGameId) {
+      return null;
+    }
+
+    // Calculate betting totals by type
+    const betsByType = {
+      red: 0,
+      black: 0,
+      low: 0,
+      high: 0,
+      lucky7: 0
+    };
+
+    let totalBets = 0;
+
+    // Sum up all bets in the current round
+    room.activeBets?.forEach((bets, socketId) => {
+      bets.forEach(bet => {
+        totalBets += bet.betAmount;
+        if (betsByType.hasOwnProperty(bet.betType)) {
+          betsByType[bet.betType as keyof typeof betsByType] += bet.betAmount;
+        }
+      });
+    });
+
+    return {
+      gameId: room.currentGameId,
+      totalBets: totalBets,
+      betsByType: betsByType,
+      status: room.status,
+      timeRemaining: room.status === 'countdown' ? room.countdownTime : undefined
+    };
+  }
+
+  // Set admin override for a specific game
+  setAdminOverride(gameId: number, overrideResult: string): boolean {
+    const room = this.globalRoom;
+    
+    // Only allow overrides during countdown phase
+    if (!room || room.status !== 'countdown' || room.currentGameId !== gameId) {
+      return false;
+    }
+
+    // Validate override result
+    const validResults = ['red', 'black', 'low', 'high', 'lucky7'];
+    if (!validResults.includes(overrideResult)) {
+      return false;
+    }
+
+    this.adminOverrides.set(gameId, overrideResult);
+    console.log(`Admin override set for game ${gameId}: ${overrideResult}`);
+    return true;
   }
 }

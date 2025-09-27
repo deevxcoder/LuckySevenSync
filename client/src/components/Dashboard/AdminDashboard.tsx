@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
+import { Badge } from '../ui/badge';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
 
 interface AdminUser {
@@ -9,11 +10,30 @@ interface AdminUser {
   username: string;
 }
 
+interface CurrentRoundData {
+  gameId: number;
+  totalBets: number;
+  betsByType: {
+    red: number;
+    black: number;
+    low: number;
+    high: number;
+    lucky7: number;
+  };
+  status: 'betting' | 'countdown' | 'revealed' | 'waiting';
+  timeRemaining?: number;
+}
+
 export default function AdminDashboard() {
   const { user, logout } = useAuthStore();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Results Control state
+  const [currentRound, setCurrentRound] = useState<CurrentRoundData | null>(null);
+  const [isLoadingRound, setIsLoadingRound] = useState(false);
+  const [overrideResult, setOverrideResult] = useState<string>('');
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -36,7 +56,58 @@ export default function AdminDashboard() {
     };
 
     fetchUsers();
+    
+    // Fetch current round data initially and set up polling
+    fetchCurrentRound();
+    const interval = setInterval(fetchCurrentRound, 5000); // Poll every 5 seconds
+    
+    return () => {
+      clearInterval(interval);
+    };
   }, []);
+
+  const fetchCurrentRound = async () => {
+    try {
+      setIsLoadingRound(true);
+      const response = await fetch('/api/admin/current-round');
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentRound(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch current round data:', err);
+    } finally {
+      setIsLoadingRound(false);
+    }
+  };
+
+  const handleOverrideResult = async (selectedResult: string) => {
+    if (!currentRound || !selectedResult) return;
+
+    try {
+      const response = await fetch('/api/admin/override-result', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gameId: currentRound.gameId,
+          overrideResult: selectedResult,
+        }),
+      });
+
+      if (response.ok) {
+        alert(`Round result overridden to: ${selectedResult}`);
+        setOverrideResult('');
+        fetchCurrentRound(); // Refresh data
+      } else {
+        alert('Failed to override result');
+      }
+    } catch (err) {
+      console.error('Error overriding result:', err);
+      alert('Error overriding result');
+    }
+  };
 
   const handleLogout = () => {
     logout();
@@ -214,6 +285,144 @@ export default function AdminDashboard() {
                 📈 Analytics
               </Button>
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Results Control */}
+        <Card className="bg-casino-black border-casino-gold mt-6">
+          <CardHeader>
+            <CardTitle className="text-casino-gold text-xl">🎯 Results Control</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoadingRound ? (
+              <div className="text-center text-white py-8">
+                Loading current round data...
+              </div>
+            ) : !currentRound || !currentRound.gameId ? (
+              <div className="text-center text-gray-400 py-8">
+                No active round found.
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Round Status */}
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-white font-semibold">Game ID: {currentRound.gameId}</h3>
+                    <Badge 
+                      className={`mt-1 ${
+                        currentRound.status === 'countdown' ? 'bg-yellow-600' :
+                        currentRound.status === 'revealed' ? 'bg-green-600' :
+                        currentRound.status === 'betting' ? 'bg-blue-600' :
+                        'bg-gray-600'
+                      } text-white`}
+                    >
+                      {currentRound.status.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-casino-gold font-semibold">Total Bets:</p>
+                    <p className="text-white text-xl">{currentRound.totalBets} chips</p>
+                  </div>
+                </div>
+
+                {/* Betting Breakdown */}
+                <div>
+                  <h4 className="text-casino-gold font-semibold mb-3">Current Round Betting:</h4>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <div className="bg-casino-green p-3 rounded border border-red-500">
+                      <div className="text-center">
+                        <div className="text-red-400 font-semibold">🔴 Red</div>
+                        <div className="text-white text-lg">{currentRound.betsByType.red}</div>
+                        <div className="text-gray-400 text-sm">chips</div>
+                      </div>
+                    </div>
+                    <div className="bg-casino-green p-3 rounded border border-gray-500">
+                      <div className="text-center">
+                        <div className="text-gray-300 font-semibold">⚫ Black</div>
+                        <div className="text-white text-lg">{currentRound.betsByType.black}</div>
+                        <div className="text-gray-400 text-sm">chips</div>
+                      </div>
+                    </div>
+                    <div className="bg-casino-green p-3 rounded border border-blue-500">
+                      <div className="text-center">
+                        <div className="text-blue-400 font-semibold">📉 Low (1-6)</div>
+                        <div className="text-white text-lg">{currentRound.betsByType.low}</div>
+                        <div className="text-gray-400 text-sm">chips</div>
+                      </div>
+                    </div>
+                    <div className="bg-casino-green p-3 rounded border border-orange-500">
+                      <div className="text-center">
+                        <div className="text-orange-400 font-semibold">📈 High (8-13)</div>
+                        <div className="text-white text-lg">{currentRound.betsByType.high}</div>
+                        <div className="text-gray-400 text-sm">chips</div>
+                      </div>
+                    </div>
+                    <div className="bg-casino-green p-3 rounded border border-yellow-500">
+                      <div className="text-center">
+                        <div className="text-yellow-400 font-semibold">🍀 Lucky 7</div>
+                        <div className="text-white text-lg">{currentRound.betsByType.lucky7}</div>
+                        <div className="text-gray-400 text-sm">chips</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Admin Override Controls */}
+                <div className="border-t border-casino-gold pt-4">
+                  <h4 className="text-casino-gold font-semibold mb-3">⚠️ Admin Override Results:</h4>
+                  <div className="bg-red-900/20 border border-red-500 p-4 rounded mb-4">
+                    <p className="text-red-300 text-sm font-medium">
+                      ⚠️ WARNING: This will override the natural game result and manually set the outcome.
+                      Use only when necessary for game management or correction purposes.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    <Button
+                      onClick={() => handleOverrideResult('red')}
+                      className="bg-red-600 hover:bg-red-700 text-white"
+                      disabled={currentRound.status !== 'countdown'}
+                    >
+                      Force Red Win
+                    </Button>
+                    <Button
+                      onClick={() => handleOverrideResult('black')}
+                      className="bg-gray-600 hover:bg-gray-700 text-white"
+                      disabled={currentRound.status !== 'countdown'}
+                    >
+                      Force Black Win
+                    </Button>
+                    <Button
+                      onClick={() => handleOverrideResult('low')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                      disabled={currentRound.status !== 'countdown'}
+                    >
+                      Force Low Win
+                    </Button>
+                    <Button
+                      onClick={() => handleOverrideResult('high')}
+                      className="bg-orange-600 hover:bg-orange-700 text-white"
+                      disabled={currentRound.status !== 'countdown'}
+                    >
+                      Force High Win
+                    </Button>
+                    <Button
+                      onClick={() => handleOverrideResult('lucky7')}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                      disabled={currentRound.status !== 'countdown'}
+                    >
+                      Force Lucky 7 Win
+                    </Button>
+                  </div>
+                  
+                  {currentRound.status !== 'countdown' && (
+                    <p className="text-gray-400 text-sm mt-2">
+                      * Results can only be overridden during the countdown phase
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

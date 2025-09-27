@@ -311,4 +311,64 @@ export async function registerRoutes(app: Express): Promise<void> {
       res.status(500).json({ message: "Failed to fetch house statistics" });
     }
   });
+
+  // Get current round betting statistics for admin control
+  app.get("/api/admin/current-round", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const gameManager = (app as any).gameManager;
+      
+      if (!gameManager) {
+        return res.status(500).json({ message: "Game manager not available" });
+      }
+
+      const currentRoundData = gameManager.getCurrentRoundData();
+      
+      if (!currentRoundData) {
+        return res.json({ message: "No active round found" });
+      }
+
+      res.json(currentRoundData);
+    } catch (error) {
+      console.error('Error fetching current round data:', error);
+      res.status(500).json({ message: "Failed to fetch current round data" });
+    }
+  });
+
+  // Admin override result endpoint
+  app.post("/api/admin/override-result", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { gameId, overrideResult } = req.body;
+      
+      if (!gameId || !overrideResult) {
+        return res.status(400).json({ message: "Game ID and override result are required" });
+      }
+
+      const validResults = ['red', 'black', 'low', 'high', 'lucky7'];
+      if (!validResults.includes(overrideResult)) {
+        return res.status(400).json({ message: "Invalid override result" });
+      }
+
+      const gameManager = (app as any).gameManager;
+      
+      if (!gameManager) {
+        return res.status(500).json({ message: "Game manager not available" });
+      }
+
+      const success = gameManager.setAdminOverride(gameId, overrideResult);
+      
+      if (success) {
+        console.log(`Admin ${req.user!.username} overrode result for game ${gameId} to: ${overrideResult}`);
+        res.json({ 
+          message: "Result override set successfully",
+          gameId: gameId,
+          overrideResult: overrideResult
+        });
+      } else {
+        res.status(400).json({ message: "Failed to set override - game may not be in countdown phase" });
+      }
+    } catch (error) {
+      console.error('Error setting admin override:', error);
+      res.status(500).json({ message: "Failed to set admin override" });
+    }
+  });
 }
