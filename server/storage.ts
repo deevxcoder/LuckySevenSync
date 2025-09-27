@@ -26,6 +26,9 @@ export interface IStorage {
   createUser(user: InsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
   createAdminUser(user: InsertUser): Promise<User>;
+  updateUserStatus(userId: number, status: string): Promise<User | undefined>;
+  updateUserLastLogin(userId: number): Promise<User | undefined>;
+  getUsersWithPlayerInfo(): Promise<Array<User & { playerInfo?: Player }>>;
   
   // Players
   getPlayer(id: number): Promise<Player | undefined>;
@@ -33,6 +36,15 @@ export interface IStorage {
   createPlayer(player: InsertPlayer): Promise<Player>;
   updatePlayerChips(playerId: number, chips: number): Promise<Player | undefined>;
   updatePlayerStats(playerId: number, wins: number, losses: number): Promise<Player | undefined>;
+  updatePlayerOnlineStatus(userId: number, isOnline: boolean): Promise<Player | undefined>;
+  updatePlayerFunds(userId: number, chipsToAdd: number): Promise<Player | undefined>;
+  getPlayerStatsByUserId(userId: number): Promise<{
+    chips: number;
+    totalWins: number;
+    totalLosses: number;
+    totalBetsAmount: number;
+    winRate: number;
+  } | null>;
   
   // Games
   createGame(game: InsertGame): Promise<Game>;
@@ -104,6 +116,74 @@ export class DatabaseStorage implements IStorage {
       role: 'admin'
     }).returning();
     return result[0];
+  }
+
+  async updateUserStatus(userId: number, status: string): Promise<User | undefined> {
+    const result = await db.update(users)
+      .set({ status })
+      .where(eq(users.id, userId))
+      .returning();
+    return result[0];
+  }
+
+  async updateUserLastLogin(userId: number): Promise<User | undefined> {
+    const result = await db.update(users)
+      .set({ lastLogin: new Date() })
+      .where(eq(users.id, userId))
+      .returning();
+    return result[0];
+  }
+
+  async getUsersWithPlayerInfo(): Promise<Array<User & { playerInfo?: Player }>> {
+    // Join users with players to get comprehensive user information
+    const result = await db
+      .select({
+        // User fields
+        id: users.id,
+        username: users.username,
+        password: users.password,
+        role: users.role,
+        status: users.status,
+        lastLogin: users.lastLogin,
+        createdAt: users.createdAt,
+        // Player fields
+        playerId: players.id,
+        chips: players.chips,
+        totalWins: players.totalWins,
+        totalLosses: players.totalLosses,
+        totalBetsAmount: players.totalBetsAmount,
+        isOnline: players.isOnline,
+        lastActivity: players.lastActivity,
+      })
+      .from(users)
+      .leftJoin(players, eq(users.id, players.userId));
+
+    // Group the results properly
+    const usersWithPlayerInfo = result.map(row => ({
+      id: row.id,
+      username: row.username,
+      password: row.password,
+      role: row.role,
+      status: row.status,
+      lastLogin: row.lastLogin,
+      createdAt: row.createdAt,
+      playerInfo: row.playerId ? {
+        id: row.playerId,
+        userId: row.id,
+        socketId: '', // This field won't be used in admin view
+        name: row.username,
+        chips: row.chips || 0,
+        totalWins: row.totalWins || 0,
+        totalLosses: row.totalLosses || 0,
+        totalBetsAmount: row.totalBetsAmount || 0,
+        isOnline: row.isOnline || false,
+        lastActivity: row.lastActivity || new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } : undefined
+    }));
+
+    return usersWithPlayerInfo;
   }
   
   // Players
@@ -260,6 +340,64 @@ export class DatabaseStorage implements IStorage {
       .where(eq(players.id, playerId))
       .returning();
     return result[0];
+  }
+
+  async updatePlayerOnlineStatus(userId: number, isOnline: boolean): Promise<Player | undefined> {
+    const result = await db.update(players)
+      .set({ 
+        isOnline,
+        lastActivity: new Date(),
+        updatedAt: new Date() 
+      })
+      .where(eq(players.userId, userId))
+      .returning();
+    return result[0];
+  }
+
+  async updatePlayerFunds(userId: number, chipsToAdd: number): Promise<Player | undefined> {
+    // Get current player data
+    const player = await this.getPlayerByUserId(userId);
+    if (!player) {
+      throw new Error('Player not found');
+    }
+
+    const newChips = player.chips + chipsToAdd;
+    if (newChips < 0) {
+      throw new Error('Cannot reduce chips below zero');
+    }
+
+    const result = await db.update(players)
+      .set({ 
+        chips: newChips,
+        updatedAt: new Date() 
+      })
+      .where(eq(players.userId, userId))
+      .returning();
+    return result[0];
+  }
+
+  async getPlayerStatsByUserId(userId: number): Promise<{
+    chips: number;
+    totalWins: number;
+    totalLosses: number;
+    totalBetsAmount: number;
+    winRate: number;
+  } | null> {
+    const player = await this.getPlayerByUserId(userId);
+    if (!player) {
+      return null;
+    }
+
+    const totalGames = player.totalWins + player.totalLosses;
+    const winRate = totalGames > 0 ? (player.totalWins / totalGames) * 100 : 0;
+
+    return {
+      chips: player.chips,
+      totalWins: player.totalWins,
+      totalLosses: player.totalLosses,
+      totalBetsAmount: player.totalBetsAmount,
+      winRate: Math.round(winRate * 100) / 100 // Round to 2 decimal places
+    };
   }
   
   // Games
