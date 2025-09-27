@@ -34,21 +34,24 @@ export default function GameRoom() {
     'red': '🔴 Red',
     'black': '⚫ Black',
     'high': '📈 High (8-13)',
-    'low': '📉 Low (1-7)',
-    'lucky7': '🍀 Lucky 7'
+    'low': '📉 Low (1-6)',
+    'lucky7': '🍀 Lucky 7 (12x)'
   };
 
   // Function to calculate if a bet won based on the revealed card
   const isBetWinner = (betType: string, card: CardType): boolean => {
     switch (betType) {
       case 'red':
-        return card.color === 'red';
+        // Red loses on 7 (house number)
+        return card.color === 'red' && card.number !== 7;
       case 'black':
-        return card.color === 'black';
+        // Black loses on 7 (house number)
+        return card.color === 'black' && card.number !== 7;
       case 'high':
         return card.number >= 8;
       case 'low':
-        return card.number <= 7;
+        // Low is now 1-6 (7 is excluded as house number)
+        return card.number >= 1 && card.number <= 6;
       case 'lucky7':
         return card.number === 7;
       default:
@@ -63,7 +66,7 @@ export default function GameRoom() {
       'black': 2,  // 1:1 odds = 2x total (stake + equal winnings)
       'high': 2,   // 1:1 odds = 2x total (stake + equal winnings)
       'low': 2,    // 1:1 odds = 2x total (stake + equal winnings)
-      'lucky7': 6  // 5:1 odds = 6x total (stake + 5x winnings)
+      'lucky7': 12 // 11:1 odds = 12x total (stake + 11x winnings)
     };
     return betAmount * (payoutMultipliers[betType] || 0);
   };

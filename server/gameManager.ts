@@ -436,13 +436,16 @@ export class GameManager {
   private isBetWinner(bet: any, card: Card): boolean {
     switch (bet.betType) {
       case 'red':
-        return card.color === 'red';
+        // Red loses on 7 (house number)
+        return card.color === 'red' && card.number !== 7;
       case 'black':
-        return card.color === 'black';
+        // Black loses on 7 (house number)
+        return card.color === 'black' && card.number !== 7;
       case 'high':
         return card.number >= 8;
       case 'low':
-        return card.number <= 7;
+        // Low is now 1-6 (7 is excluded as house number)
+        return card.number >= 1 && card.number <= 6;
       case 'lucky7':
         return card.number === 7;
       default:
@@ -472,7 +475,7 @@ export class GameManager {
       'black': 2,  // 1:1 odds = 2x total (stake + equal winnings)
       'high': 2,   // 1:1 odds = 2x total (stake + equal winnings)
       'low': 2,    // 1:1 odds = 2x total (stake + equal winnings)
-      'lucky7': 6  // 5:1 odds = 6x total (stake + 5x winnings)
+      'lucky7': 12 // 11:1 odds = 12x total (stake + 11x winnings)
     };
     
     const rawAmount = bet.betAmount * (payoutMultipliers[bet.betType] || 0);

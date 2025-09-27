@@ -21,11 +21,11 @@ interface Bet {
 }
 
 const BET_TYPES = [
-  { id: 'red', label: '🔴 Red', description: 'Bet on red card', odds: '1:1' },
-  { id: 'black', label: '⚫ Black', description: 'Bet on black card', odds: '1:1' },
+  { id: 'red', label: '🔴 Red', description: 'Bet on red card (7 loses)', odds: '1:1' },
+  { id: 'black', label: '⚫ Black', description: 'Bet on black card (7 loses)', odds: '1:1' },
   { id: 'high', label: '📈 High (8-13)', description: 'Bet on high numbers', odds: '1:1' },
-  { id: 'low', label: '📉 Low (1-7)', description: 'Bet on low numbers', odds: '1:1' },
-  { id: 'lucky7', label: '🍀 Lucky 7', description: 'Bet on number 7', odds: '5:1' },
+  { id: 'low', label: '📉 Low (1-6)', description: 'Bet on low numbers', odds: '1:1' },
+  { id: 'lucky7', label: '🍀 Lucky 7', description: 'Bet on number 7', odds: '11:1' },
 ];
 
 const BET_AMOUNTS = [10, 25, 50, 100, 250];
@@ -211,9 +211,9 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
 
         {/* Betting Tips */}
         <div className="text-xs text-casino-gold bg-casino-green p-2 rounded">
-          <p><strong>Tip:</strong> Higher odds mean bigger payouts but lower chance of winning!</p>
-          <p>• Red/Black, High/Low: Even money (1:1)</p>
-          <p>• Lucky 7: High payout (5:1)</p>
+          <p><strong>Tip:</strong> 7 is the house number - Red/Black lose on 7!</p>
+          <p>• Red/Black (loses on 7), High (8-13), Low (1-6): Even money (1:1)</p>
+          <p>• Lucky 7: High payout (11:1)</p>
         </div>
       </CardContent>
     </Card>
