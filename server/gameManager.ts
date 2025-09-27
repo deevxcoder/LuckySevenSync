@@ -626,13 +626,25 @@ export class GameManager {
       }
     }
 
+    // Include current card information for admin (only when card is generated)
+    let currentCard = null;
+    if (room.currentCard && (room.status === 'countdown' || room.status === 'playing')) {
+      currentCard = {
+        number: room.currentCard.number,
+        suit: room.currentCard.suit,
+        color: room.currentCard.color,
+        revealed: room.currentCard.revealed
+      };
+    }
+
     return {
       gameId: room.currentGameId,
       totalBets: totalBets,
       betsByType: betsByType,
       status: room.status,
       timeRemaining: room.status === 'countdown' ? room.countdownTime : undefined,
-      dataSource: dataSource // Include this for debugging/transparency
+      dataSource: dataSource, // Include this for debugging/transparency
+      currentCard: currentCard // Include current card info for admin
     };
   }
 

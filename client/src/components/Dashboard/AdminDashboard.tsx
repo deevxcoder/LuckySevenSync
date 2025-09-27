@@ -23,6 +23,12 @@ interface CurrentRoundData {
   };
   status: 'betting' | 'countdown' | 'revealed' | 'waiting';
   timeRemaining?: number;
+  currentCard?: {
+    number: number;
+    suit: string;
+    color: 'red' | 'black';
+    revealed: boolean;
+  };
 }
 
 export default function AdminDashboard() {
@@ -409,6 +415,24 @@ export default function AdminDashboard() {
                         Status: {currentRound.status === 'countdown' ? 'Card Generated - Ready for Reveal' : 'Pending Generation'}
                       </div>
                     </div>
+                    
+                    {/* Current Card Display */}
+                    {currentRound.currentCard && (
+                      <div className="mb-4 p-3 bg-casino-green rounded border border-blue-400">
+                        <div className="text-center">
+                          <div className="text-blue-200 text-sm mb-2">🎴 Current Generated Card:</div>
+                          <div className={`text-3xl font-bold ${currentRound.currentCard.color === 'red' ? 'text-red-400' : 'text-gray-300'}`}>
+                            {currentRound.currentCard.number} of {currentRound.currentCard.suit.charAt(0).toUpperCase() + currentRound.currentCard.suit.slice(1)}
+                          </div>
+                          <div className={`text-lg font-semibold mt-1 ${currentRound.currentCard.color === 'red' ? 'text-red-300' : 'text-gray-400'}`}>
+                            {currentRound.currentCard.color.toUpperCase()}
+                          </div>
+                          <div className="text-blue-100 text-xs mt-2">
+                            {currentRound.currentCard.revealed ? 'Card has been revealed to players' : 'Card is hidden from players until countdown ends'}
+                          </div>
+                        </div>
+                      </div>
+                    )}
                     <div className="text-blue-100 text-sm mb-4">
                       The system will naturally generate a completely random card (1-13, Red/Black) with the following probabilities:
                     </div>
