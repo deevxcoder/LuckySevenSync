@@ -323,7 +323,7 @@ export default function AdminDashboard() {
         {/* Results Control */}
         <Card className="bg-casino-black border-casino-gold mt-6">
           <CardHeader>
-            <CardTitle className="text-casino-gold text-xl">🎯 Results Control</CardTitle>
+            <CardTitle className="text-casino-gold text-xl">🎯 Lucky 7 Results Control</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingRound ? (
@@ -395,6 +395,62 @@ export default function AdminDashboard() {
                         <div className="text-white text-lg">{currentRound.betsByType.lucky7}</div>
                         <div className="text-gray-400 text-sm">chips</div>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Current System Results */}
+                <div className="border-t border-casino-gold pt-6 mb-6">
+                  <h4 className="text-casino-gold font-semibold mb-3">🎲 Current System Results (Natural):</h4>
+                  <div className="bg-blue-900/20 border border-blue-500 p-4 rounded">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="text-blue-300 font-semibold">Natural Random Generation</div>
+                      <div className="text-blue-200 text-sm">
+                        Status: {currentRound.status === 'countdown' ? 'Card Generated - Ready for Reveal' : 'Pending Generation'}
+                      </div>
+                    </div>
+                    <div className="text-blue-100 text-sm mb-4">
+                      The system will naturally generate a completely random card (1-13, Red/Black) with the following probabilities:
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                      <div className="bg-casino-green p-3 rounded border border-red-400">
+                        <div className="text-center">
+                          <div className="text-red-300 font-semibold text-sm">🔴 Red</div>
+                          <div className="text-white text-lg">50%</div>
+                          <div className="text-gray-300 text-xs">(26/52 cards)</div>
+                        </div>
+                      </div>
+                      <div className="bg-casino-green p-3 rounded border border-gray-400">
+                        <div className="text-center">
+                          <div className="text-gray-300 font-semibold text-sm">⚫ Black</div>
+                          <div className="text-white text-lg">50%</div>
+                          <div className="text-gray-300 text-xs">(26/52 cards)</div>
+                        </div>
+                      </div>
+                      <div className="bg-casino-green p-3 rounded border border-blue-400">
+                        <div className="text-center">
+                          <div className="text-blue-300 font-semibold text-sm">📉 Low</div>
+                          <div className="text-white text-lg">46%</div>
+                          <div className="text-gray-300 text-xs">(6/13 numbers)</div>
+                        </div>
+                      </div>
+                      <div className="bg-casino-green p-3 rounded border border-orange-400">
+                        <div className="text-center">
+                          <div className="text-orange-300 font-semibold text-sm">📈 High</div>
+                          <div className="text-white text-lg">46%</div>
+                          <div className="text-gray-300 text-xs">(6/13 numbers)</div>
+                        </div>
+                      </div>
+                      <div className="bg-casino-green p-3 rounded border border-yellow-400">
+                        <div className="text-center">
+                          <div className="text-yellow-300 font-semibold text-sm">🍀 Lucky 7</div>
+                          <div className="text-white text-lg">8%</div>
+                          <div className="text-gray-300 text-xs">(1/13 numbers)</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-blue-100 text-xs mt-3">
+                      * These probabilities represent the natural system behavior without any admin intervention
                     </div>
                   </div>
                 </div>
