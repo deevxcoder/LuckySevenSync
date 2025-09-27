@@ -211,14 +211,27 @@ export async function registerRoutes(app: Express): Promise<void> {
   // Admin routes - requires admin role
   app.get("/api/admin/users", requireAdmin, async (req: AuthRequest, res) => {
     try {
-      const users = await storage.getAllUsers();
+      // Use enhanced function to get users with player info
+      const users = await storage.getUsersWithPlayerInfo();
       
-      // Return users without passwords
+      // Return comprehensive user data without passwords
       const safeUsers = users.map(user => ({
         id: user.id,
         username: user.username,
         role: user.role,
-        createdAt: user.createdAt
+        status: user.status,
+        lastLogin: user.lastLogin,
+        createdAt: user.createdAt,
+        // Player information if available
+        chips: user.playerInfo?.chips || 0,
+        totalWins: user.playerInfo?.totalWins || 0,
+        totalLosses: user.playerInfo?.totalLosses || 0,
+        totalBetsAmount: user.playerInfo?.totalBetsAmount || 0,
+        isOnline: user.playerInfo?.isOnline || false,
+        lastActivity: user.playerInfo?.lastActivity,
+        winRate: user.playerInfo ? 
+          (user.playerInfo.totalWins + user.playerInfo.totalLosses > 0 ? 
+            Math.round((user.playerInfo.totalWins / (user.playerInfo.totalWins + user.playerInfo.totalLosses)) * 10000) / 100 : 0) : 0
       }));
 
       res.json(safeUsers);
@@ -369,6 +382,121 @@ export async function registerRoutes(app: Express): Promise<void> {
     } catch (error) {
       console.error('Error setting admin override:', error);
       res.status(500).json({ message: "Failed to set admin override" });
+    }
+  });
+
+  // User management endpoints
+  // Block/Unblock user
+  app.post("/api/admin/users/:userId/status", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { status } = req.body;
+
+      if (!userId || !status) {
+        return res.status(400).json({ message: "User ID and status are required" });
+      }
+
+      const validStatuses = ['active', 'blocked', 'suspended'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ message: "Invalid status. Must be: active, blocked, or suspended" });
+      }
+
+      const updatedUser = await storage.updateUserStatus(userId, status);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      console.log(`Admin ${req.user!.username} changed user ${updatedUser.username} status to: ${status}`);
+      res.json({ 
+        message: `User status updated to ${status}`,
+        user: {
+          id: updatedUser.id,
+          username: updatedUser.username,
+          status: updatedUser.status
+        }
+      });
+    } catch (error) {
+      console.error('Error updating user status:', error);
+      res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
+  // Add/Remove funds
+  app.post("/api/admin/users/:userId/funds", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      const { amount, reason } = req.body;
+
+      if (!userId || amount === undefined) {
+        return res.status(400).json({ message: "User ID and amount are required" });
+      }
+
+      if (typeof amount !== 'number') {
+        return res.status(400).json({ message: "Amount must be a number" });
+      }
+
+      const updatedPlayer = await storage.updatePlayerFunds(userId, amount);
+      
+      if (!updatedPlayer) {
+        return res.status(404).json({ message: "Player not found for this user" });
+      }
+
+      const action = amount > 0 ? 'added' : 'removed';
+      console.log(`Admin ${req.user!.username} ${action} ${Math.abs(amount)} chips ${amount > 0 ? 'to' : 'from'} user ${updatedPlayer.name}. Reason: ${reason || 'No reason provided'}`);
+      
+      res.json({ 
+        message: `Successfully ${action} ${Math.abs(amount)} chips`,
+        player: {
+          id: updatedPlayer.id,
+          name: updatedPlayer.name,
+          chips: updatedPlayer.chips,
+          changeAmount: amount
+        }
+      });
+    } catch (error) {
+      console.error('Error updating user funds:', error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to update user funds";
+      res.status(500).json({ message: errorMessage });
+    }
+  });
+
+  // Get detailed user stats
+  app.get("/api/admin/users/:userId/stats", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const userId = parseInt(req.params.userId);
+
+      if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+      }
+
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const playerStats = await storage.getPlayerStatsByUserId(userId);
+      
+      res.json({
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+          status: user.status,
+          lastLogin: user.lastLogin,
+          createdAt: user.createdAt
+        },
+        stats: playerStats || {
+          chips: 0,
+          totalWins: 0,
+          totalLosses: 0,
+          totalBetsAmount: 0,
+          winRate: 0
+        }
+      });
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      res.status(500).json({ message: "Failed to fetch user stats" });
     }
   });
 }
