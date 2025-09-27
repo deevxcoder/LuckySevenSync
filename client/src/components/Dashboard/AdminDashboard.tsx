@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../ui/dialog';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
 
 interface AdminUser {
@@ -34,6 +35,12 @@ export default function AdminDashboard() {
   const [currentRound, setCurrentRound] = useState<CurrentRoundData | null>(null);
   const [isLoadingRound, setIsLoadingRound] = useState(false);
   const [overrideResult, setOverrideResult] = useState<string>('');
+  
+  // Confirmation Dialog state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingOverride, setPendingOverride] = useState<string | null>(null);
+  const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
+  const [showErrorMessage, setShowErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -85,8 +92,18 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleOverrideResult = async (selectedResult: string) => {
+  const handleOverrideResult = (selectedResult: string) => {
     if (!currentRound || !selectedResult) return;
+    
+    // Show confirmation dialog
+    setPendingOverride(selectedResult);
+    setShowConfirmDialog(true);
+  };
+
+  const confirmOverride = async () => {
+    if (!currentRound || !pendingOverride) return;
+
+    setShowConfirmDialog(false);
 
     try {
       const response = await fetch('/api/admin/override-result', {
@@ -96,21 +113,32 @@ export default function AdminDashboard() {
         },
         body: JSON.stringify({
           gameId: currentRound.gameId,
-          overrideResult: selectedResult,
+          overrideResult: pendingOverride,
         }),
       });
 
       if (response.ok) {
-        alert(`Round result overridden to: ${selectedResult}`);
+        setShowSuccessMessage(`Round result overridden to: ${pendingOverride}`);
         setOverrideResult('');
         fetchCurrentRound(); // Refresh data
+        // Auto-hide success message after 3 seconds
+        setTimeout(() => setShowSuccessMessage(null), 3000);
       } else {
-        alert('Failed to override result');
+        setShowErrorMessage('Failed to override result');
+        setTimeout(() => setShowErrorMessage(null), 3000);
       }
     } catch (err) {
       console.error('Error overriding result:', err);
-      alert('Error overriding result');
+      setShowErrorMessage('Error overriding result');
+      setTimeout(() => setShowErrorMessage(null), 3000);
+    } finally {
+      setPendingOverride(null);
     }
+  };
+
+  const cancelOverride = () => {
+    setShowConfirmDialog(false);
+    setPendingOverride(null);
   };
 
   const handleLogout = () => {
@@ -374,6 +402,21 @@ export default function AdminDashboard() {
                 {/* Admin Override Controls */}
                 <div className="border-t border-casino-gold pt-4">
                   <h4 className="text-casino-gold font-semibold mb-3">⚠️ Admin Override Results:</h4>
+                  
+                  {/* Countdown Timer for Override Window */}
+                  {currentRound.status === 'countdown' && currentRound.timeRemaining && (
+                    <div className="bg-yellow-900/20 border border-yellow-500 p-4 rounded mb-4">
+                      <div className="flex items-center justify-center">
+                        <div className="text-yellow-300 font-bold text-lg">
+                          ⏰ Override Window: {Math.max(0, Math.ceil(currentRound.timeRemaining))}s remaining
+                        </div>
+                      </div>
+                      <p className="text-yellow-200 text-sm text-center mt-2">
+                        You can override the result during the countdown phase
+                      </p>
+                    </div>
+                  )}
+                  
                   <div className="bg-red-900/20 border border-red-500 p-4 rounded mb-4">
                     <p className="text-red-300 text-sm font-medium">
                       ⚠️ WARNING: This will override the natural game result and manually set the outcome.
@@ -429,6 +472,63 @@ export default function AdminDashboard() {
             )}
           </CardContent>
         </Card>
+
+        {/* Confirmation Dialog */}
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent className="bg-casino-black border-casino-gold">
+            <DialogHeader>
+              <DialogTitle className="text-casino-gold">⚠️ Confirm Result Override</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-white text-center">
+                Are you sure you want to override the game result to:
+              </p>
+              <div className="text-center mt-4">
+                <span className="inline-block bg-casino-green px-4 py-2 rounded border border-casino-gold text-casino-gold font-bold text-lg">
+                  {pendingOverride?.toUpperCase()}
+                </span>
+              </div>
+              <p className="text-red-300 text-sm text-center mt-4">
+                This action will permanently affect the game outcome and cannot be undone.
+              </p>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={cancelOverride}
+                className="border-gray-500 text-gray-300 hover:bg-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmOverride}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Yes, Override Result
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Success Message */}
+        {showSuccessMessage && (
+          <div className="fixed top-4 right-4 bg-green-600 border border-green-500 text-white px-6 py-3 rounded shadow-lg z-50">
+            <div className="flex items-center">
+              <span className="mr-2">✅</span>
+              {showSuccessMessage}
+            </div>
+          </div>
+        )}
+
+        {/* Error Message */}
+        {showErrorMessage && (
+          <div className="fixed top-4 right-4 bg-red-600 border border-red-500 text-white px-6 py-3 rounded shadow-lg z-50">
+            <div className="flex items-center">
+              <span className="mr-2">❌</span>
+              {showErrorMessage}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

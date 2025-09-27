@@ -611,8 +611,9 @@ export class GameManager {
       });
     });
 
-    // If no active bets, try to get data from the last completed round
-    if (totalBets === 0) {
+    // Only show last round data when current round has finished
+    // During waiting/countdown/playing phases, always show current data (even if 0)
+    if (totalBets === 0 && room.status === 'finished') {
       try {
         const lastRoundStats = await storage.getLastCompletedGameBettingStats(room.id);
         if (lastRoundStats) {
