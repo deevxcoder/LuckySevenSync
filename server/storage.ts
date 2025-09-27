@@ -36,6 +36,7 @@ export interface IStorage {
   
   // Games
   createGame(game: InsertGame): Promise<Game>;
+  updateGameCard(gameId: number, cardNumber: number, cardColor: string): Promise<Game | undefined>;
   markGameCompleted(gameId: number): Promise<Game | undefined>;
   getGameHistory(limit?: number): Promise<Game[]>;
   getTotalGameCount(): Promise<number>;
@@ -266,6 +267,14 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+  async updateGameCard(gameId: number, cardNumber: number, cardColor: string): Promise<Game | undefined> {
+    const result = await db.update(games)
+      .set({ cardNumber, cardColor })
+      .where(eq(games.id, gameId))
+      .returning();
+    return result[0];
+  }
+
   async markGameCompleted(gameId: number): Promise<Game | undefined> {
     const result = await db.update(games)
       .set({ status: 'completed' })

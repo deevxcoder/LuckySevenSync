@@ -58,17 +58,19 @@ export default function AdminDashboard() {
     fetchUsers();
     
     // Fetch current round data initially and set up polling
-    fetchCurrentRound();
-    const interval = setInterval(fetchCurrentRound, 5000); // Poll every 5 seconds
+    fetchCurrentRound(true); // Initial load with loading state
+    const interval = setInterval(() => fetchCurrentRound(false), 5000); // Poll every 5 seconds without loading state
     
     return () => {
       clearInterval(interval);
     };
   }, []);
 
-  const fetchCurrentRound = async () => {
+  const fetchCurrentRound = async (isInitialLoad = false) => {
     try {
-      setIsLoadingRound(true);
+      if (isInitialLoad) {
+        setIsLoadingRound(true);
+      }
       const response = await fetch('/api/admin/current-round');
       if (response.ok) {
         const data = await response.json();
@@ -77,7 +79,9 @@ export default function AdminDashboard() {
     } catch (err) {
       console.error('Failed to fetch current round data:', err);
     } finally {
-      setIsLoadingRound(false);
+      if (isInitialLoad) {
+        setIsLoadingRound(false);
+      }
     }
   };
 
