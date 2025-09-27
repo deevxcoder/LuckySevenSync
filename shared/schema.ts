@@ -8,6 +8,8 @@ export const users = pgTable("users", {
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
   role: varchar("role", { length: 20 }).default("user").notNull(),
+  status: varchar("status", { length: 20 }).default("active").notNull(), // 'active', 'blocked', 'suspended'
+  lastLogin: timestamp("last_login"),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
@@ -28,6 +30,9 @@ export const players = pgTable("players", {
   chips: integer("chips").default(1000).notNull(),
   totalWins: integer("total_wins").default(0).notNull(),
   totalLosses: integer("total_losses").default(0).notNull(),
+  totalBetsAmount: integer("total_bets_amount").default(0).notNull(),
+  isOnline: boolean("is_online").default(false).notNull(),
+  lastActivity: timestamp("last_activity").default(sql`CURRENT_TIMESTAMP`).notNull(),
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
   updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
