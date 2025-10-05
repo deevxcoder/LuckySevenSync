@@ -15,11 +15,20 @@ import { Button } from './components/ui/button';
 function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [socketId, setSocketId] = useState<string>('');
-  const [currentView, setCurrentView] = useState<'game' | 'userDashboard' | 'adminDashboard'>('userDashboard');
+  const { isAuthenticated, user } = useAuthStore();
+  const [currentView, setCurrentView] = useState<'game' | 'userDashboard' | 'adminDashboard'>(
+    user?.role === 'admin' ? 'adminDashboard' : 'userDashboard'
+  );
   const [showHomePage, setShowHomePage] = useState(true); // New state for home vs auth
   const { currentRoom, setCurrentRoom, setPlayers } = useGameStore();
   const { initializeSounds, isInitialized, isMuted, toggleMute, playBackgroundMusic } = useAudio();
-  const { isAuthenticated, user } = useAuthStore();
+
+  // Update view when user changes (after login)
+  useEffect(() => {
+    if (user) {
+      setCurrentView(user.role === 'admin' ? 'adminDashboard' : 'userDashboard');
+    }
+  }, [user]);
 
   useEffect(() => {
     // Initialize sounds when app loads
@@ -102,7 +111,13 @@ function App() {
     return <AdminDashboard />;
   }
 
-  // Show main game interface with navigation
+  // Admins should not access the game view - redirect to admin dashboard
+  if (user?.role === 'admin') {
+    setCurrentView('adminDashboard');
+    return null;
+  }
+
+  // Show main game interface with navigation (only for regular users)
   return (
     <div className="min-h-screen bg-casino-green relative">
       {/* Top Navigation Bar */}
@@ -123,16 +138,6 @@ function App() {
             >
               📊 Dashboard
             </Button>
-            {user?.role === 'admin' && (
-              <Button
-                onClick={() => setCurrentView('adminDashboard')}
-                variant="outline"
-                size="sm"
-                className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
-              >
-                🛠️ Admin
-              </Button>
-            )}
             <Button
               onClick={toggleMute}
               variant="outline"

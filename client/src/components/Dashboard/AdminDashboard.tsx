@@ -151,10 +151,6 @@ export default function AdminDashboard() {
     logout();
   };
 
-  const handleBackToGame = () => {
-    window.location.reload(); // Simple way to go back to game
-  };
-
   const handleViewUserStats = async (userId: number) => {
     try {
       const response = await fetch(`/api/admin/users/${userId}/stats`);
@@ -279,22 +275,13 @@ export default function AdminDashboard() {
               Manage Lucky 7 users and game oversight
             </p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              onClick={handleBackToGame}
-              variant="outline"
-              className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
-            >
-              🎰 Back to Game
-            </Button>
-            <Button
-              onClick={handleLogout}
-              variant="outline"
-              className="bg-casino-red border-casino-gold text-white hover:bg-red-700"
-            >
-              Sign Out
-            </Button>
-          </div>
+          <Button
+            onClick={handleLogout}
+            variant="outline"
+            className="bg-casino-red border-casino-gold text-white hover:bg-red-700"
+          >
+            Sign Out
+          </Button>
         </div>
 
         {/* Stats Overview */}
