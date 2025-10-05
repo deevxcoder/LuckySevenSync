@@ -9,6 +9,15 @@ import { useAuthStore } from '../../lib/stores/useAuthStore';
 interface AdminUser {
   id: number;
   username: string;
+  role: string;
+  status: 'active' | 'suspended' | 'blocked';
+  isOnline: boolean;
+  chips: number;
+  totalWins: number;
+  totalLosses: number;
+  winRate: number;
+  lastActivity: string | null;
+  lastLogin: string | null;
 }
 
 interface CurrentRoundData {

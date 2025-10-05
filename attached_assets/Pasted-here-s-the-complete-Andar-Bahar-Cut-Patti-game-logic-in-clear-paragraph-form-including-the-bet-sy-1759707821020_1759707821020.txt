@@ -1,0 +1,13 @@
+here’s the complete Andar Bahar (Cut Patti) game logic in clear paragraph form, including the bet system and dealer selection for a 1 vs 1 live match:
+
+The game begins when both players agree to play and each places an equal bet amount into the pot. Once the total bet is locked in, the system randomly selects one player to act as the dealer (Player 1) and the other as the guesser or cutter (Player 2). The dealer’s role is to shuffle and deal the cards, while the cutter’s role is to make the prediction.
+
+After the dealer is chosen, they shuffle a standard 52-card deck thoroughly. The dealer then draws one card from the deck and places it face-up on the table. This card is called the joker card or the middle card, and its rank (for example, 7, Queen, or Ace) becomes the target for the round.
+
+Now it’s Player 2’s turn to cut by choosing either Andar (inside) or Bahar (outside) — predicting on which side a card of the same rank as the joker will appear first. Once the guess is made, the dealer starts dealing cards alternately: one to Andar, one to Bahar, one to Andar, and so on. Traditionally, if the joker card is of a black suit (♠️ or ♣️), the first card is dealt to Andar; if it’s a red suit (♥️ or ♦️), the first card is dealt to Bahar.
+
+The dealer continues dealing until a card of the same rank as the joker card appears. The side (Andar or Bahar) on which this matching card lands is declared the winning side. If the winning side matches the guess made by Player 2, then Player 2 wins the total pot amount. If not, Player 1 (the dealer) wins the pot.
+
+After the result, both players’ balances are updated according to who won. The next round can then begin with the system automatically switching roles (the previous guesser becomes the dealer and vice versa) or by random dealer selection again.
+
+This structure makes the game simple, fair, and suitable for 1 vs 1 live multiplayer play, with the system handling bet deduction, deck shuffle, dealer assignment, side dealing, and winner payout automatically.
