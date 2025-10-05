@@ -379,7 +379,7 @@ export class GameManager {
   private async handlePlaceBet(socket: Socket, data: { roomId: string; betType: string; betValue: string; amount: number }) {
     try {
       const room = this.globalRoom;
-      if (!room || room.status !== 'countdown' || room.countdownTime <= 20) {
+      if (!room || room.status !== 'countdown' || room.countdownTime <= 10) {
         socket.emit('bet-error', 'Cannot place bet at this time');
         return;
       }
