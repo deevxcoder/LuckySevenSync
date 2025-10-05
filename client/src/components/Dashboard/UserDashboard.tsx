@@ -8,9 +8,10 @@ import { socket } from '../../lib/socket';
 
 interface UserDashboardProps {
   onNavigateToGame?: () => void;
+  onNavigateToAndarBahar?: () => void;
 }
 
-export default function UserDashboard({ onNavigateToGame }: UserDashboardProps) {
+export default function UserDashboard({ onNavigateToGame, onNavigateToAndarBahar }: UserDashboardProps) {
   const { user, logout } = useAuthStore();
   const [socketId, setSocketId] = useState<string>('');
 
@@ -96,27 +97,80 @@ export default function UserDashboard({ onNavigateToGame }: UserDashboardProps) 
           </div>
 
 
-          {/* Game Actions */}
+          {/* Available Games */}
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-casino-gold mb-4">Available Games</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Lucky 7 Card */}
+              <Card className="bg-casino-black border-casino-gold hover:border-casino-gold/80 transition-all">
+                <CardHeader>
+                  <CardTitle className="text-casino-gold text-xl flex items-center gap-2">
+                    🎰 Lucky 7
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-white text-sm">
+                    Bet on card outcomes in this fast-paced casino classic. Will it be red or black? Higher or lower than 7?
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <Button 
+                      className="bg-casino-red hover:bg-red-700 text-white font-bold py-3 px-6 glow-red w-full"
+                      onClick={onNavigateToGame}
+                    >
+                      🎮 Play Lucky 7
+                    </Button>
+                    <div className="flex gap-2">
+                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Multi-bet</span>
+                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Live Rounds</span>
+                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">20s Betting</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Andar Bahar Card */}
+              <Card className="bg-casino-black border-casino-gold hover:border-casino-gold/80 transition-all">
+                <CardHeader>
+                  <CardTitle className="text-casino-gold text-xl flex items-center gap-2">
+                    🃏 Andar Bahar (Cut Patti)
+                    <span className="text-xs bg-green-500 text-white px-2 py-1 rounded ml-auto">LIVE</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-white text-sm">
+                    Traditional 1v1 card game. Choose Andar or Bahar and match the joker card to win the pot!
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    <Button 
+                      className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 w-full"
+                      onClick={onNavigateToAndarBahar}
+                    >
+                      🎮 Play Andar Bahar
+                    </Button>
+                    <div className="flex gap-2">
+                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">1v1 Match</span>
+                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Winner Takes All</span>
+                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Live Play</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Quick Stats */}
           <Card className="bg-casino-black border-casino-gold">
             <CardHeader>
-              <CardTitle className="text-casino-gold text-xl">Ready to Play?</CardTitle>
+              <CardTitle className="text-casino-gold text-xl">Your Stats</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-white">
-                Join a Lucky 7 game and test your luck!
-              </p>
-              <div className="flex gap-4">
-                <Button 
-                  className="bg-casino-red hover:bg-red-700 text-white font-bold py-3 px-6 glow-red"
-                  onClick={onNavigateToGame}
-                >
-                  🎰 Join Game
-                </Button>
+            <CardContent>
+              <div className="flex justify-between items-center">
+                <p className="text-white">Ready to play and build your game history!</p>
                 <Button 
                   variant="outline"
                   className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
                 >
-                  📊 View Game History
+                  📊 View History
                 </Button>
               </div>
             </CardContent>
