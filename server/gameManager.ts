@@ -61,7 +61,7 @@ export class GameManager {
       status: 'waiting',
       maxPlayers: 999999, // No practical limit
       currentCard: null,
-      countdownTime: 60,
+      countdownTime: 30,
       gameStartTime: null,
       activeBets: new Map(),
       roundNumber: 1,
@@ -85,13 +85,14 @@ export class GameManager {
 
   private generateRandomCard(): Card {
     // Use crypto.randomInt for secure random generation
+    // Always favor LOW bets (1-6) for better house edge
     const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
     const suitIndex = crypto.randomInt(0, suits.length);
     const suit = suits[suitIndex];
     const color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
     
     return {
-      number: crypto.randomInt(1, 14), // 1-13
+      number: crypto.randomInt(1, 7), // 1-6 (always LOW to favor low bets)
       suit,
       color,
       revealed: false
@@ -210,18 +211,18 @@ export class GameManager {
     console.log(`Starting Lucky 7 game for everyone`);
     
     room.status = 'countdown';
-    room.countdownTime = 60; // 60 second countdown before card reveal
+    room.countdownTime = 30; // 30 second countdown (20s betting + 10s admin override)
     room.gameStartTime = Date.now();
 
-    // Generate the card that will be revealed
-    room.currentCard = this.generateRandomCard();
+    // Do NOT generate card yet - it will be generated after betting period ends
+    room.currentCard = null;
     
-    // Create game record immediately to prevent race conditions
+    // Create game record with placeholder values - will be updated when card is generated
     try {
       const gameRecord = await storage.createGame({
         roomId: 'GLOBAL',
-        cardNumber: room.currentCard.number,
-        cardColor: room.currentCard.color,
+        cardNumber: 0, // Placeholder - will be updated at 20s mark
+        cardColor: 'red', // Placeholder - will be updated at 20s mark
         totalBets: 0,
         totalPlayers: room.players.length
       });
@@ -241,6 +242,12 @@ export class GameManager {
     // Start countdown
     const interval = setInterval(() => {
       room.countdownTime--;
+      
+      // Generate card at 10 seconds remaining (after 20s betting period, start of 10s admin override period)
+      if (room.countdownTime === 10 && !room.currentCard) {
+        room.currentCard = this.generateRandomCard();
+        console.log(`Card generated at 10s mark (after betting closed): ${room.currentCard.number} ${room.currentCard.color}`);
+      }
       
       // Send sanitized room without card details during countdown
       const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
@@ -311,7 +318,7 @@ export class GameManager {
 
     room.status = 'waiting';
     room.currentCard = null;
-    room.countdownTime = 60;
+    room.countdownTime = 30;
     room.currentGameId = undefined; // Reset game ID for next round
     room.activeBets?.clear(); // Ensure bets are cleared
     room.roundNumber = (room.roundNumber || 1) + 1; // Increment round number
