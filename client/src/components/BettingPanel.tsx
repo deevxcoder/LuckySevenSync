@@ -57,7 +57,7 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
 
   const canPlaceBet = () => {
     return gameStatus === 'countdown' && 
-           countdownTime > 20 && 
+           countdownTime > 10 && 
            selectedBetType && 
            selectedAmount > 0 && 
            totalBetAmount + selectedAmount <= playerChips;
@@ -99,10 +99,10 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
     if (gameStatus !== 'countdown') {
       return 'Waiting for next round...';
     }
-    if (countdownTime <= 20) {
+    if (countdownTime <= 10) {
       return 'Betting closed! Get ready for reveal!';
     }
-    return `Place your bets! Betting time left: ${countdownTime - 20}s`;
+    return `Place your bets! Betting time left: ${countdownTime - 10}s`;
   };
 
   return (
