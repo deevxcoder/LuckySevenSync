@@ -22,6 +22,7 @@ export interface GameRoom {
   countdownTime: number;
   gameStartTime: number | null;
   roundNumber?: number;
+  currentGameId?: number;
 }
 
 export type GameEvent = 

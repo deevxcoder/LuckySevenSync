@@ -367,7 +367,7 @@ export default function GameRoom() {
                   </div>
                   <div>
                     <span className="font-semibold">Round:</span>
-                    <span className="ml-2 text-casino-gold">#{totalGameCount + 1}</span>
+                    <span className="ml-2 text-casino-gold">#{currentRoom.currentGameId || totalGameCount + 1}</span>
                   </div>
                 </div>
               </CardContent>
