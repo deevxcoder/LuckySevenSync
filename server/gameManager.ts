@@ -84,10 +84,12 @@ export class GameManager {
   }
 
   private generateSmartCard(room: GameRoom): Card {
-    // Calculate total bets on low, high, and lucky7
+    // Calculate total bets on all bet types
     let lowBetTotal = 0;
     let highBetTotal = 0;
     let lucky7BetTotal = 0;
+    let redBetTotal = 0;
+    let blackBetTotal = 0;
     
     if (room.activeBets) {
       room.activeBets.forEach((bets) => {
@@ -98,55 +100,80 @@ export class GameManager {
             highBetTotal += bet.betAmount;
           } else if (bet.betType === 'lucky7') {
             lucky7BetTotal += bet.betAmount;
+          } else if (bet.betType === 'red') {
+            redBetTotal += bet.betAmount;
+          } else if (bet.betType === 'black') {
+            blackBetTotal += bet.betAmount;
           }
         });
       });
     }
     
-    console.log(`Bet Analysis - Low: ${lowBetTotal}, High: ${highBetTotal}, Lucky7: ${lucky7BetTotal}`);
-    
-    // Generate card based on which side has LEAST bets (maximize house profit)
-    const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
-    const suitIndex = crypto.randomInt(0, suits.length);
-    const suit = suits[suitIndex];
-    const color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+    console.log(`Bet Analysis - Low: ${lowBetTotal}, High: ${highBetTotal}, Lucky7: ${lucky7BetTotal}, Red: ${redBetTotal}, Black: ${blackBetTotal}`);
     
     let number: number;
     let outcome: string;
+    let color: 'red' | 'black';
+    let suit: 'spades' | 'hearts' | 'diamonds' | 'clubs';
     
     // Check if there are any bets at all
-    const totalBets = lowBetTotal + highBetTotal + lucky7BetTotal;
+    const totalBets = lowBetTotal + highBetTotal + lucky7BetTotal + redBetTotal + blackBetTotal;
     
     if (totalBets === 0) {
       // No bets placed - generate random number from 1-13
+      const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
+      suit = suits[crypto.randomInt(0, suits.length)];
       number = crypto.randomInt(1, 14); // 1-13
+      color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
       outcome = 'No bets placed - random result';
     } else {
-      // Find which bet type has the LOWEST total (that bet type will win)
-      const betAmounts = [
-        { type: 'low', amount: lowBetTotal },
-        { type: 'high', amount: highBetTotal },
-        { type: 'lucky7', amount: lucky7BetTotal }
+      // Calculate total payout for each possible card outcome combination
+      // We need to find the combination that results in MINIMUM total payout
+      // Payout multipliers: red/black/low/high = 2x, lucky7 = 12x
+      const outcomes = [
+        // Red Low (1-6): Red + Low win
+        { type: 'red-low', totalPayout: (redBetTotal * 2) + (lowBetTotal * 2), color: 'red' as const, numberRange: [1, 7] },
+        // Red High (8-13): Red + High win
+        { type: 'red-high', totalPayout: (redBetTotal * 2) + (highBetTotal * 2), color: 'red' as const, numberRange: [8, 14] },
+        // Black Low (1-6): Black + Low win
+        { type: 'black-low', totalPayout: (blackBetTotal * 2) + (lowBetTotal * 2), color: 'black' as const, numberRange: [1, 7] },
+        // Black High (8-13): Black + High win
+        { type: 'black-high', totalPayout: (blackBetTotal * 2) + (highBetTotal * 2), color: 'black' as const, numberRange: [8, 14] },
+        // Lucky 7: Only Lucky7 wins (red/black/low/high all lose)
+        { type: 'lucky7', totalPayout: lucky7BetTotal * 12, color: null, numberRange: [7, 8] }
       ];
       
-      // Sort by amount ascending to find lowest
-      betAmounts.sort((a, b) => a.amount - b.amount);
-      const lowestBet = betAmounts[0];
+      // Sort by totalPayout to find the combination with lowest payout (maximize house profit)
+      outcomes.sort((a, b) => a.totalPayout - b.totalPayout);
+      const bestOutcome = outcomes[0];
       
-      // Generate winning number for the bet type with lowest amount
-      if (lowestBet.type === 'low') {
-        number = crypto.randomInt(1, 7); // 1-6
-        outcome = `LOW wins (lowest bet: ${lowestBet.amount})`;
-      } else if (lowestBet.type === 'high') {
-        number = crypto.randomInt(8, 14); // 8-13
-        outcome = `HIGH wins (lowest bet: ${lowestBet.amount})`;
-      } else {
+      // Generate card based on the best outcome
+      if (bestOutcome.type === 'lucky7') {
         number = 7;
-        outcome = `LUCKY 7 wins (lowest bet: ${lowestBet.amount})`;
+        const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
+        suit = suits[crypto.randomInt(0, suits.length)];
+        color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+        outcome = `Lucky 7 (payout: ${bestOutcome.totalPayout})`;
+      } else {
+        // Generate number in the specified range
+        number = crypto.randomInt(bestOutcome.numberRange[0], bestOutcome.numberRange[1]);
+        
+        // Set color and suit
+        if (bestOutcome.color === 'red') {
+          const redSuits = ['hearts', 'diamonds'] as const;
+          suit = redSuits[crypto.randomInt(0, redSuits.length)];
+          color = 'red';
+        } else {
+          const blackSuits = ['spades', 'clubs'] as const;
+          suit = blackSuits[crypto.randomInt(0, blackSuits.length)];
+          color = 'black';
+        }
+        
+        outcome = `${bestOutcome.type} (payout: ${bestOutcome.totalPayout})`;
       }
     }
     
-    console.log(`Smart card generated: ${number} - ${outcome}`);
+    console.log(`Smart card generated: ${number} ${color} ${suit} - ${outcome}`);
     
     return {
       number,
