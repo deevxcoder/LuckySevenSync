@@ -615,8 +615,8 @@ export class GameManager {
         ? room.currentCard 
         : null,
       // Remove internal betting data
-      activeBets: undefined,
-      currentGameId: undefined
+      activeBets: undefined
+      // Keep currentGameId so clients can display the actual round number
     };
   }
 
