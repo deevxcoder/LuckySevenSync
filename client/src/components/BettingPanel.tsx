@@ -28,11 +28,12 @@ const BET_TYPES = [
   { id: 'lucky7', label: '🍀 Lucky 7', description: 'Bet on number 7', odds: '11:1' },
 ];
 
-const BET_AMOUNTS = [10, 25, 50, 100, 250];
+const BET_AMOUNTS = [5, 10, 50, 100, 500, 1000, 2000, 5000];
+const MULTIPLIERS = [2, 5, 10];
 
 export default function BettingPanel({ playerChips, gameStatus, countdownTime, roomId, onBetsChange }: BettingPanelProps) {
   const [selectedBetType, setSelectedBetType] = useState<string>('');
-  const [selectedAmount, setSelectedAmount] = useState<number>(10);
+  const [selectedAmount, setSelectedAmount] = useState<number>(5);
   const [currentBets, setCurrentBets] = useState<Bet[]>([]);
   const [totalBetAmount, setTotalBetAmount] = useState<number>(0);
   const { playHit, playSuccess } = useAudio();
@@ -93,6 +94,14 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
   const handleRemoveBet = (index: number) => {
     setCurrentBets(prev => prev.filter((_, i) => i !== index));
     playHit();
+  };
+
+  const handleMultiplyBet = (multiplier: number) => {
+    const newAmount = selectedAmount * multiplier;
+    if (newAmount <= playerChips - totalBetAmount) {
+      setSelectedAmount(newAmount);
+      playHit();
+    }
   };
 
   const getBettingMessage = () => {
@@ -177,7 +186,7 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
         {/* Bet Amount Selection */}
         <div className="space-y-2">
           <h4 className="text-casino-gold font-semibold text-sm">Bet Amount:</h4>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {BET_AMOUNTS.map(amount => (
               <Button
                 key={amount}
@@ -191,7 +200,24 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
                     : 'bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black'
                 } ${amount > playerChips - totalBetAmount ? 'opacity-50' : ''}`}
               >
-                {amount}
+                {amount >= 1000 ? `${amount/1000}k` : amount}
+              </Button>
+            ))}
+          </div>
+          
+          {/* Quick Multipliers */}
+          <div className="flex gap-2 items-center">
+            <span className="text-casino-gold text-xs font-semibold">Quick Bet:</span>
+            {MULTIPLIERS.map(multiplier => (
+              <Button
+                key={multiplier}
+                variant="outline"
+                size="sm"
+                onClick={() => handleMultiplyBet(multiplier)}
+                disabled={selectedAmount * multiplier > playerChips - totalBetAmount}
+                className="bg-transparent border-casino-red text-casino-red hover:bg-casino-red hover:text-white disabled:opacity-30"
+              >
+                {multiplier}x
               </Button>
             ))}
           </div>
