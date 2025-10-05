@@ -84,9 +84,10 @@ export class GameManager {
   }
 
   private generateSmartCard(room: GameRoom): Card {
-    // Calculate total bets on low vs high
+    // Calculate total bets on low, high, and lucky7
     let lowBetTotal = 0;
     let highBetTotal = 0;
+    let lucky7BetTotal = 0;
     
     if (room.activeBets) {
       room.activeBets.forEach((bets) => {
@@ -95,14 +96,16 @@ export class GameManager {
             lowBetTotal += bet.betAmount;
           } else if (bet.betType === 'high') {
             highBetTotal += bet.betAmount;
+          } else if (bet.betType === 'lucky7') {
+            lucky7BetTotal += bet.betAmount;
           }
         });
       });
     }
     
-    console.log(`Bet Analysis - Low: ${lowBetTotal}, High: ${highBetTotal}`);
+    console.log(`Bet Analysis - Low: ${lowBetTotal}, High: ${highBetTotal}, Lucky7: ${lucky7BetTotal}`);
     
-    // Generate card based on which side has LESS bets
+    // Generate card based on which side has LEAST bets (maximize house profit)
     const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
     const suitIndex = crypto.randomInt(0, suits.length);
     const suit = suits[suitIndex];
@@ -111,18 +114,36 @@ export class GameManager {
     let number: number;
     let outcome: string;
     
-    if (lowBetTotal < highBetTotal) {
-      // Less money on low, so make low win
-      number = crypto.randomInt(1, 7); // 1-6
-      outcome = 'LOW wins (less bets on low)';
-    } else if (highBetTotal < lowBetTotal) {
-      // Less money on high, so make high win
-      number = crypto.randomInt(8, 14); // 8-13
-      outcome = 'HIGH wins (less bets on high)';
+    // Check if there are any bets at all
+    const totalBets = lowBetTotal + highBetTotal + lucky7BetTotal;
+    
+    if (totalBets === 0) {
+      // No bets placed - generate random number from 1-13
+      number = crypto.randomInt(1, 14); // 1-13
+      outcome = 'No bets placed - random result';
     } else {
-      // Equal bets or no bets on either - generate 7 (both lose, only lucky7 wins)
-      number = 7;
-      outcome = 'LUCKY 7 (equal bets on both sides)';
+      // Find which bet type has the LOWEST total (that bet type will win)
+      const betAmounts = [
+        { type: 'low', amount: lowBetTotal },
+        { type: 'high', amount: highBetTotal },
+        { type: 'lucky7', amount: lucky7BetTotal }
+      ];
+      
+      // Sort by amount ascending to find lowest
+      betAmounts.sort((a, b) => a.amount - b.amount);
+      const lowestBet = betAmounts[0];
+      
+      // Generate winning number for the bet type with lowest amount
+      if (lowestBet.type === 'low') {
+        number = crypto.randomInt(1, 7); // 1-6
+        outcome = `LOW wins (lowest bet: ${lowestBet.amount})`;
+      } else if (lowestBet.type === 'high') {
+        number = crypto.randomInt(8, 14); // 8-13
+        outcome = `HIGH wins (lowest bet: ${lowestBet.amount})`;
+      } else {
+        number = 7;
+        outcome = `LUCKY 7 wins (lowest bet: ${lowestBet.amount})`;
+      }
     }
     
     console.log(`Smart card generated: ${number} - ${outcome}`);
