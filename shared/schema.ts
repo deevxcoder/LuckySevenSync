@@ -71,6 +71,24 @@ export const chatMessages = pgTable("chat_messages", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// Andar Bahar matches table for 1v1 games
+export const andarBaharMatches = pgTable("andar_bahar_matches", {
+  id: serial("id").primaryKey(),
+  matchId: varchar("match_id", { length: 50 }).notNull().unique(),
+  dealerPlayerId: integer("dealer_player_id").references(() => players.id),
+  guesserPlayerId: integer("guesser_player_id").references(() => players.id),
+  betAmount: integer("bet_amount").notNull(),
+  jokerCardRank: varchar("joker_card_rank", { length: 2 }), // 'A', '2'-'10', 'J', 'Q', 'K'
+  jokerCardSuit: varchar("joker_card_suit", { length: 10 }), // 'hearts', 'diamonds', 'clubs', 'spades'
+  guesserChoice: varchar("guesser_choice", { length: 10 }), // 'andar' or 'bahar'
+  winningSide: varchar("winning_side", { length: 10 }), // 'andar' or 'bahar'
+  winnerPlayerId: integer("winner_player_id").references(() => players.id),
+  status: varchar("status", { length: 30 }).default("waiting_for_players").notNull(), 
+  // 'waiting_for_players', 'placing_bets', 'selecting_dealer', 'revealing_joker', 'choosing_side', 'dealing_cards', 'completed', 'cancelled'
+  createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
 // Schema validation types
 export const insertPlayerSchema = createInsertSchema(players).pick({
   userId: true,
@@ -103,13 +121,28 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).pick({
   message: true,
 });
 
+export const insertAndarBaharMatchSchema = createInsertSchema(andarBaharMatches).pick({
+  matchId: true,
+  dealerPlayerId: true,
+  guesserPlayerId: true,
+  betAmount: true,
+  jokerCardRank: true,
+  jokerCardSuit: true,
+  guesserChoice: true,
+  winningSide: true,
+  winnerPlayerId: true,
+  status: true,
+});
+
 // Type exports
 export type Player = typeof players.$inferSelect;
 export type Game = typeof games.$inferSelect;
 export type Bet = typeof bets.$inferSelect;
 export type ChatMessage = typeof chatMessages.$inferSelect;
+export type AndarBaharMatch = typeof andarBaharMatches.$inferSelect;
 
 export type InsertPlayer = z.infer<typeof insertPlayerSchema>;
 export type InsertGame = z.infer<typeof insertGameSchema>;
 export type InsertBet = z.infer<typeof insertBetSchema>;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type InsertAndarBaharMatch = z.infer<typeof insertAndarBaharMatchSchema>;
