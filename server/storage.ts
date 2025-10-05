@@ -1,10 +1,11 @@
 import { 
-  users, players, games, bets, chatMessages,
+  users, players, games, bets, chatMessages, andarBaharMatches,
   type User, type InsertUser,
   type Player, type InsertPlayer,
   type Game, type InsertGame,
   type Bet, type InsertBet,
-  type ChatMessage, type InsertChatMessage
+  type ChatMessage, type InsertChatMessage,
+  type AndarBaharMatch, type InsertAndarBaharMatch
 } from "@shared/schema";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
@@ -63,6 +64,13 @@ export interface IStorage {
   // Chat Messages
   createChatMessage(message: InsertChatMessage): Promise<ChatMessage>;
   getChatHistory(roomId: string, limit?: number): Promise<ChatMessage[]>;
+  
+  // Andar Bahar Matches
+  createAndarBaharMatch(match: Partial<InsertAndarBaharMatch>): Promise<AndarBaharMatch>;
+  getAndarBaharMatch(matchId: string): Promise<AndarBaharMatch | undefined>;
+  updateAndarBaharMatch(matchId: string, updates: Partial<AndarBaharMatch>): Promise<AndarBaharMatch | undefined>;
+  getActiveAndarBaharMatches(): Promise<AndarBaharMatch[]>;
+  getPlayerActiveMatch(playerId: number): Promise<AndarBaharMatch | undefined>;
   
   // Authentication
   verifyUserPassword(username: string, password: string): Promise<User | null>;
@@ -520,6 +528,45 @@ export class DatabaseStorage implements IStorage {
       .where(eq(chatMessages.roomId, roomId))
       .orderBy(desc(chatMessages.createdAt))
       .limit(limit);
+  }
+
+  // Andar Bahar Matches
+  async createAndarBaharMatch(match: Partial<InsertAndarBaharMatch>): Promise<AndarBaharMatch> {
+    const result = await db.insert(andarBaharMatches).values(match as InsertAndarBaharMatch).returning();
+    return result[0];
+  }
+
+  async getAndarBaharMatch(matchId: string): Promise<AndarBaharMatch | undefined> {
+    const result = await db.select().from(andarBaharMatches)
+      .where(eq(andarBaharMatches.matchId, matchId))
+      .limit(1);
+    return result[0];
+  }
+
+  async updateAndarBaharMatch(matchId: string, updates: Partial<AndarBaharMatch>): Promise<AndarBaharMatch | undefined> {
+    const result = await db.update(andarBaharMatches)
+      .set(updates)
+      .where(eq(andarBaharMatches.matchId, matchId))
+      .returning();
+    return result[0];
+  }
+
+  async getActiveAndarBaharMatches(): Promise<AndarBaharMatch[]> {
+    return await db.select().from(andarBaharMatches)
+      .where(sql`${andarBaharMatches.status} NOT IN ('completed', 'cancelled')`)
+      .orderBy(desc(andarBaharMatches.createdAt));
+  }
+
+  async getPlayerActiveMatch(playerId: number): Promise<AndarBaharMatch | undefined> {
+    const result = await db.select().from(andarBaharMatches)
+      .where(
+        and(
+          sql`(${andarBaharMatches.dealerPlayerId} = ${playerId} OR ${andarBaharMatches.guesserPlayerId} = ${playerId})`,
+          sql`${andarBaharMatches.status} NOT IN ('completed', 'cancelled')`
+        )
+      )
+      .limit(1);
+    return result[0];
   }
 }
 
