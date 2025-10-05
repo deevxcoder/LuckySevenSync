@@ -155,7 +155,7 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
                 variant={selectedBetType === betType.id ? "default" : "outline"}
                 size="sm"
                 onClick={() => setSelectedBetType(betType.id)}
-                disabled={gameStatus !== 'countdown' || countdownTime <= 20}
+                disabled={gameStatus !== 'countdown' || countdownTime <= 10}
                 className={`text-left justify-start h-auto py-2 px-3 ${
                   selectedBetType === betType.id 
                     ? 'bg-casino-red text-white border-casino-red' 
