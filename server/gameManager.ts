@@ -83,16 +83,52 @@ export class GameManager {
     return Math.random().toString(36).substring(2, 8).toUpperCase();
   }
 
-  private generateRandomCard(): Card {
-    // Use crypto.randomInt for secure random generation
-    // Always favor LOW bets (1-6) for better house edge
+  private generateSmartCard(room: GameRoom): Card {
+    // Calculate total bets on low vs high
+    let lowBetTotal = 0;
+    let highBetTotal = 0;
+    
+    if (room.activeBets) {
+      room.activeBets.forEach((bets) => {
+        bets.forEach(bet => {
+          if (bet.betType === 'low') {
+            lowBetTotal += bet.betAmount;
+          } else if (bet.betType === 'high') {
+            highBetTotal += bet.betAmount;
+          }
+        });
+      });
+    }
+    
+    console.log(`Bet Analysis - Low: ${lowBetTotal}, High: ${highBetTotal}`);
+    
+    // Generate card based on which side has LESS bets
     const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
     const suitIndex = crypto.randomInt(0, suits.length);
     const suit = suits[suitIndex];
     const color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
     
+    let number: number;
+    let outcome: string;
+    
+    if (lowBetTotal < highBetTotal) {
+      // Less money on low, so make low win
+      number = crypto.randomInt(1, 7); // 1-6
+      outcome = 'LOW wins (less bets on low)';
+    } else if (highBetTotal < lowBetTotal) {
+      // Less money on high, so make high win
+      number = crypto.randomInt(8, 14); // 8-13
+      outcome = 'HIGH wins (less bets on high)';
+    } else {
+      // Equal bets or no bets on either - generate 7 (both lose, only lucky7 wins)
+      number = 7;
+      outcome = 'LUCKY 7 (equal bets on both sides)';
+    }
+    
+    console.log(`Smart card generated: ${number} - ${outcome}`);
+    
     return {
-      number: crypto.randomInt(1, 7), // 1-6 (always LOW to favor low bets)
+      number,
       suit,
       color,
       revealed: false
@@ -133,8 +169,10 @@ export class GameManager {
         color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
         break;
       default:
-        // Fallback to random
-        return this.generateRandomCard();
+        // Fallback to low number
+        number = crypto.randomInt(1, 7);
+        color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
+        break;
     }
     
     return {
@@ -245,7 +283,7 @@ export class GameManager {
       
       // Generate card at 10 seconds remaining (after 20s betting period, start of 10s admin override period)
       if (room.countdownTime === 10 && !room.currentCard) {
-        room.currentCard = this.generateRandomCard();
+        room.currentCard = this.generateSmartCard(room);
         console.log(`Card generated at 10s mark (after betting closed): ${room.currentCard.number} ${room.currentCard.color}`);
       }
       
