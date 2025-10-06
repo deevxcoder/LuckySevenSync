@@ -78,6 +78,13 @@ function App() {
     };
   }, [setCurrentRoom, setPlayers, initializeSounds, isInitialized, isMuted, playBackgroundMusic]);
 
+  // Admins should not access the game view - redirect to admin dashboard
+  useEffect(() => {
+    if (user?.role === 'admin' && (currentView === 'game' || currentView === 'andarBahar')) {
+      setCurrentView('adminDashboard');
+    }
+  }, [user, currentView]);
+
   // Show home page or authentication if user is not logged in
   if (!isAuthenticated) {
     if (showHomePage) {
@@ -175,13 +182,6 @@ function App() {
       </div>
     );
   }
-
-  // Admins should not access the game view - redirect to admin dashboard via useEffect
-  useEffect(() => {
-    if (user?.role === 'admin' && (currentView === 'game' || currentView === 'andarBahar')) {
-      setCurrentView('adminDashboard');
-    }
-  }, [user, currentView]);
 
   // Show main game interface with navigation (only for regular users)
   return (
