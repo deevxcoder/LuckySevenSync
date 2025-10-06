@@ -30,6 +30,7 @@ export default function AndarBahar() {
   const [winningSide, setWinningSide] = useState<'andar' | 'bahar' | null>(null);
   const [winner, setWinner] = useState<string | null>(null);
   const [matchmakingPosition, setMatchmakingPosition] = useState<number>(0);
+  const [lastDealtCardIndex, setLastDealtCardIndex] = useState<{ pile: 'andar' | 'bahar'; index: number } | null>(null);
 
   useEffect(() => {
     function onMatchmakingJoined(data: { position: number }) {
@@ -52,6 +53,23 @@ export default function AndarBahar() {
       setJokerCard(data.jokerCard);
     }
 
+    function onCardDealt(data: {
+      card: Card;
+      pile: 'andar' | 'bahar';
+      isMatchingCard: boolean;
+      andarCount: number;
+      baharCount: number;
+    }) {
+      // Add card to the appropriate pile with animation
+      if (data.pile === 'andar') {
+        setAndarPile(prev => [...prev, data.card]);
+        setLastDealtCardIndex({ pile: 'andar', index: data.andarCount - 1 });
+      } else {
+        setBaharPile(prev => [...prev, data.card]);
+        setLastDealtCardIndex({ pile: 'bahar', index: data.baharCount - 1 });
+      }
+    }
+
     function onMatchCompleted(data: { 
       matchId: string; 
       winningSide: 'andar' | 'bahar'; 
@@ -62,8 +80,7 @@ export default function AndarBahar() {
     }) {
       setWinningSide(data.winningSide);
       setWinner(data.winner);
-      setAndarPile(data.andarPile);
-      setBaharPile(data.baharPile);
+      // Don't override piles here - they were already set by card-dealt events
     }
 
     function onError(error: string) {
@@ -74,6 +91,7 @@ export default function AndarBahar() {
     socket.on('matchmaking-joined', onMatchmakingJoined);
     socket.on('match-found', onMatchFound);
     socket.on('joker-revealed', onJokerRevealed);
+    socket.on('card-dealt', onCardDealt);
     socket.on('match-completed', onMatchCompleted);
     socket.on('error', onError);
 
@@ -81,6 +99,7 @@ export default function AndarBahar() {
       socket.off('matchmaking-joined', onMatchmakingJoined);
       socket.off('match-found', onMatchFound);
       socket.off('joker-revealed', onJokerRevealed);
+      socket.off('card-dealt', onCardDealt);
       socket.off('match-completed', onMatchCompleted);
       socket.off('error', onError);
     };
@@ -126,16 +145,21 @@ export default function AndarBahar() {
     }
   };
 
-  const renderCard = (card: Card, index: number) => {
+  const renderCard = (card: Card, index: number, pile?: 'andar' | 'bahar') => {
     const suitSymbol = getCardSymbol(card.suit);
     const isRed = card.color === 'red';
+    const isLastDealt = pile && lastDealtCardIndex?.pile === pile && lastDealtCardIndex?.index === index;
+    const isWinningCard = winningSide && pile === winningSide && index === (pile === 'andar' ? andarPile.length - 1 : baharPile.length - 1);
     
     return (
       <div 
         key={index}
         className={`inline-block w-16 h-24 rounded-lg border-2 ${
           isRed ? 'border-red-500 bg-white' : 'border-black bg-white'
-        } shadow-lg m-1 flex flex-col items-center justify-center`}
+        } ${isWinningCard ? 'ring-4 ring-casino-gold glow-gold scale-110' : ''} 
+        ${isLastDealt && !winningSide ? 'ring-2 ring-blue-400' : ''}
+        shadow-lg m-1 flex flex-col items-center justify-center animate-card-deal transition-all`}
+        style={{ animationDelay: `${index * 0.1}s` }}
       >
         <div className={`text-2xl font-bold ${isRed ? 'text-red-600' : 'text-black'}`}>
           {card.rank}
@@ -262,7 +286,7 @@ export default function AndarBahar() {
           {/* Joker Card */}
           {jokerCard && (
             <div className="text-center mb-6">
-              <p className="text-casino-gold text-xl mb-3 font-semibold">Joker Card:</p>
+              <p className="text-casino-gold text-xl mb-3 font-semibold">Joker Card (Find matching rank):</p>
               {renderCard(jokerCard, 0)}
               <p className="text-white mt-2">
                 Starting with: {jokerCard.color === 'black' ? '🎴 Andar (Black)' : '❤️ Bahar (Red)'}
@@ -313,7 +337,7 @@ export default function AndarBahar() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap justify-center">
-                    {andarPile.map((card, idx) => renderCard(card, idx))}
+                    {andarPile.map((card, idx) => renderCard(card, idx, 'andar'))}
                   </div>
                 </CardContent>
               </UICard>
@@ -328,7 +352,7 @@ export default function AndarBahar() {
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap justify-center">
-                    {baharPile.map((card, idx) => renderCard(card, idx))}
+                    {baharPile.map((card, idx) => renderCard(card, idx, 'bahar'))}
                   </div>
                 </CardContent>
               </UICard>

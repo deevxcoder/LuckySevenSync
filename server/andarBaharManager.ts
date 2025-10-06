@@ -266,7 +266,11 @@ export class AndarBaharManager {
     let matchFound = false;
     let winningSide: 'andar' | 'bahar' | null = null;
 
-    // Deal cards one by one until matching rank is found
+    // Get sockets for both players
+    const dealerSocket = this.io.sockets.sockets.get(match.dealer!.socketId);
+    const guesserSocket = this.io.sockets.sockets.get(match.guesser!.socketId);
+
+    // Deal cards one by one with animation delay
     while (!matchFound && cardIndex < deck.length) {
       const card = deck[cardIndex];
       
@@ -277,9 +281,35 @@ export class AndarBaharManager {
       }
 
       // Check if this card matches the joker rank
-      if (card.rank === match.jokerCard.rank) {
+      const isMatchingCard = card.rank === match.jokerCard.rank;
+      
+      if (isMatchingCard) {
         matchFound = true;
         winningSide = currentPile;
+      }
+
+      // Emit card-dealt event to both players with animation delay
+      const cardData = {
+        card,
+        pile: currentPile,
+        isMatchingCard,
+        andarCount: match.andarPile.length,
+        baharCount: match.baharPile.length
+      };
+
+      if (dealerSocket) {
+        dealerSocket.emit('card-dealt', cardData);
+      }
+      if (guesserSocket) {
+        guesserSocket.emit('card-dealt', cardData);
+      }
+
+      // Wait before dealing next card (800ms for suspense)
+      if (!isMatchingCard) {
+        await new Promise(resolve => setTimeout(resolve, 800));
+      } else {
+        // Wait a bit longer on the matching card for dramatic effect
+        await new Promise(resolve => setTimeout(resolve, 1500));
         break;
       }
 
