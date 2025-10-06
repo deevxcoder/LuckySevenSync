@@ -5,13 +5,15 @@ import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { GameManager } from "./gameManager";
+import { AndarBaharManager } from "./andarBaharManager";
+import { storage } from "./storage";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Session configuration
-app.use(session({
+const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET || 'lucky-7-dev-secret-change-in-production',
   resave: false,
   saveUninitialized: false,
@@ -20,7 +22,9 @@ app.use(session({
     httpOnly: true,
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   }
-}));
+});
+
+app.use(sessionMiddleware);
 
 // Create HTTP server and Socket.io instance
 const httpServer = createServer(app);
@@ -31,11 +35,16 @@ const io = new Server(httpServer, {
   }
 });
 
-// Initialize game manager
-const gameManager = new GameManager(io);
+// Share session with Socket.io
+io.engine.use(sessionMiddleware);
 
-// Attach game manager to app for route access
+// Initialize game managers
+const gameManager = new GameManager(io);
+const andarBaharManager = new AndarBaharManager(io);
+
+// Attach game managers to app for route access
 (app as any).gameManager = gameManager;
+(app as any).andarBaharManager = andarBaharManager;
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -96,6 +105,47 @@ app.use((req, res, next) => {
 
     socket.on('start-game', async (roomId: string) => {
       await gameManager.startGame(socket, roomId);
+    });
+
+    // Andar Bahar event handlers
+    socket.on('andar-bahar-join', async (data: { betAmount: number }) => {
+      try {
+        // Get player from database using socket session
+        const userId = (socket.request as any).session?.user?.id;
+        if (!userId) {
+          socket.emit('error', 'Authentication required');
+          return;
+        }
+        
+        const player = await storage.getPlayerByUserId(userId);
+        if (!player) {
+          socket.emit('error', 'Player not found');
+          return;
+        }
+
+        await andarBaharManager.joinMatchmaking(socket, player, data.betAmount);
+      } catch (error) {
+        console.error('Error joining Andar Bahar:', error);
+        socket.emit('error', 'Failed to join matchmaking');
+      }
+    });
+
+    socket.on('andar-bahar-choice', async (data: { matchId: string; choice: 'andar' | 'bahar' }) => {
+      await andarBaharManager.makeChoice(socket, data.matchId, data.choice);
+    });
+
+    socket.on('andar-bahar-leave', () => {
+      try {
+        const userId = (socket.request as any).session?.user?.id;
+        if (userId) {
+          const player = storage.getPlayerByUserId(userId);
+          if (player) {
+            andarBaharManager.leaveMatchmaking((player as any).id);
+          }
+        }
+      } catch (error) {
+        console.error('Error leaving Andar Bahar:', error);
+      }
     });
 
     socket.on('disconnect', () => {

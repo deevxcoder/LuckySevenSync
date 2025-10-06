@@ -319,7 +319,7 @@ export class AndarBaharManager {
       const resultData = {
         matchId,
         winningSide,
-        winner: match.winner.username,
+        winner: match.winner!.username,
         andarPile: match.andarPile,
         baharPile: match.baharPile,
         jokerCard: match.jokerCard

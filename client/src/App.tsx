@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { socket } from './lib/socket';
 import GameLobby from './components/GameLobby';
 import GameRoom from './components/GameRoom';
+import AndarBahar from './components/AndarBahar';
 import AuthContainer from './components/Auth/AuthContainer';
 import HomePage from './components/HomePage';
 import UserDashboard from './components/Dashboard/UserDashboard';
@@ -128,7 +129,7 @@ function App() {
         <div className="absolute top-0 left-0 right-0 z-50 bg-casino-black/80 border-b border-casino-gold">
           <div className="flex justify-between items-center px-4 py-2">
             <div className="flex items-center gap-4">
-              <h2 className="text-casino-gold font-bold text-lg">🃏 Andar Bahar (Cut Patti)</h2>
+              <h2 className="text-casino-gold font-bold text-lg">🃏 Andar Bahar</h2>
               <span className="text-white">Welcome, {user?.username}</span>
             </div>
             
@@ -154,30 +155,8 @@ function App() {
           </div>
         </div>
         
-        <div className="pt-16 p-8 flex items-center justify-center">
-          <div className="bg-casino-black border-casino-gold border-2 rounded-lg p-8 max-w-2xl text-center">
-            <h1 className="text-3xl font-bold text-casino-gold mb-4">🃏 Andar Bahar (Cut Patti)</h1>
-            <p className="text-white text-lg mb-6">
-              Traditional 1v1 card game coming soon! Match the joker card to win.
-            </p>
-            <div className="bg-casino-green/20 p-4 rounded mb-6">
-              <p className="text-white text-sm">
-                🎮 <strong>How to Play:</strong><br/>
-                • Both players place equal bets<br/>
-                • One player becomes dealer, one becomes guesser<br/>
-                • Dealer reveals a joker card<br/>
-                • Guesser picks Andar (inside) or Bahar (outside)<br/>
-                • Cards are dealt until matching rank appears<br/>
-                • Winner takes the pot!
-              </p>
-            </div>
-            <Button
-              onClick={() => setCurrentView('userDashboard')}
-              className="bg-casino-gold text-casino-black hover:bg-casino-gold/80"
-            >
-              ← Back to Dashboard
-            </Button>
-          </div>
+        <div className="pt-16">
+          <AndarBahar />
         </div>
       </div>
     );
