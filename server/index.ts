@@ -108,16 +108,15 @@ app.use((req, res, next) => {
     });
 
     // Andar Bahar event handlers
-    socket.on('andar-bahar-join', async (data: { betAmount: number }) => {
+    socket.on('andar-bahar-join', async (data: { betAmount: number; userId: number; username: string }) => {
       try {
-        // Get player from database using socket session
-        const userId = (socket.request as any).session?.user?.id;
-        if (!userId) {
+        if (!data.userId || !data.username) {
           socket.emit('error', 'Authentication required');
           return;
         }
         
-        const player = await storage.getPlayerByUserId(userId);
+        // Get or create player record
+        const player = await storage.createOrUpdatePlayerByUserId(data.userId, socket.id, data.username);
         if (!player) {
           socket.emit('error', 'Player not found');
           return;
@@ -134,13 +133,12 @@ app.use((req, res, next) => {
       await andarBaharManager.makeChoice(socket, data.matchId, data.choice);
     });
 
-    socket.on('andar-bahar-leave', () => {
+    socket.on('andar-bahar-leave', async (data: { userId: number }) => {
       try {
-        const userId = (socket.request as any).session?.user?.id;
-        if (userId) {
-          const player = storage.getPlayerByUserId(userId);
+        if (data.userId) {
+          const player = await storage.getPlayerByUserId(data.userId);
           if (player) {
-            andarBaharManager.leaveMatchmaking((player as any).id);
+            andarBaharManager.leaveMatchmaking(player.id);
           }
         }
       } catch (error) {

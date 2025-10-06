@@ -87,7 +87,15 @@ export default function AndarBahar() {
   }, []);
 
   const handleJoinMatchmaking = () => {
-    socket.emit('andar-bahar-join', { betAmount });
+    if (!user) {
+      alert('You must be logged in to play');
+      return;
+    }
+    socket.emit('andar-bahar-join', { 
+      betAmount,
+      userId: user.id,
+      username: user.username
+    });
   };
 
   const handleMakeChoice = (choice: 'andar' | 'bahar') => {
@@ -208,7 +216,9 @@ export default function AndarBahar() {
             <p className="text-casino-gold">Bet amount: {betAmount} chips</p>
             <Button
               onClick={() => {
-                socket.emit('andar-bahar-leave');
+                if (user) {
+                  socket.emit('andar-bahar-leave', { userId: user.id });
+                }
                 setGameState('idle');
               }}
               variant="outline"
