@@ -28,6 +28,8 @@ export default function CoinTossRoom() {
   const [totalWinAmount, setTotalWinAmount] = useState<number>(0);
   const lastValidBetsRef = useRef<any[]>([]);
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const BET_TYPE_LABELS = {
     'heads': '🪙 Heads',
@@ -47,6 +49,32 @@ export default function CoinTossRoom() {
       setStoredBets(bets);
       lastValidBetsRef.current = bets;
     }
+  };
+
+  const enterFullscreen = async () => {
+    if (containerRef.current && !document.fullscreenElement) {
+      try {
+        await containerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+      } catch (err) {
+        console.error('Error entering fullscreen:', err);
+      }
+    }
+  };
+
+  const exitFullscreen = async () => {
+    if (document.fullscreenElement) {
+      try {
+        await document.exitFullscreen();
+        setIsFullscreen(false);
+      } catch (err) {
+        console.error('Error exiting fullscreen:', err);
+      }
+    }
+  };
+
+  const handleFullscreenChange = () => {
+    setIsFullscreen(!!document.fullscreenElement);
   };
 
   useEffect(() => {
@@ -214,8 +242,32 @@ export default function CoinTossRoom() {
     };
   }, [user, socketConnected, socketId]);
 
+  useEffect(() => {
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+    const timer = setTimeout(() => {
+      enterFullscreen();
+    }, 500);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      clearTimeout(timer);
+      if (document.fullscreenElement) {
+        document.exitFullscreen().catch(err => console.error('Error exiting fullscreen on unmount:', err));
+      }
+    };
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 p-4">
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 p-4 relative">
+      {isFullscreen && (
+        <button
+          onClick={exitFullscreen}
+          className="fixed top-4 right-4 z-50 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all"
+        >
+          ✕ Exit Fullscreen
+        </button>
+      )}
       <div className="max-w-7xl mx-auto space-y-4">
         <Card className="bg-gradient-to-br from-yellow-600 to-yellow-800 border-yellow-500 shadow-2xl">
           <CardHeader>
