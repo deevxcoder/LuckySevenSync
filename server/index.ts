@@ -6,6 +6,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { GameManager } from "./gameManager";
 import { AndarBaharManager } from "./andarBaharManager";
+import { CoinTossManager } from "./coinTossManager";
 import { storage } from "./storage";
 
 const app = express();
@@ -41,10 +42,12 @@ io.engine.use(sessionMiddleware);
 // Initialize game managers
 const gameManager = new GameManager(io);
 const andarBaharManager = new AndarBaharManager(io);
+const coinTossManager = new CoinTossManager(io);
 
 // Attach game managers to app for route access
 (app as any).gameManager = gameManager;
 (app as any).andarBaharManager = andarBaharManager;
+(app as any).coinTossManager = coinTossManager;
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -143,6 +146,56 @@ app.use((req, res, next) => {
         }
       } catch (error) {
         console.error('Error leaving Andar Bahar:', error);
+      }
+    });
+
+    // Coin Toss event handlers
+    socket.on('coin-toss-join', async (data: { roomId: string; userId: number; username: string }) => {
+      try {
+        if (!data.userId || !data.username) {
+          socket.emit('error', 'Authentication required');
+          return;
+        }
+        
+        const player = await storage.createOrUpdatePlayerByUserId(data.userId, socket.id, data.username);
+        if (!player) {
+          socket.emit('error', 'Player not found');
+          return;
+        }
+
+        await coinTossManager.joinRoom(socket, data.roomId, player);
+      } catch (error) {
+        console.error('Error joining coin toss:', error);
+        socket.emit('error', 'Failed to join coin toss room');
+      }
+    });
+
+    socket.on('coin-toss-place-bet', async (data: { roomId: string; betType: 'heads' | 'tails'; amount: number }) => {
+      try {
+        const session = (socket.request as any).session;
+        if (!session?.userId) {
+          socket.emit('error', 'Authentication required');
+          return;
+        }
+
+        const player = await storage.getPlayerByUserId(session.userId);
+        if (!player) {
+          socket.emit('error', 'Player not found');
+          return;
+        }
+
+        await coinTossManager.placeBet(socket, data.roomId, player, data.betType, data.amount);
+      } catch (error) {
+        console.error('Error placing coin toss bet:', error);
+        socket.emit('error', 'Failed to place bet');
+      }
+    });
+
+    socket.on('coin-toss-leave', async (data: { roomId: string }) => {
+      try {
+        coinTossManager.leaveRoom(socket, data.roomId);
+      } catch (error) {
+        console.error('Error leaving coin toss:', error);
       }
     });
 

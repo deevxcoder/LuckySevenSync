@@ -3,6 +3,7 @@ import { socket } from './lib/socket';
 import GameLobby from './components/GameLobby';
 import GameRoom from './components/GameRoom';
 import AndarBahar from './components/AndarBahar';
+import CoinTossRoom from './components/CoinToss/CoinTossRoom';
 import AuthContainer from './components/Auth/AuthContainer';
 import HomePage from './components/HomePage';
 import UserDashboard from './components/Dashboard/UserDashboard';
@@ -17,7 +18,7 @@ function App() {
   const [isConnected, setIsConnected] = useState(false);
   const [socketId, setSocketId] = useState<string>('');
   const { isAuthenticated, user } = useAuthStore();
-  const [currentView, setCurrentView] = useState<'game' | 'userDashboard' | 'adminDashboard' | 'andarBahar'>(
+  const [currentView, setCurrentView] = useState<'game' | 'userDashboard' | 'adminDashboard' | 'andarBahar' | 'coinToss'>(
     user?.role === 'admin' ? 'adminDashboard' : 'userDashboard'
   );
   const [showHomePage, setShowHomePage] = useState(true); // New state for home vs auth
@@ -81,7 +82,7 @@ function App() {
 
   // Admins should not access the game view - redirect to admin dashboard
   useEffect(() => {
-    if (user?.role === 'admin' && (currentView === 'game' || currentView === 'andarBahar')) {
+    if (user?.role === 'admin' && (currentView === 'game' || currentView === 'andarBahar' || currentView === 'coinToss')) {
       setCurrentView('adminDashboard');
     }
   }, [user, currentView]);
@@ -115,6 +116,7 @@ function App() {
     return <UserDashboard 
       onNavigateToGame={() => setCurrentView('game')} 
       onNavigateToAndarBahar={() => setCurrentView('andarBahar')}
+      onNavigateToCoinToss={() => setCurrentView('coinToss')}
     />;
   }
 
@@ -157,6 +159,46 @@ function App() {
         
         <div className="pt-16">
           <AndarBahar />
+        </div>
+      </div>
+    );
+  }
+
+  // Show Coin Toss game view
+  if (currentView === 'coinToss') {
+    return (
+      <div className="min-h-screen bg-casino-green relative">
+        <div className="absolute top-0 left-0 right-0 z-50 bg-casino-black/80 border-b border-casino-gold">
+          <div className="flex justify-between items-center px-4 py-2">
+            <div className="flex items-center gap-4">
+              <h2 className="text-casino-gold font-bold text-lg">🪙 Coin Toss</h2>
+              <span className="text-white">Welcome, {user?.username}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <HeaderWallet socketId={socketId} />
+              <Button
+                onClick={() => setCurrentView('userDashboard')}
+                variant="outline"
+                size="sm"
+                className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+              >
+                📊 Dashboard
+              </Button>
+              <Button
+                onClick={toggleMute}
+                variant="outline"
+                size="sm"
+                className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+              >
+                {isMuted ? '🔇' : '🔊'}
+              </Button>
+            </div>
+          </div>
+        </div>
+        
+        <div className="pt-16">
+          <CoinTossRoom />
         </div>
       </div>
     );
