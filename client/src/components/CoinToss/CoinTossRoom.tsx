@@ -129,23 +129,26 @@ export default function CoinTossRoom() {
   };
 
   const exitFullscreen = async () => {
+    // Exit fullscreen and close the game
     if (document.fullscreenElement) {
       try {
         await document.exitFullscreen();
-        setIsFullscreen(false);
-        
-        // Unlock orientation
-        if (screen.orientation && (screen.orientation as any).unlock) {
-          try {
-            (screen.orientation as any).unlock();
-          } catch (err) {
-            console.log('Orientation unlock not supported or failed:', err);
-          }
-        }
       } catch (err) {
         console.error('Error exiting fullscreen:', err);
       }
     }
+    
+    // Unlock orientation
+    if (screen.orientation && (screen.orientation as any).unlock) {
+      try {
+        (screen.orientation as any).unlock();
+      } catch (err) {
+        console.log('Orientation unlock not supported or failed:', err);
+      }
+    }
+    
+    // Dispatch custom event to notify App.tsx to navigate back to dashboard
+    window.dispatchEvent(new CustomEvent('exitCoinToss'));
   };
 
   const handleFullscreenChange = () => {
@@ -402,31 +405,31 @@ export default function CoinTossRoom() {
       )}
 
       {/* Landscape Gaming Layout */}
-      <div className="h-full flex flex-col p-3 gap-3">
+      <div className="h-full flex flex-col p-2 gap-2">
         {/* Header */}
-        <div className="text-center border-2 border-cyan-500/50 rounded-lg py-2 px-4" style={{ background: 'rgba(0, 212, 255, 0.1)' }}>
-          <h1 className="text-2xl font-bold tracking-wider" style={{ color: '#00d4ff', textShadow: '0 0 20px rgba(0, 212, 255, 0.8)' }}>
+        <div className="text-center border-2 border-cyan-500/50 rounded-lg py-1 px-4" style={{ background: 'rgba(0, 212, 255, 0.1)' }}>
+          <h1 className="text-xl font-bold tracking-wider" style={{ color: '#00d4ff', textShadow: '0 0 20px rgba(0, 212, 255, 0.8)' }}>
             COIN TOSS GAME
           </h1>
-          <div className="text-sm text-cyan-300 tracking-widest">ROUND #{totalGameCount + 1}</div>
+          <div className="text-xs text-cyan-300 tracking-widest">ROUND #{totalGameCount + 1}</div>
         </div>
 
         {/* Main Game Area */}
-        <div className="flex-1 flex gap-3 min-h-0">
+        <div className="flex-1 flex gap-2 min-h-0">
           {/* Left Panel - Betting Controls */}
-          <div className="w-80 flex flex-col gap-2 bg-[#0d1b2e]/60 rounded-lg p-3 border border-cyan-500/30">
+          <div className="w-72 flex flex-col gap-1.5 bg-[#0d1b2e]/60 rounded-lg p-2 border border-cyan-500/30">
             {/* Chips & Timer */}
-            <div className="grid grid-cols-2 gap-2">
-              <div className="border border-cyan-500/50 rounded-lg p-2 bg-[#0a1628]/80">
-                <div className="text-xs text-cyan-300 uppercase tracking-wider mb-1">Your Chips</div>
+            <div className="grid grid-cols-2 gap-1.5">
+              <div className="border border-cyan-500/50 rounded-lg p-1.5 bg-[#0a1628]/80">
+                <div className="text-xs text-cyan-300 uppercase tracking-wider">Your Chips</div>
                 <div className="flex items-center gap-1">
-                  <span className="text-lg">💰</span>
-                  <span className="text-xl font-bold text-white">{remainingChips}</span>
+                  <span className="text-sm">💰</span>
+                  <span className="text-lg font-bold text-white">{remainingChips}</span>
                 </div>
               </div>
-              <div className="border border-cyan-500/50 rounded-lg p-2 bg-[#0a1628]/80">
-                <div className="text-xs text-cyan-300 uppercase tracking-wider mb-1">Time Remaining</div>
-                <div className="text-xl font-bold" style={{ color: countdownTime <= 5 && countdownTime > 0 ? '#ff0000' : '#00d4ff' }}>
+              <div className="border border-cyan-500/50 rounded-lg p-1.5 bg-[#0a1628]/80">
+                <div className="text-xs text-cyan-300 uppercase tracking-wider">Time Remaining</div>
+                <div className="text-lg font-bold" style={{ color: countdownTime <= 5 && countdownTime > 0 ? '#ff0000' : '#00d4ff' }}>
                   {countdownTime}s
                 </div>
                 <div className="text-xs text-cyan-400">{isFlipping ? 'FLIPPING...' : currentResult ? 'REVEALING...' : 'BETTING...'}</div>
@@ -434,24 +437,24 @@ export default function CoinTossRoom() {
             </div>
 
             {/* Place Bets Section */}
-            <div className="mt-2">
-              <div className="text-sm font-bold text-cyan-300 uppercase tracking-wider mb-2">Place Your Bets</div>
+            <div>
+              <div className="text-xs font-bold text-cyan-300 uppercase tracking-wider mb-1">Place Your Bets</div>
               
               {/* Heads/Tails Buttons */}
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <button onClick={() => setSelectedBetType('heads')} disabled={bettingWindowClosed} className={`p-3 rounded-lg border-2 transition-all ${selectedBetType === 'heads' ? 'border-orange-400 bg-orange-900/40' : bettingWindowClosed ? 'border-gray-600 bg-gray-800/40 cursor-not-allowed opacity-50' : 'border-cyan-500/50 bg-[#0a1628]/60 hover:border-orange-400'}`}>
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-2xl">🪙</span>
-                    <div className="text-white font-bold text-sm">Heads</div>
+              <div className="grid grid-cols-2 gap-1.5 mb-2">
+                <button onClick={() => setSelectedBetType('heads')} disabled={bettingWindowClosed} className={`p-2 rounded-lg border-2 transition-all ${selectedBetType === 'heads' ? 'border-orange-400 bg-orange-900/40' : bettingWindowClosed ? 'border-gray-600 bg-gray-800/40 cursor-not-allowed opacity-50' : 'border-cyan-500/50 bg-[#0a1628]/60 hover:border-orange-400'}`}>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-xl">🪙</span>
+                    <div className="text-white font-bold text-xs">Heads</div>
                     <div className="text-xs text-yellow-400">Bet on Heads</div>
                     <div className="text-xs text-cyan-400 font-semibold">000$ +1</div>
                   </div>
                 </button>
 
-                <button onClick={() => setSelectedBetType('tails')} disabled={bettingWindowClosed} className={`p-3 rounded-lg border-2 transition-all ${selectedBetType === 'tails' ? 'border-pink-400 bg-pink-900/40' : bettingWindowClosed ? 'border-gray-600 bg-gray-800/40 cursor-not-allowed opacity-50' : 'border-cyan-500/50 bg-[#0a1628]/60 hover:border-pink-400'}`}>
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-2xl">🔮</span>
-                    <div className="text-white font-bold text-sm">Tails</div>
+                <button onClick={() => setSelectedBetType('tails')} disabled={bettingWindowClosed} className={`p-2 rounded-lg border-2 transition-all ${selectedBetType === 'tails' ? 'border-pink-400 bg-pink-900/40' : bettingWindowClosed ? 'border-gray-600 bg-gray-800/40 cursor-not-allowed opacity-50' : 'border-cyan-500/50 bg-[#0a1628]/60 hover:border-pink-400'}`}>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <span className="text-xl">🔮</span>
+                    <div className="text-white font-bold text-xs">Tails</div>
                     <div className="text-xs text-yellow-400">Bet on Tails</div>
                     <div className="text-xs text-cyan-400 font-semibold">000$ +1</div>
                   </div>
@@ -459,7 +462,7 @@ export default function CoinTossRoom() {
               </div>
 
               {/* Bet Amounts */}
-              <div className="grid grid-cols-3 gap-1.5 mb-3">
+              <div className="grid grid-cols-2 gap-1 mb-2">
                 {QUICK_AMOUNTS.map(amount => (
                   <button key={amount} onClick={() => setSelectedAmount(amount)} disabled={bettingWindowClosed || amount > remainingChips} className={`py-1.5 px-2 rounded font-bold text-xs transition-all ${selectedAmount === amount ? 'bg-cyan-500 text-white' : amount > remainingChips || bettingWindowClosed ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-[#0a1628] text-cyan-300 border border-cyan-500/50 hover:bg-cyan-500/20'}`}>
                     {amount}
@@ -468,12 +471,12 @@ export default function CoinTossRoom() {
               </div>
 
               {/* Available Chips & Total Bet */}
-              <div className="space-y-1 mb-3">
-                <div className="flex justify-between text-sm">
+              <div className="space-y-0.5">
+                <div className="flex justify-between text-xs">
                   <span className="text-cyan-300">Available Chips:</span>
                   <span className="text-cyan-400 font-bold">{remainingChips}</span>
                 </div>
-                <div className="flex justify-between text-sm">
+                <div className="flex justify-between text-xs">
                   <span className="text-cyan-300">Total Bet:</span>
                   <span className="text-cyan-400 font-bold">{totalBetAmount}</span>
                 </div>
@@ -482,16 +485,16 @@ export default function CoinTossRoom() {
           </div>
 
           {/* Right Panel - Coin Display */}
-          <div className="flex-1 flex flex-col gap-2">
+          <div className="flex-1 flex flex-col gap-1.5">
             {/* Result Display Area */}
             <div className="flex-1 border-2 border-cyan-500/50 rounded-lg flex items-center justify-center relative" style={{ background: 'radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, rgba(10, 22, 40, 0.9) 100%)' }}>
               {/* Result Popup */}
               {showResultPopup && betResults.length > 0 && (
-                <div className="absolute top-4 right-4 bg-gradient-to-br from-purple-900/90 to-purple-700/90 p-3 rounded-lg border-2 border-purple-400 shadow-xl z-40">
-                  <h3 className="text-base font-bold text-white text-center">
-                    {totalWinAmount > 0 ? '🎉 You Won!' : '😔 Lost'}
+                <div className="absolute top-2 right-2 bg-gradient-to-br from-purple-900/90 to-purple-700/90 p-2 rounded-lg border-2 border-purple-400 shadow-xl z-40">
+                  <h3 className="text-sm font-bold text-white text-center">
+                    {totalWinAmount > 0 ? '🎉 Won!' : '😔 Lost'}
                   </h3>
-                  <div className="text-center text-lg font-bold text-yellow-300">
+                  <div className="text-center text-base font-bold text-yellow-300">
                     {totalWinAmount > 0 ? totalWinAmount : betResults.reduce((sum, r) => sum + r.betAmount, 0)}
                   </div>
                 </div>
@@ -500,7 +503,7 @@ export default function CoinTossRoom() {
               {/* Coin/Result Circle */}
               <div className="flex flex-col items-center">
                 <div 
-                  className={`w-48 h-48 rounded-full flex items-center justify-center ${countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? 'animate-heartbeat' : ''}`}
+                  className={`w-40 h-40 rounded-full flex items-center justify-center ${countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? 'animate-heartbeat' : ''}`}
                   style={{
                     border: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? '4px solid #ff0000' : '4px solid #00d4ff',
                     boxShadow: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? '0 0 60px rgba(255, 0, 0, 0.8), inset 0 0 40px rgba(255, 0, 0, 0.3)' : '0 0 40px rgba(0, 212, 255, 0.6), inset 0 0 40px rgba(0, 212, 255, 0.3)',
@@ -508,21 +511,21 @@ export default function CoinTossRoom() {
                   }}
                 >
                   {isFlipping ? (
-                    <div className="text-7xl font-bold text-white">{flipDisplay}</div>
+                    <div className="text-6xl font-bold text-white">{flipDisplay}</div>
                   ) : currentResult && gameStatus === 'revealing' ? (
                     <div className="text-center">
-                      <div className="text-8xl font-bold text-white animate-bounce">
+                      <div className="text-7xl font-bold text-white animate-bounce">
                         {currentResult === 'heads' ? '🪙' : '🔮'}
                       </div>
                     </div>
                   ) : (
-                    <div className="text-6xl font-bold" style={{ color: countdownTime <= 5 && countdownTime > 0 ? '#ff0000' : '#00d4ff', textShadow: '0 0 30px currentColor' }}>
+                    <div className="text-5xl font-bold" style={{ color: countdownTime <= 5 && countdownTime > 0 ? '#ff0000' : '#00d4ff', textShadow: '0 0 30px currentColor' }}>
                       {countdownTime}s
                     </div>
                   )}
                 </div>
                 {currentResult && (
-                  <div className="mt-4 text-4xl font-bold uppercase" style={{ color: currentResult === 'heads' ? '#fbbf24' : '#22d3ee', textShadow: '0 0 20px currentColor' }}>
+                  <div className="mt-2 text-3xl font-bold uppercase" style={{ color: currentResult === 'heads' ? '#fbbf24' : '#22d3ee', textShadow: '0 0 20px currentColor' }}>
                     {currentResult}
                   </div>
                 )}
@@ -530,21 +533,21 @@ export default function CoinTossRoom() {
             </div>
 
             {/* Bottom Bar - Place Bet & Sound */}
-            <div className="flex gap-2 items-center">
-              <button onClick={handlePlaceBet} disabled={!canPlaceBet()} className={`flex-1 py-3 rounded-lg font-bold text-base transition-all ${canPlaceBet() ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white border-2 border-cyan-400' : 'bg-gray-700 text-gray-400 cursor-not-allowed border-2 border-gray-600'}`} style={{ boxShadow: canPlaceBet() ? '0 0 30px rgba(34, 211, 238, 0.6)' : 'none' }}>
+            <div className="flex gap-1.5 items-center">
+              <button onClick={handlePlaceBet} disabled={!canPlaceBet()} className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${canPlaceBet() ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white border-2 border-cyan-400' : 'bg-gray-700 text-gray-400 cursor-not-allowed border-2 border-gray-600'}`} style={{ boxShadow: canPlaceBet() ? '0 0 30px rgba(34, 211, 238, 0.6)' : 'none' }}>
                 PLACE YOUR BETS - {totalBetAmount}
               </button>
-              <button onClick={() => setIsSoundEnabled(!isSoundEnabled)} className="w-12 h-12 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg border-2 border-cyan-400">
-                <span className="text-xl">{isSoundEnabled ? '🔊' : '🔇'}</span>
+              <button onClick={() => setIsSoundEnabled(!isSoundEnabled)} className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg border-2 border-cyan-400">
+                <span className="text-lg">{isSoundEnabled ? '🔊' : '🔇'}</span>
               </button>
             </div>
 
             {/* Recent Results */}
-            <div className="border border-cyan-500/30 rounded-lg p-2 bg-[#0d1b2e]/60">
+            <div className="border border-cyan-500/30 rounded-lg p-1.5 bg-[#0d1b2e]/60">
               <div className="text-xs text-cyan-300 uppercase tracking-wider mb-1">Recent Results</div>
               <div className="flex gap-1">
                 {recentResults.slice(0, 15).map((game, index) => (
-                  <div key={index} className={`w-6 h-6 rounded-full flex items-center justify-center ${game.result === 'heads' ? 'bg-gradient-to-br from-orange-400 to-orange-600' : 'bg-gradient-to-br from-cyan-400 to-blue-600'}`}>
+                  <div key={index} className={`w-5 h-5 rounded-full flex items-center justify-center ${game.result === 'heads' ? 'bg-gradient-to-br from-orange-400 to-orange-600' : 'bg-gradient-to-br from-cyan-400 to-blue-600'}`}>
                     <span className="text-xs font-bold text-white">{game.result === 'heads' ? 'H' : 'T'}</span>
                   </div>
                 ))}
