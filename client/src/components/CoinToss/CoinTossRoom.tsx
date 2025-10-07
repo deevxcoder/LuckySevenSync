@@ -353,13 +353,22 @@ export default function CoinTossRoom() {
             }}
           >
             {isFlipping ? (
-              <div className="animate-spin text-6xl">🪙</div>
+              <div className="animate-spin text-8xl font-bold text-cyan-400">
+                {currentResult === 'heads' ? 'H' : 'T'}
+              </div>
             ) : currentResult && gameStatus === 'revealing' ? (
-              <img 
-                src={`/coin-images/${currentResult}.png`}
-                alt={currentResult}
-                className="w-32 h-32 object-contain animate-bounce"
-              />
+              <div 
+                className={`text-8xl font-bold animate-bounce ${
+                  currentResult === 'heads' ? 'text-orange-400' : 'text-cyan-400'
+                }`}
+                style={{
+                  textShadow: currentResult === 'heads' 
+                    ? '0 0 30px rgba(251, 146, 60, 0.8)' 
+                    : '0 0 30px rgba(34, 211, 238, 0.8)'
+                }}
+              >
+                {currentResult === 'heads' ? 'H' : 'T'}
+              </div>
             ) : (
               <div 
                 className="text-7xl font-bold"
