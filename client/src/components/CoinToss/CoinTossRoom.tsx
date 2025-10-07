@@ -28,6 +28,7 @@ export default function CoinTossRoom() {
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [flipDisplay, setFlipDisplay] = useState<'H' | 'T'>('H');
 
   // Betting state
   const [selectedBetType, setSelectedBetType] = useState<'heads' | 'tails' | ''>('');
@@ -182,7 +183,18 @@ export default function CoinTossRoom() {
       
       setIsFlipping(true);
       
+      // Rapid flip animation
+      let flipCount = 0;
+      const flipInterval = setInterval(() => {
+        setFlipDisplay(prev => prev === 'H' ? 'T' : 'H');
+        flipCount++;
+        if (flipCount >= 10) {
+          clearInterval(flipInterval);
+        }
+      }, 150);
+      
       setTimeout(() => {
+        clearInterval(flipInterval);
         setCurrentResult(data.result);
         setGameStatus('revealing');
         setIsFlipping(false);
@@ -353,8 +365,8 @@ export default function CoinTossRoom() {
             }}
           >
             {isFlipping ? (
-              <div className="animate-spin text-8xl font-bold text-cyan-400">
-                {currentResult === 'heads' ? 'H' : 'T'}
+              <div className="text-8xl font-bold text-cyan-400 transition-all duration-100">
+                {flipDisplay}
               </div>
             ) : currentResult && gameStatus === 'revealing' ? (
               <div 
