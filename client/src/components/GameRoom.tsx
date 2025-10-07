@@ -139,11 +139,14 @@ export default function GameRoom() {
     }
   }, [currentBets]);
 
-  // Reset bets when game starts or ends
+  // Reset bets only when waiting for next round (after results are shown)
   useEffect(() => {
-    if (gameStatus === 'revealed' || gameStatus === 'waiting') {
-      setCurrentBets([]);
-      setSelectedBetType('');
+    if (gameStatus === 'waiting') {
+      // Delay reset to allow popup to show first
+      setTimeout(() => {
+        setCurrentBets([]);
+        setSelectedBetType('');
+      }, 100);
     }
   }, [gameStatus]);
 
@@ -180,11 +183,15 @@ export default function GameRoom() {
     // Use ref to get the most recent valid bets to prevent race conditions
     const betsToProcess = lastValidBetsRef.current.length > 0 ? lastValidBetsRef.current : storedBets;
     
-    console.log(`showBetResults: Card ${card.number} ${card.color}, processing ${betsToProcess.length} bets`);
+    console.log(`🎲 showBetResults: Card ${card.number} ${card.color}`);
+    console.log(`📊 Bets to process: ${betsToProcess.length}`, betsToProcess);
+    console.log(`📋 Current bets state: ${currentBets.length}`, currentBets);
+    console.log(`💾 Stored bets: ${storedBets.length}`, storedBets);
+    console.log(`🔖 Ref bets: ${lastValidBetsRef.current.length}`, lastValidBetsRef.current);
     
     // Only show popup if user actually placed bets
     if (betsToProcess.length === 0) {
-      console.log('No bets to process, skipping popup');
+      console.log('❌ No bets to process, skipping popup');
       // Make sure popup is closed if it was somehow open
       setShowBetResultPopup(false);
       setBetResults([]);
@@ -574,17 +581,17 @@ export default function GameRoom() {
           </div>
         </div>
 
-        {/* Recent Results - Bottom */}
-        <div className="mt-2">
-          <div className="text-cyan-400 text-xs mb-2 text-center">RECENT RESULTS</div>
+        {/* Recent Results - Bottom with Better Visibility */}
+        <div className="mt-2 bg-black/30 rounded-lg p-2">
+          <div className="text-cyan-300 text-xs mb-2 text-center font-bold">RECENT RESULTS</div>
           <div className="flex justify-center gap-2">
             {recentResults.slice(0, 7).map((result) => (
               <div 
                 key={result.id}
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold border-3 shadow-lg ${
                   result.cardColor === 'red' 
-                    ? 'bg-gradient-to-br from-orange-500 to-orange-700 border-orange-400 text-white' 
-                    : 'bg-gradient-to-br from-cyan-500 to-blue-600 border-cyan-400 text-white'
+                    ? 'bg-gradient-to-br from-orange-500 to-orange-700 border-orange-300 text-white shadow-orange-500/50' 
+                    : 'bg-gradient-to-br from-cyan-400 to-blue-500 border-cyan-300 text-white shadow-cyan-500/50'
                 }`}
                 title={`${result.cardNumber}`}
               >

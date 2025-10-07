@@ -56,58 +56,61 @@ export default function BetResultPopup({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="bg-casino-black border-casino-gold border-2 text-white max-w-md">
+      <DialogContent className="bg-gradient-to-br from-[#0a1628] to-[#1a2b4a] border-cyan-400 border-4 text-white max-w-lg z-50 shadow-2xl shadow-cyan-500/50">
         <DialogHeader>
-          <DialogTitle className="text-casino-gold text-2xl text-center flex items-center justify-center gap-2">
-            {getResultIcon(overallWin)}
-            {overallWin ? 'You Won!' : 'You Lost!'}
-            {getResultIcon(overallWin)}
+          <DialogTitle className="text-3xl md:text-4xl text-center flex items-center justify-center gap-3 mb-2">
+            <span className="text-5xl">{getResultIcon(overallWin)}</span>
+            <span className={`font-bold ${overallWin ? 'text-green-400' : 'text-red-400'}`}>
+              {overallWin ? 'You Won!' : 'You Lost!'}
+            </span>
+            <span className="text-5xl">{getResultIcon(overallWin)}</span>
           </DialogTitle>
-          <DialogDescription className="text-center text-white">
+          <DialogDescription className="text-center text-cyan-300 text-lg">
             Card revealed: 
-            <span className={`font-bold ml-2 ${revealedCard.color === 'red' ? 'text-red-500' : 'text-gray-300'}`}>
+            <span className={`font-bold ml-2 text-xl ${revealedCard.color === 'red' ? 'text-orange-400' : 'text-cyan-400'}`}>
               {revealedCard.number} {revealedCard.suit}
             </span>
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Overall Result */}
-          <Card className="bg-casino-green border-casino-gold">
-            <CardContent className="p-4 text-center">
-              <div className="text-xl font-bold">
+          {/* Overall Result - More Prominent */}
+          <Card className="bg-gradient-to-br from-cyan-900/50 to-blue-900/50 border-cyan-400 border-2 shadow-lg">
+            <CardContent className="p-6 text-center">
+              <div className="text-4xl md:text-5xl font-bold mb-2">
                 <span className={overallWin ? 'text-green-400' : 'text-red-400'}>
-                  {overallWin ? '+' : ''}{totalWinnings} chips
+                  {overallWin ? '+' : ''}{totalWinnings}
                 </span>
+                <span className="text-cyan-300 text-2xl ml-2">chips</span>
               </div>
-              <div className="text-sm opacity-75">
-                Total bet: {totalBetAmount} chips • Total winnings: {totalWinnings} chips
+              <div className="text-sm text-cyan-400">
+                Total bet: {totalBetAmount} • Total winnings: {totalWinnings}
               </div>
             </CardContent>
           </Card>
 
           {/* Individual Bet Results */}
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            <h4 className="text-casino-gold font-semibold text-sm">Bet Results:</h4>
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            <h4 className="text-cyan-400 font-semibold text-sm">Bet Results:</h4>
             {betResults.map((bet, index) => (
-              <div key={index} className="flex items-center justify-between bg-casino-green p-3 rounded border border-casino-gold/20">
+              <div key={index} className="flex items-center justify-between bg-cyan-900/30 p-3 rounded-lg border border-cyan-600/30">
                 <div className="flex items-center gap-2">
-                  <span className="text-lg">{getResultIcon(bet.won)}</span>
+                  <span className="text-2xl">{getResultIcon(bet.won)}</span>
                   <div>
-                    <div className="font-medium text-sm">{bet.betTypeLabel}</div>
-                    <div className="text-xs opacity-75">Bet: {bet.amount} chips</div>
+                    <div className="font-medium text-sm text-white">{bet.betTypeLabel}</div>
+                    <div className="text-xs text-cyan-300">Bet: {bet.amount} chips</div>
                   </div>
                 </div>
                 <div className="text-right">
                   <Badge 
                     className={`${bet.won 
-                      ? 'bg-green-600 text-white' 
-                      : 'bg-red-600 text-white'
-                    }`}
+                      ? 'bg-green-500 text-white border-green-400' 
+                      : 'bg-red-500 text-white border-red-400'
+                    } border-2 font-bold`}
                   >
                     {bet.won ? `+${bet.winAmount}` : `-${bet.amount}`}
                   </Badge>
-                  <div className={`text-xs font-medium ${getResultColor(bet.won)}`}>
+                  <div className={`text-xs font-bold ${getResultColor(bet.won)}`}>
                     {bet.won ? 'WIN' : 'LOST'}
                   </div>
                 </div>
@@ -115,10 +118,10 @@ export default function BetResultPopup({
             ))}
           </div>
 
-          {/* Close Button */}
+          {/* Close Button - More Prominent */}
           <Button 
             onClick={onClose}
-            className="w-full bg-casino-gold text-casino-black hover:bg-casino-gold/90 font-bold"
+            className="w-full py-4 text-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white font-bold shadow-lg shadow-cyan-500/50"
           >
             Continue Playing
           </Button>
