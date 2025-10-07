@@ -53,7 +53,7 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-2 sm:px-4 py-2 gap-2 sm:gap-0">
           {/* Left side - Title and Welcome */}
           <div className="flex items-center gap-2 sm:gap-4 justify-center sm:justify-start">
-            <h2 className="text-casino-gold font-bold text-base sm:text-lg">🎰 Lucky 7</h2>
+            <h2 className="text-casino-gold font-bold text-base sm:text-lg">👑 KingGames</h2>
             <span className="text-white text-sm sm:text-base hidden sm:inline">
               Welcome, {user?.username}
             </span>
@@ -86,7 +86,7 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
             <h1 className="text-3xl font-bold text-casino-gold">
               Your Dashboard
             </h1>
-            <p className="text-white mt-1">Track your Lucky 7 performance</p>
+            <p className="text-white mt-1">Track your KingGames performance</p>
           </div>
 
 

@@ -28,7 +28,7 @@ export default function LoginForm({ onLogin, onSwitchToRegister, onBackToHome, i
       <Card className="w-full max-w-md bg-casino-black border-casino-gold border-2">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold text-casino-gold mb-2">
-            🎰 Login to Lucky 7 🎰
+            👑 Login to KingGames 👑
           </CardTitle>
           <p className="text-white text-sm">
             Sign in to your account

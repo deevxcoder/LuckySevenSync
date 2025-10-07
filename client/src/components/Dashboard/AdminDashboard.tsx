@@ -371,7 +371,7 @@ export default function AdminDashboard() {
               🛠️ Admin Dashboard
             </h1>
             <p className="text-white mt-1">
-              Manage Lucky 7 users and game oversight
+              Manage KingGames users and game oversight
             </p>
           </div>
           <Button

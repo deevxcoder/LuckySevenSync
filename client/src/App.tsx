@@ -105,7 +105,7 @@ function App() {
     return (
       <div className="min-h-screen bg-casino-green flex items-center justify-center">
         <div className="text-white text-xl font-bold">
-          Connecting to Lucky 7...
+          Connecting to KingGames...
         </div>
       </div>
     );
@@ -210,7 +210,7 @@ function App() {
       <div className="absolute top-0 left-0 right-0 z-50 bg-casino-black/80 border-b border-casino-gold">
         <div className="flex justify-between items-center px-4 py-2">
           <div className="flex items-center gap-4">
-            <h2 className="text-casino-gold font-bold text-lg">🎰 Lucky 7</h2>
+            <h2 className="text-casino-gold font-bold text-lg">👑 KingGames</h2>
             <span className="text-white">Welcome, {user?.username}</span>
           </div>
           
