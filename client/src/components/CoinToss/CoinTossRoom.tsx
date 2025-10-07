@@ -113,6 +113,15 @@ export default function CoinTossRoom() {
       try {
         await containerRef.current.requestFullscreen();
         setIsFullscreen(true);
+        
+        // Lock to landscape orientation
+        if (screen.orientation && (screen.orientation as any).lock) {
+          try {
+            await (screen.orientation as any).lock('landscape');
+          } catch (err) {
+            console.log('Orientation lock not supported or failed:', err);
+          }
+        }
       } catch (err) {
         console.error('Error entering fullscreen:', err);
       }
@@ -124,6 +133,15 @@ export default function CoinTossRoom() {
       try {
         await document.exitFullscreen();
         setIsFullscreen(false);
+        
+        // Unlock orientation
+        if (screen.orientation && (screen.orientation as any).unlock) {
+          try {
+            (screen.orientation as any).unlock();
+          } catch (err) {
+            console.log('Orientation unlock not supported or failed:', err);
+          }
+        }
       } catch (err) {
         console.error('Error exiting fullscreen:', err);
       }
