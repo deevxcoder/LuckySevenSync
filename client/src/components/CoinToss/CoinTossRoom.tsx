@@ -416,7 +416,7 @@ export default function CoinTossRoom() {
                   boxShadow: '0 0 20px rgba(251, 146, 60, 0.6)'
                 }}
               >
-                <span className="text-4xl">👑</span>
+                <span className="text-5xl font-bold text-white">H</span>
               </div>
               <div className="text-white font-bold text-xl">Heads</div>
               <div className="text-cyan-300 text-sm">Bet on Heads</div>
@@ -449,7 +449,7 @@ export default function CoinTossRoom() {
                   boxShadow: '0 0 20px rgba(34, 211, 238, 0.6)'
                 }}
               >
-                <span className="text-4xl">🎯</span>
+                <span className="text-5xl font-bold text-white">T</span>
               </div>
               <div className="text-white font-bold text-xl">Tails</div>
               <div className="text-cyan-300 text-sm">Bet on Tails</div>
@@ -524,7 +524,7 @@ export default function CoinTossRoom() {
                     : '0 0 10px rgba(34, 211, 238, 0.6)'
                 }}
               >
-                <span className="text-xl">{game.result === 'heads' ? '👑' : '🎯'}</span>
+                <span className="text-xl font-bold text-white">{game.result === 'heads' ? 'H' : 'T'}</span>
               </div>
             ))}
           </div>
