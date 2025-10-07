@@ -72,11 +72,17 @@ function App() {
       setCurrentView('userDashboard');
     }
 
+    // Listen for lucky 7 exit event
+    function handleExitLucky7() {
+      setCurrentView('userDashboard');
+    }
+
     socket.on('connect', onConnect);
     socket.on('disconnect', onDisconnect);
     socket.on('room-updated', onRoomUpdated);
     socket.on('error', onError);
     window.addEventListener('exitCoinToss', handleExitCoinToss);
+    window.addEventListener('exitLucky7', handleExitLucky7);
 
     return () => {
       socket.off('connect', onConnect);
@@ -84,6 +90,7 @@ function App() {
       socket.off('room-updated', onRoomUpdated);
       socket.off('error', onError);
       window.removeEventListener('exitCoinToss', handleExitCoinToss);
+      window.removeEventListener('exitLucky7', handleExitLucky7);
     };
   }, [setCurrentRoom, setPlayers, initializeSounds, isInitialized, isMuted, playBackgroundMusic]);
 
