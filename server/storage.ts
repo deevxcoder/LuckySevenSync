@@ -533,6 +533,98 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(bets.createdAt))
       .limit(limit);
   }
+
+  async getAllPlayerBetsWithBalance(playerId: number, limit: number = 50): Promise<any[]> {
+    // Get player's current chips to calculate historical balances
+    const player = await this.getPlayer(playerId);
+    if (!player) return [];
+
+    // Fetch Lucky 7 bets
+    const lucky7Bets = await db.select({
+      id: bets.id,
+      betAmount: bets.betAmount,
+      betType: bets.betType,
+      won: bets.won,
+      winAmount: bets.winAmount,
+      createdAt: bets.createdAt,
+      gameType: sql<string>`'Lucky 7'`,
+      gameId: bets.gameId
+    }).from(bets)
+      .where(eq(bets.playerId, playerId))
+      .orderBy(desc(bets.createdAt))
+      .limit(limit);
+
+    // Fetch Coin Toss bets
+    const coinTossBetsData = await db.select({
+      id: coinTossBets.id,
+      betAmount: coinTossBets.betAmount,
+      betType: coinTossBets.betType,
+      won: coinTossBets.won,
+      winAmount: coinTossBets.winAmount,
+      createdAt: coinTossBets.createdAt,
+      gameType: sql<string>`'Coin Toss'`,
+      gameId: coinTossBets.gameId
+    }).from(coinTossBets)
+      .where(eq(coinTossBets.playerId, playerId))
+      .orderBy(desc(coinTossBets.createdAt))
+      .limit(limit);
+
+    // Fetch Andar Bahar matches
+    const andarBaharBetsData = await db.select({
+      id: andarBaharMatches.id,
+      betAmount: andarBaharMatches.betAmount,
+      betType: sql<string>`CASE 
+        WHEN ${andarBaharMatches.winnerPlayerId} = ${playerId} THEN 'Winner' 
+        ELSE 'Loser' 
+      END`,
+      won: sql<boolean>`${andarBaharMatches.winnerPlayerId} = ${playerId}`,
+      winAmount: sql<number>`CASE 
+        WHEN ${andarBaharMatches.winnerPlayerId} = ${playerId} THEN ${andarBaharMatches.betAmount} * 2 
+        ELSE 0 
+      END`,
+      createdAt: andarBaharMatches.completedAt,
+      gameType: sql<string>`'Andar Bahar'`,
+      gameId: andarBaharMatches.id
+    }).from(andarBaharMatches)
+      .where(
+        and(
+          sql`(${andarBaharMatches.dealerPlayerId} = ${playerId} OR ${andarBaharMatches.guesserPlayerId} = ${playerId})`,
+          eq(andarBaharMatches.status, 'completed')
+        )
+      )
+      .orderBy(desc(andarBaharMatches.completedAt))
+      .limit(limit);
+
+    // Combine all bets and sort by createdAt
+    const allBets = [...lucky7Bets, ...coinTossBetsData, ...andarBaharBetsData]
+      .filter(bet => bet.createdAt) // Filter out null createdAt
+      .sort((a, b) => {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      })
+      .slice(0, limit);
+
+    // Calculate balance progression from newest to oldest
+    let currentBalance = player.chips;
+    const betsWithBalance = allBets.map(bet => {
+      const balanceAfterBet = currentBalance;
+      // Move backwards: add back the bet amount and subtract the win amount
+      if (bet.won) {
+        currentBalance = currentBalance + bet.betAmount - bet.winAmount;
+      } else {
+        currentBalance = currentBalance + bet.betAmount;
+      }
+      
+      return {
+        ...bet,
+        balanceAfter: balanceAfterBet,
+        profitLoss: bet.won ? bet.winAmount - bet.betAmount : -bet.betAmount
+      };
+    });
+
+    return betsWithBalance;
+  }
   
   // Chat Messages
   async createChatMessage(message: InsertChatMessage): Promise<ChatMessage> {

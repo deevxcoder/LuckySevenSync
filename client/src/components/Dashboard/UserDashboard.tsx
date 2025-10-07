@@ -4,6 +4,7 @@ import { Button } from '../ui/button';
 import { HeaderWallet } from '../HeaderWallet';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
 import { socket } from '../../lib/socket';
+import { ComprehensiveBettingHistory } from '../ComprehensiveBettingHistory';
 
 
 interface UserDashboardProps {
@@ -14,6 +15,7 @@ interface UserDashboardProps {
 export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }: UserDashboardProps) {
   const { user, logout } = useAuthStore();
   const [socketId, setSocketId] = useState<string>('');
+  const [showHistory, setShowHistory] = useState<boolean>(false);
 
   useEffect(() => {
     // Check if already connected
@@ -158,23 +160,40 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
             </div>
           </div>
 
-          {/* Quick Stats */}
-          <Card className="bg-casino-black border-casino-gold">
-            <CardHeader>
-              <CardTitle className="text-casino-gold text-xl">Your Stats</CardTitle>
-            </CardHeader>
-            <CardContent>
+          {/* Stats and Betting History */}
+          {!showHistory ? (
+            <Card className="bg-casino-black border-casino-gold">
+              <CardHeader>
+                <CardTitle className="text-casino-gold text-xl">Your Stats</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between items-center">
+                  <p className="text-white">Ready to play and build your game history!</p>
+                  <Button 
+                    variant="outline"
+                    className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                    onClick={() => setShowHistory(true)}
+                  >
+                    📊 View History
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <p className="text-white">Ready to play and build your game history!</p>
+                <h2 className="text-2xl font-bold text-casino-gold">Betting History</h2>
                 <Button 
                   variant="outline"
                   className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                  onClick={() => setShowHistory(false)}
                 >
-                  📊 View History
+                  ← Back to Dashboard
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+              <ComprehensiveBettingHistory />
+            </div>
+          )}
         </div>
       </div>
     </div>

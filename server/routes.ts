@@ -96,6 +96,30 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Get comprehensive betting history with balance tracking
+  app.get("/api/player/betting-history", optionalAuth, async (req: AuthRequest, res) => {
+    try {
+      // Check if user is authenticated
+      if (!req.user) {
+        return res.status(401).json({ message: "Authentication required" });
+      }
+
+      // Find the player record for this user
+      const player = await storage.getPlayerByUserId(req.user.id);
+      if (!player) {
+        // User doesn't have a player record yet, return empty bets
+        return res.json([]);
+      }
+
+      const limit = parseInt(req.query.limit as string) || 50;
+      const betsWithBalance = await storage.getAllPlayerBetsWithBalance(player.id, limit);
+      res.json(betsWithBalance);
+    } catch (error) {
+      console.error('Error fetching comprehensive bet history:', error);
+      res.status(500).json({ message: "Failed to fetch bet history" });
+    }
+  });
+
   // Authentication routes
   app.post("/api/auth/register", async (req, res) => {
     try {
