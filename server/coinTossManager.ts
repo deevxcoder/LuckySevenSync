@@ -274,7 +274,12 @@ export class CoinTossManager {
 
   private async revealResult(roomId: string) {
     const room = this.globalRoom;
-    if (!room || !room.currentResult) return;
+    if (!room) return;
+
+    if (!room.currentResult) {
+      console.warn('No result generated, generating now...');
+      room.currentResult = this.generateSmartCoinResult(room);
+    }
 
     const gameId = room.currentGameId;
     if (gameId && this.adminOverrides.has(gameId)) {
@@ -373,7 +378,11 @@ export class CoinTossManager {
     const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
     this.io.to('COIN_TOSS_GLOBAL').emit('coin-toss-round-ended', { room: sanitizedRoom });
 
-    this.startGame(room.players[0] as any, 'COIN_TOSS_GLOBAL');
+    if (room.players.length > 0) {
+      this.startGame(room.players[0] as any, 'COIN_TOSS_GLOBAL');
+    } else {
+      console.log('No players in room, waiting for players to join...');
+    }
   }
 
   getRoom(roomId: string): CoinTossRoom | undefined {
