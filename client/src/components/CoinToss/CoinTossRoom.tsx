@@ -34,6 +34,7 @@ export default function CoinTossRoom() {
   const loseSoundRef = useRef<HTMLAudioElement | null>(null);
   const lastBeepTimeRef = useRef<number>(0);
   const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(true);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   // Betting state
   const [selectedBetType, setSelectedBetType] = useState<'heads' | 'tails' | ''>('');
@@ -63,7 +64,32 @@ export default function CoinTossRoom() {
       loseSoundRef.current = new Audio('/sounds/hit.mp3');
       loseSoundRef.current.volume = 0.5;
     }
+    if (!audioContextRef.current) {
+      audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+    }
   }, []);
+
+  const playBassBeep = () => {
+    if (!audioContextRef.current) return;
+    
+    const ctx = audioContextRef.current;
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    
+    // Bass frequency (deep low tone)
+    oscillator.type = 'sine';
+    oscillator.frequency.setValueAtTime(80, ctx.currentTime); // Deep bass at 80Hz
+    
+    // Volume envelope for punch
+    gainNode.gain.setValueAtTime(0.6, ctx.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    
+    oscillator.start(ctx.currentTime);
+    oscillator.stop(ctx.currentTime + 0.3);
+  };
 
   useEffect(() => {
     if (isSoundEnabled && countdownTime <= 5 && countdownTime > 0 && gameStatus === 'countdown') {
@@ -74,6 +100,9 @@ export default function CoinTossRoom() {
           beepAudioRef.current.currentTime = 0;
           beepAudioRef.current.volume = 0.7; // More intense
           beepAudioRef.current.play().catch(err => console.error('Beep sound error:', err));
+          
+          // Add bass thump for extra impact
+          playBassBeep();
         }
       }
     }
