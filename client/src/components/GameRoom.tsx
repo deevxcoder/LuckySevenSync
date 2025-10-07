@@ -2,14 +2,10 @@ import { useEffect, useState, useRef } from 'react';
 import { socket } from '../lib/socket';
 import { useGameStore } from '../lib/stores/useGameStore';
 import { useAudio } from '../lib/stores/useAudio';
-import CountdownTimer from './CountdownTimer';
 import Card from './Card';
 import CardBack from './CardBack';
-import BettingPanel from './BettingPanel';
-import { BetHistory } from './BetHistory';
 import BetResultPopup from './BetResultPopup';
 import { Button } from './ui/button';
-import { Card as UICard, CardContent } from './ui/card';
 import type { Card as CardType, GameRoom } from '../types/game';
 
 export default function GameRoom() {
@@ -30,6 +26,12 @@ export default function GameRoom() {
   const { playSuccess, playHit } = useAudio();
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Inline betting state
+  const [selectedBetType, setSelectedBetType] = useState<string>('');
+  const [selectedAmount, setSelectedAmount] = useState<number>(10);
+  const [currentBets, setCurrentBets] = useState<any[]>([]);
+  const [totalBetAmount, setTotalBetAmount] = useState<number>(0);
 
   // Bet type mappings for display
   const BET_TYPE_LABELS = {
@@ -127,17 +129,50 @@ export default function GameRoom() {
     return betAmount * (payoutMultipliers[betType] || 0);
   };
 
-  // Function to store current bets from BettingPanel
-  const storeBetsFromChild = (bets: any[]) => {
-    // Only store non-empty bets or when game is not in revealed/waiting state
-    if (bets.length > 0 || (gameStatus !== 'revealed' && gameStatus !== 'waiting')) {
-      console.log('Storing bets from BettingPanel:', bets.length, 'bets');
-      setStoredBets([...bets]);
-      // Keep a ref of the last non-empty bets to prevent race conditions
-      if (bets.length > 0) {
-        lastValidBetsRef.current = [...bets];
-      }
+  // Calculate total bet amount
+  useEffect(() => {
+    const total = currentBets.reduce((sum, bet) => sum + bet.amount, 0);
+    setTotalBetAmount(total);
+    setStoredBets(currentBets);
+    if (currentBets.length > 0) {
+      lastValidBetsRef.current = [...currentBets];
     }
+  }, [currentBets]);
+
+  // Reset bets when game starts or ends
+  useEffect(() => {
+    if (gameStatus === 'revealed' || gameStatus === 'waiting') {
+      setCurrentBets([]);
+      setSelectedBetType('');
+    }
+  }, [gameStatus]);
+
+  const canPlaceBet = () => {
+    return gameStatus === 'countdown' && 
+           countdownTime > 10 && 
+           selectedBetType && 
+           selectedAmount > 0 && 
+           (playerChips - totalBetAmount) >= selectedAmount;
+  };
+
+  const handlePlaceBet = () => {
+    if (!canPlaceBet()) return;
+
+    const newBet = {
+      type: selectedBetType,
+      value: selectedBetType,
+      amount: selectedAmount
+    };
+
+    setCurrentBets(prev => [...prev, newBet]);
+
+    socket.emit('place-bet', {
+      roomId: currentRoom?.id,
+      betType: selectedBetType,
+      amount: selectedAmount
+    });
+
+    console.log(`Placed bet: ${selectedAmount} on ${selectedBetType}`);
   };
 
   // Function to calculate bet results and show popup
@@ -357,146 +392,202 @@ export default function GameRoom() {
     }
   };
 
+  const BET_TYPES = [
+    { id: 'red', label: 'Red', icon: '🔴', description: '7 loses', odds: '1:1', color: 'from-red-600 to-red-800' },
+    { id: 'black', label: 'Black', icon: '⚫', description: '7 loses', odds: '1:1', color: 'from-gray-700 to-gray-900' },
+    { id: 'high', label: 'High', icon: '📈', description: '8-13', odds: '1:1', color: 'from-blue-600 to-blue-800' },
+    { id: 'low', label: 'Low', icon: '📉', description: '1-6', odds: '1:1', color: 'from-green-600 to-green-800' },
+    { id: 'lucky7', label: 'Lucky 7', icon: '🍀', description: 'Number 7', odds: '11:1', color: 'from-yellow-500 to-yellow-700' },
+  ];
+
+  const QUICK_AMOUNTS = [10, 50, 100, 500];
+
+  const getBettingStatus = () => {
+    if (gameStatus === 'countdown' && countdownTime > 10) return 'BETTING OPEN';
+    if (gameStatus === 'countdown' && countdownTime <= 10) return 'BETTING CLOSED';
+    if (gameStatus === 'revealed') return 'CARD REVEALED';
+    return 'WAITING';
+  };
+
   return (
-    <div ref={containerRef} className="min-h-screen bg-casino-green p-4">
-      <div className="max-w-full mx-auto h-screen flex flex-col">
-        {/* Header with Exit Button */}
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1f3d] to-[#1a2b4a] p-4 md:p-6">
+      <div className="max-w-7xl mx-auto h-screen flex flex-col">
+        {/* Header */}
         <div className="flex justify-between items-center mb-4">
-          <div className="text-white">
-            <h1 className="text-responsive-2xl font-bold text-casino-gold">
-              🎰 Lucky 7
-            </h1>
-            <p className="text-lg">
-              {getStatusMessage()}
-            </p>
+          {/* Left: Chips */}
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-500/50">
+              <span className="text-2xl">💎</span>
+            </div>
+            <div className="text-cyan-300 font-bold text-2xl">{playerChips}</div>
           </div>
+
+          {/* Center: Title */}
+          <h1 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 tracking-wider">
+            LUCKY 7 ARENA
+          </h1>
+
+          {/* Right: Exit Button */}
           <Button 
             onClick={exitFullscreen}
-            variant="destructive"
-            className="bg-red-600 hover:bg-red-700"
+            className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 hover:from-cyan-500 hover:to-cyan-700 shadow-lg shadow-cyan-500/50"
           >
-            ✕ Exit Game
+            👤
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
-          {/* Main Game Area */}
-          <div className="lg:col-span-8 space-y-4 flex flex-col">
-            {/* Countdown Timer */}
+        {/* Round Info & Status */}
+        <div className="flex justify-between items-center mb-6">
+          <div className="text-cyan-400 font-semibold">
+            ROUND #{currentRoom.currentGameId || totalGameCount + 1}
+          </div>
+          <div className={`px-4 py-1.5 rounded-full font-semibold border-2 ${
+            getBettingStatus() === 'BETTING OPEN' 
+              ? 'bg-orange-500/20 border-orange-500 text-orange-400'
+              : getBettingStatus() === 'BETTING CLOSED'
+              ? 'bg-red-500/20 border-red-500 text-red-400'
+              : 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
+          }`}>
+            {getBettingStatus()}
+          </div>
+        </div>
+
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col items-center justify-start gap-6">
+          {/* Central Timer/Card Display */}
+          <div className="relative">
             {gameStatus === 'countdown' && (
-              <UICard className="bg-casino-black border-casino-gold border-2">
-                <CardContent className="p-8 text-center">
-                  <CountdownTimer 
-                    time={countdownTime} 
-                    isActive={gameStatus === 'countdown'}
-                  />
-                </CardContent>
-              </UICard>
+              <div className="text-center">
+                <div className="relative w-48 h-48 md:w-64 md:h-64">
+                  <svg className="transform -rotate-90 w-full h-full">
+                    <circle
+                      cx="50%"
+                      cy="50%"
+                      r="45%"
+                      stroke="rgba(6, 182, 212, 0.2)"
+                      strokeWidth="8"
+                      fill="none"
+                    />
+                    <circle
+                      cx="50%"
+                      cy="50%"
+                      r="45%"
+                      stroke="url(#gradient)"
+                      strokeWidth="8"
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeDasharray={`${2 * Math.PI * 45} ${2 * Math.PI * 45}`}
+                      strokeDashoffset={2 * Math.PI * 45 * (1 - countdownTime / 30)}
+                      className="transition-all duration-1000"
+                    />
+                    <defs>
+                      <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#06b6d4" />
+                        <stop offset="100%" stopColor="#3b82f6" />
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-6xl md:text-8xl font-bold text-cyan-400">{countdownTime}s</div>
+                  </div>
+                </div>
+                <p className="text-cyan-300 text-lg mt-4">BETTING CLOSES IN...</p>
+              </div>
             )}
 
-            {/* Card Display */}
-            <UICard className="bg-casino-black border-casino-gold border-2">
-              <CardContent className="p-8 flex justify-center items-center min-h-[300px]">
-                {gameStatus === 'countdown' && (
-                  <div className="text-center">
-                    <CardBack large={true} />
-                    <p className="text-white text-xl mt-4">Card preparing...</p>
-                  </div>
-                )}
-                
-                {currentCard && gameStatus === 'revealed' ? (
-                  <Card 
-                    number={currentCard.number}
-                    suit={currentCard.suit}
-                    color={currentCard.color}
-                    revealed={currentCard.revealed}
-                    large={true}
-                  />
-                ) : gameStatus === 'waiting' && (
-                  <div className="text-center">
-                    <div className="text-casino-gold text-6xl mb-4">🃏</div>
-                    <p className="text-white text-xl">
-                      {currentRoom.players.length < 2 
-                        ? 'Waiting for players to join...' 
-                        : 'Next round starting soon...'}
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </UICard>
+            {currentCard && gameStatus === 'revealed' && (
+              <div className="flex justify-center">
+                <Card 
+                  number={currentCard.number}
+                  suit={currentCard.suit}
+                  color={currentCard.color}
+                  revealed={currentCard.revealed}
+                  large={true}
+                />
+              </div>
+            )}
 
-            {/* Game Status */}
-            <UICard className="bg-casino-black border-casino-gold">
-              <CardContent className="p-4">
-                <div className="flex justify-between items-center text-white">
-                  <div>
-                    <span className="font-semibold">Status:</span>
-                    <span className={`ml-2 px-3 py-1 rounded-full text-sm ${
-                      gameStatus === 'countdown' ? 'bg-casino-red' :
-                      gameStatus === 'revealed' ? 'bg-casino-gold text-casino-black' :
-                      'bg-gray-600'
-                    }`}>
-                      {gameStatus === 'countdown' ? 'Countdown' :
-                       gameStatus === 'revealed' ? 'Card Revealed' :
-                       'Waiting'}
-                    </span>
-                  </div>
-                  <div>
-                    <span className="font-semibold">Round:</span>
-                    <span className="ml-2 text-casino-gold">#{currentRoom.currentGameId || totalGameCount + 1}</span>
-                  </div>
+            {gameStatus === 'waiting' && (
+              <div className="text-center">
+                <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-cyan-500/10 border-4 border-cyan-500/30 flex items-center justify-center">
+                  <div className="text-6xl">🃏</div>
                 </div>
-              </CardContent>
-            </UICard>
-
-            {/* Recent Results */}
-            <UICard className="bg-casino-black border-casino-gold">
-              <CardContent className="p-4">
-                <div className="text-white mb-3">
-                  <span className="font-semibold text-casino-gold">Recent Results:</span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {recentResults.map((result, index) => (
-                    <div 
-                      key={result.id}
-                      className={`w-8 h-8 rounded flex items-center justify-center text-xs font-bold border ${
-                        result.cardColor === 'red' 
-                          ? 'bg-red-500 text-white border-red-400' 
-                          : 'bg-gray-800 text-white border-gray-600'
-                      }`}
-                      title={`Round ${result.id}: ${result.cardNumber} ${result.cardColor}`}
-                    >
-                      {result.cardNumber}
-                    </div>
-                  ))}
-                  {recentResults.length === 0 && (
-                    <div className="text-casino-gold text-sm opacity-75">
-                      No recent results
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </UICard>
+                <p className="text-cyan-300 text-lg mt-4">NEXT ROUND STARTING...</p>
+              </div>
+            )}
           </div>
 
-          {/* Sidebar - Players and Betting */}
-          <div className="lg:col-span-4 space-y-4">
-            {/* Betting Panel */}
-            <BettingPanel 
-              playerChips={playerChips}
-              gameStatus={gameStatus}
-              countdownTime={countdownTime}
-              roomId={currentRoom.id}
-              onBetsChange={storeBetsFromChild}
-            />
+          {/* Betting Options */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 w-full max-w-5xl">
+            {BET_TYPES.map((bet) => (
+              <button
+                key={bet.id}
+                onClick={() => setSelectedBetType(bet.id)}
+                className={`relative p-4 rounded-xl border-2 transition-all ${
+                  selectedBetType === bet.id
+                    ? 'border-cyan-400 bg-cyan-500/20 scale-105'
+                    : 'border-cyan-800/30 bg-gradient-to-br ' + bet.color + ' opacity-80 hover:opacity-100'
+                }`}
+              >
+                <div className="text-4xl mb-2">{bet.icon}</div>
+                <div className="text-white font-bold text-lg">{bet.label}</div>
+                <div className="text-cyan-300 text-xs">{bet.description}</div>
+                <div className="text-cyan-400 text-sm font-semibold mt-1">Odds: {bet.odds}</div>
+              </button>
+            ))}
+          </div>
 
-            {/* Bet History */}
-            {socketConnected && socketId && (
-              <BetHistory 
-                socketId={socketId}
-                limit={10}
-              />
-            )}
+          {/* Bet Amount Selection */}
+          <div className="flex gap-3">
+            {QUICK_AMOUNTS.map((amount) => (
+              <button
+                key={amount}
+                onClick={() => setSelectedAmount(amount)}
+                className={`px-6 py-2 rounded-full font-bold transition-all ${
+                  selectedAmount === amount
+                    ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-2 border-orange-400'
+                    : 'bg-blue-900/50 text-cyan-300 border-2 border-cyan-800/50 hover:border-cyan-600'
+                }`}
+              >
+                {amount}
+              </button>
+            ))}
+          </div>
+
+          {/* Place Bet Button */}
+          <Button
+            onClick={handlePlaceBet}
+            disabled={!canPlaceBet()}
+            className="w-full max-w-md py-6 text-xl font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50"
+          >
+            PLACE BET
+          </Button>
+
+          {/* Current Bets Display */}
+          {currentBets.length > 0 && (
+            <div className="text-cyan-300 text-sm">
+              Total Bet: {totalBetAmount} chips ({currentBets.length} bet{currentBets.length > 1 ? 's' : ''})
+            </div>
+          )}
+        </div>
+
+        {/* Recent Results */}
+        <div className="mt-6">
+          <div className="text-cyan-400 text-sm mb-3 text-center">RECENT RESULTS</div>
+          <div className="flex justify-center gap-2">
+            {recentResults.slice(0, 7).map((result) => (
+              <div 
+                key={result.id}
+                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 ${
+                  result.cardColor === 'red' 
+                    ? 'bg-gradient-to-br from-orange-500 to-orange-700 border-orange-400 text-white' 
+                    : 'bg-gradient-to-br from-cyan-500 to-blue-600 border-cyan-400 text-white'
+                }`}
+                title={`${result.cardNumber}`}
+              >
+                {result.cardNumber}
+              </div>
+            ))}
           </div>
         </div>
 
