@@ -163,37 +163,24 @@ app.use((req, res, next) => {
           return;
         }
 
-        await coinTossManager.joinRoom(socket, data.roomId, player);
+        const coinTossPlayer = {
+          id: socket.id,
+          name: data.username,
+          socketId: socket.id,
+          chips: player.chips,
+          dbId: player.id
+        };
+
+        await coinTossManager.joinRoom(socket, coinTossPlayer);
       } catch (error) {
         console.error('Error joining coin toss:', error);
         socket.emit('error', 'Failed to join coin toss room');
       }
     });
 
-    socket.on('coin-toss-place-bet', async (data: { roomId: string; betType: 'heads' | 'tails'; amount: number }) => {
+    socket.on('coin-toss-leave', async () => {
       try {
-        const session = (socket.request as any).session;
-        if (!session?.userId) {
-          socket.emit('error', 'Authentication required');
-          return;
-        }
-
-        const player = await storage.getPlayerByUserId(session.userId);
-        if (!player) {
-          socket.emit('error', 'Player not found');
-          return;
-        }
-
-        await coinTossManager.placeBet(socket, data.roomId, player, data.betType, data.amount);
-      } catch (error) {
-        console.error('Error placing coin toss bet:', error);
-        socket.emit('error', 'Failed to place bet');
-      }
-    });
-
-    socket.on('coin-toss-leave', async (data: { roomId: string }) => {
-      try {
-        coinTossManager.leaveRoom(socket, data.roomId);
+        coinTossManager.leaveRoom(socket);
       } catch (error) {
         console.error('Error leaving coin toss:', error);
       }
