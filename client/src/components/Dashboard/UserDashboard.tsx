@@ -66,15 +66,6 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
           <div className="flex items-center gap-1 sm:gap-2 justify-center sm:justify-end">
             <HeaderWallet socketId={socketId} />
             <Button
-              onClick={onNavigateToGame}
-              variant="outline"
-              size="sm"
-              className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
-            >
-              <span className="hidden sm:inline">🎮 Play Game</span>
-              <span className="sm:hidden">🎮 Play</span>
-            </Button>
-            <Button
               onClick={handleLogout}
               variant="outline"
               size="sm"
