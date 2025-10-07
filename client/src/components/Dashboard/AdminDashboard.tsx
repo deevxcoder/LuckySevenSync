@@ -40,20 +40,39 @@ interface CurrentRoundData {
   };
 }
 
+interface CoinTossRoundData {
+  gameId: number;
+  totalBets: number;
+  betsByType: {
+    heads: number;
+    tails: number;
+  };
+  status: string;
+  timeRemaining: number;
+  currentResult: 'heads' | 'tails' | null;
+}
+
 export default function AdminDashboard() {
   const { user, logout } = useAuthStore();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // Results Control state
+  // Results Control state (Lucky 7)
   const [currentRound, setCurrentRound] = useState<CurrentRoundData | null>(null);
   const [isLoadingRound, setIsLoadingRound] = useState(false);
   const [overrideResult, setOverrideResult] = useState<string>('');
   
+  // Coin Toss Results Control state
+  const [coinTossRound, setCoinTossRound] = useState<CoinTossRoundData | null>(null);
+  const [isLoadingCoinTossRound, setIsLoadingCoinTossRound] = useState(false);
+  const [coinTossOverrideResult, setCoinTossOverrideResult] = useState<string>('');
+  
   // Confirmation Dialog state
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingOverride, setPendingOverride] = useState<string | null>(null);
+  const [showCoinTossConfirmDialog, setShowCoinTossConfirmDialog] = useState(false);
+  const [pendingCoinTossOverride, setPendingCoinTossOverride] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
   const [showErrorMessage, setShowErrorMessage] = useState<string | null>(null);
 
@@ -83,8 +102,13 @@ export default function AdminDashboard() {
     fetchCurrentRound(true); // Initial load with loading state
     const interval = setInterval(() => fetchCurrentRound(false), 5000); // Poll every 5 seconds without loading state
     
+    // Fetch coin toss round data initially and set up polling
+    fetchCoinTossRound(true);
+    const coinTossInterval = setInterval(() => fetchCoinTossRound(false), 5000);
+    
     return () => {
       clearInterval(interval);
+      clearInterval(coinTossInterval);
     };
   }, []);
 
@@ -154,6 +178,72 @@ export default function AdminDashboard() {
   const cancelOverride = () => {
     setShowConfirmDialog(false);
     setPendingOverride(null);
+  };
+
+  const fetchCoinTossRound = async (isInitialLoad = false) => {
+    try {
+      if (isInitialLoad) {
+        setIsLoadingCoinTossRound(true);
+      }
+      const response = await fetch('/api/admin/coin-toss/current-round');
+      if (response.ok) {
+        const data = await response.json();
+        setCoinTossRound(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch coin toss round data:', err);
+    } finally {
+      if (isInitialLoad) {
+        setIsLoadingCoinTossRound(false);
+      }
+    }
+  };
+
+  const handleCoinTossOverrideResult = (selectedResult: string) => {
+    if (!coinTossRound || !selectedResult) return;
+    
+    setPendingCoinTossOverride(selectedResult);
+    setShowCoinTossConfirmDialog(true);
+  };
+
+  const confirmCoinTossOverride = async () => {
+    if (!coinTossRound || !pendingCoinTossOverride) return;
+
+    setShowCoinTossConfirmDialog(false);
+
+    try {
+      const response = await fetch('/api/admin/coin-toss/override-result', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          gameId: coinTossRound.gameId,
+          overrideResult: pendingCoinTossOverride,
+        }),
+      });
+
+      if (response.ok) {
+        setShowSuccessMessage(`Coin toss result overridden to: ${pendingCoinTossOverride}`);
+        setCoinTossOverrideResult('');
+        fetchCoinTossRound();
+        setTimeout(() => setShowSuccessMessage(null), 3000);
+      } else {
+        setShowErrorMessage('Failed to override coin toss result');
+        setTimeout(() => setShowErrorMessage(null), 3000);
+      }
+    } catch (err) {
+      console.error('Error overriding coin toss result:', err);
+      setShowErrorMessage('Error overriding coin toss result');
+      setTimeout(() => setShowErrorMessage(null), 3000);
+    } finally {
+      setPendingCoinTossOverride(null);
+    }
+  };
+
+  const cancelCoinTossOverride = () => {
+    setShowCoinTossConfirmDialog(false);
+    setPendingCoinTossOverride(null);
   };
 
   const handleLogout = () => {
@@ -679,7 +769,126 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        {/* Confirmation Dialog */}
+        {/* Coin Toss Results Control Card */}
+        <Card className="bg-gradient-to-br from-yellow-900 to-yellow-800 border-yellow-600 shadow-2xl">
+          <CardHeader>
+            <CardTitle className="text-2xl font-bold text-yellow-100 flex items-center">
+              <span className="mr-2">🪙</span>
+              Coin Toss Results Control
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoadingCoinTossRound ? (
+              <div className="text-center py-8">
+                <div className="text-yellow-300">Loading coin toss round data...</div>
+              </div>
+            ) : coinTossRound ? (
+              <div>
+                <div className="bg-yellow-950/50 p-4 rounded mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="text-yellow-200">
+                      <div className="text-sm">Game ID</div>
+                      <div className="text-xl font-bold">#{coinTossRound.gameId}</div>
+                    </div>
+                    <div className="text-yellow-200">
+                      <div className="text-sm">Status</div>
+                      <div className="text-xl font-bold capitalize">{coinTossRound.status}</div>
+                    </div>
+                    <div className="text-yellow-200">
+                      <div className="text-sm">Total Bets</div>
+                      <div className="text-xl font-bold">{coinTossRound.totalBets}</div>
+                    </div>
+                  </div>
+
+                  <h4 className="text-yellow-300 font-semibold mb-3">💰 Betting Statistics:</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="bg-yellow-900/50 p-3 rounded border border-yellow-400">
+                      <div className="text-center">
+                        <div className="text-yellow-300 font-semibold">🪙 Heads</div>
+                        <div className="text-white text-lg">{coinTossRound.betsByType.heads}</div>
+                        <div className="text-gray-300 text-sm">chips</div>
+                      </div>
+                    </div>
+                    <div className="bg-yellow-900/50 p-3 rounded border border-blue-400">
+                      <div className="text-center">
+                        <div className="text-blue-300 font-semibold">🎯 Tails</div>
+                        <div className="text-white text-lg">{coinTossRound.betsByType.tails}</div>
+                        <div className="text-gray-300 text-sm">chips</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {coinTossRound.currentResult && (
+                  <div className="border-t border-yellow-600 pt-6 mb-6">
+                    <h4 className="text-yellow-300 font-semibold mb-3">🎲 Current System Result:</h4>
+                    <div className="bg-blue-900/20 border border-blue-500 p-4 rounded">
+                      <div className="text-center">
+                        <div className="text-blue-200 text-sm mb-2">🪙 Generated Result:</div>
+                        <div className="text-3xl font-bold text-yellow-400">
+                          {coinTossRound.currentResult.toUpperCase()}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                <div className="border-t border-yellow-600 pt-4">
+                  <h4 className="text-yellow-300 font-semibold mb-3">⚠️ Admin Override Results:</h4>
+                  
+                  {coinTossRound.status === 'countdown' && coinTossRound.timeRemaining && (
+                    <div className="bg-yellow-900/20 border border-yellow-500 p-4 rounded mb-4">
+                      <div className="flex items-center justify-center">
+                        <div className="text-yellow-300 font-bold text-lg">
+                          ⏰ Override Window: {Math.max(0, Math.ceil(coinTossRound.timeRemaining))}s remaining
+                        </div>
+                      </div>
+                      <p className="text-yellow-200 text-sm text-center mt-2">
+                        You can override the result during the countdown phase
+                      </p>
+                    </div>
+                  )}
+                  
+                  <div className="bg-red-900/20 border border-red-500 p-4 rounded mb-4">
+                    <p className="text-red-300 text-sm font-medium">
+                      ⚠️ WARNING: This will override the natural coin toss result and manually set the outcome.
+                      Use only when necessary for game management or correction purposes.
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <Button
+                      onClick={() => handleCoinTossOverrideResult('heads')}
+                      className="bg-yellow-600 hover:bg-yellow-700 text-white py-6 text-lg"
+                      disabled={coinTossRound.status !== 'countdown'}
+                    >
+                      🪙 Force Heads Win
+                    </Button>
+                    <Button
+                      onClick={() => handleCoinTossOverrideResult('tails')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg"
+                      disabled={coinTossRound.status !== 'countdown'}
+                    >
+                      🎯 Force Tails Win
+                    </Button>
+                  </div>
+                  
+                  {coinTossRound.status !== 'countdown' && (
+                    <p className="text-gray-400 text-sm mt-2">
+                      * Results can only be overridden during the countdown phase
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-yellow-300">No active coin toss round found</div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Lucky 7 Confirmation Dialog */}
         <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
           <DialogContent className="bg-casino-black border-casino-gold">
             <DialogHeader>
@@ -708,6 +917,43 @@ export default function AdminDashboard() {
               </Button>
               <Button
                 onClick={confirmOverride}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                Yes, Override Result
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Coin Toss Confirmation Dialog */}
+        <Dialog open={showCoinTossConfirmDialog} onOpenChange={setShowCoinTossConfirmDialog}>
+          <DialogContent className="bg-gray-900 border-yellow-600">
+            <DialogHeader>
+              <DialogTitle className="text-yellow-400">⚠️ Confirm Coin Toss Override</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-white text-center">
+                Are you sure you want to override the coin toss result to:
+              </p>
+              <div className="text-center mt-4">
+                <span className="inline-block bg-yellow-900 px-4 py-2 rounded border border-yellow-500 text-yellow-300 font-bold text-lg">
+                  {pendingCoinTossOverride?.toUpperCase()}
+                </span>
+              </div>
+              <p className="text-red-300 text-sm text-center mt-4">
+                This action will permanently affect the coin toss outcome and cannot be undone.
+              </p>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={cancelCoinTossOverride}
+                className="border-gray-500 text-gray-300 hover:bg-gray-700"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmCoinTossOverride}
                 className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Yes, Override Result
