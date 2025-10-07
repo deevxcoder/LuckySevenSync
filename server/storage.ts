@@ -1,11 +1,14 @@
 import { 
   users, players, games, bets, chatMessages, andarBaharMatches,
+  coinTossGames, coinTossBets,
   type User, type InsertUser,
   type Player, type InsertPlayer,
   type Game, type InsertGame,
   type Bet, type InsertBet,
   type ChatMessage, type InsertChatMessage,
-  type AndarBaharMatch, type InsertAndarBaharMatch
+  type AndarBaharMatch, type InsertAndarBaharMatch,
+  type CoinTossGame, type InsertCoinTossGame,
+  type CoinTossBet, type InsertCoinTossBet
 } from "@shared/schema";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
@@ -71,6 +74,20 @@ export interface IStorage {
   updateAndarBaharMatch(matchId: string, updates: Partial<AndarBaharMatch>): Promise<AndarBaharMatch | undefined>;
   getActiveAndarBaharMatches(): Promise<AndarBaharMatch[]>;
   getPlayerActiveMatch(playerId: number): Promise<AndarBaharMatch | undefined>;
+  
+  // Coin Toss Games
+  createCoinTossGame(game: InsertCoinTossGame): Promise<CoinTossGame>;
+  updateCoinTossResult(gameId: number, result: string): Promise<CoinTossGame | undefined>;
+  markCoinTossGameCompleted(gameId: number): Promise<CoinTossGame | undefined>;
+  getCoinTossGameHistory(limit?: number): Promise<CoinTossGame[]>;
+  getTotalCoinTossGameCount(): Promise<number>;
+  getLastCompletedCoinTossGameBettingStats(roomId: string): Promise<{ totalBets: number; betsByType: { heads: number; tails: number } } | null>;
+  
+  // Coin Toss Bets
+  createCoinTossBet(bet: InsertCoinTossBet): Promise<CoinTossBet>;
+  getCoinTossBetsByGame(gameId: number): Promise<CoinTossBet[]>;
+  placeCoinTossBet(playerId: number, betAmount: number, betType: string, gameId: number): Promise<{ bet: CoinTossBet; updatedPlayer: Player }>;
+  resolveCoinTossBet(betId: number, won: boolean, winAmount: number): Promise<{ bet: CoinTossBet; updatedPlayer?: Player }>;
   
   // Authentication
   verifyUserPassword(username: string, password: string): Promise<User | null>;
@@ -567,6 +584,166 @@ export class DatabaseStorage implements IStorage {
       )
       .limit(1);
     return result[0];
+  }
+
+  // Coin Toss Games
+  async createCoinTossGame(game: InsertCoinTossGame): Promise<CoinTossGame> {
+    const result = await db.insert(coinTossGames).values(game).returning();
+    return result[0];
+  }
+
+  async updateCoinTossResult(gameId: number, result: string): Promise<CoinTossGame | undefined> {
+    const updateResult = await db.update(coinTossGames)
+      .set({ result })
+      .where(eq(coinTossGames.id, gameId))
+      .returning();
+    return updateResult[0];
+  }
+
+  async markCoinTossGameCompleted(gameId: number): Promise<CoinTossGame | undefined> {
+    const result = await db.update(coinTossGames)
+      .set({ status: 'completed' })
+      .where(eq(coinTossGames.id, gameId))
+      .returning();
+    return result[0];
+  }
+
+  async getCoinTossGameHistory(limit: number = 50): Promise<CoinTossGame[]> {
+    return await db.select().from(coinTossGames)
+      .where(eq(coinTossGames.status, 'completed'))
+      .orderBy(desc(coinTossGames.createdAt))
+      .limit(limit);
+  }
+
+  async getTotalCoinTossGameCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(coinTossGames)
+      .where(eq(coinTossGames.status, 'completed'));
+    return result[0]?.count || 0;
+  }
+
+  async getLastCompletedCoinTossGameBettingStats(roomId: string): Promise<{ totalBets: number; betsByType: { heads: number; tails: number } } | null> {
+    const latestGame = await db.select().from(coinTossGames)
+      .where(
+        and(
+          eq(coinTossGames.roomId, roomId),
+          eq(coinTossGames.status, 'completed')
+        )
+      )
+      .orderBy(desc(coinTossGames.createdAt))
+      .limit(1);
+
+    if (!latestGame[0]) {
+      return null;
+    }
+
+    const gameBets = await db.select().from(coinTossBets)
+      .where(eq(coinTossBets.gameId, latestGame[0].id));
+
+    const betsByType = {
+      heads: 0,
+      tails: 0
+    };
+
+    let totalBets = 0;
+
+    gameBets.forEach(bet => {
+      totalBets += bet.betAmount;
+      if (bet.betType === 'heads') {
+        betsByType.heads += bet.betAmount;
+      } else if (bet.betType === 'tails') {
+        betsByType.tails += bet.betAmount;
+      }
+    });
+
+    return { totalBets, betsByType };
+  }
+
+  // Coin Toss Bets
+  async createCoinTossBet(bet: InsertCoinTossBet): Promise<CoinTossBet> {
+    const result = await db.insert(coinTossBets).values(bet).returning();
+    return result[0];
+  }
+
+  async getCoinTossBetsByGame(gameId: number): Promise<CoinTossBet[]> {
+    return await db.select().from(coinTossBets)
+      .where(eq(coinTossBets.gameId, gameId))
+      .orderBy(desc(coinTossBets.createdAt));
+  }
+
+  async placeCoinTossBet(playerId: number, betAmount: number, betType: string, gameId: number): Promise<{ bet: CoinTossBet; updatedPlayer: Player }> {
+    return await db.transaction(async (tx) => {
+      const player = await tx.select().from(players)
+        .where(eq(players.id, playerId))
+        .for('update');
+      
+      if (!player[0]) {
+        throw new Error('Player not found');
+      }
+      
+      if (player[0].chips < betAmount) {
+        throw new Error('Insufficient chips');
+      }
+      
+      const bet = await tx.insert(coinTossBets).values({
+        gameId,
+        playerId,
+        betAmount,
+        betType,
+        won: false,
+        winAmount: 0,
+      }).returning();
+      
+      const updatedPlayer = await tx.update(players)
+        .set({ 
+          chips: player[0].chips - betAmount,
+          updatedAt: new Date() 
+        })
+        .where(eq(players.id, playerId))
+        .returning();
+      
+      return { bet: bet[0], updatedPlayer: updatedPlayer[0] };
+    });
+  }
+
+  async resolveCoinTossBet(betId: number, won: boolean, winAmount: number): Promise<{ bet: CoinTossBet; updatedPlayer?: Player }> {
+    return await db.transaction(async (tx) => {
+      const bet = await tx.update(coinTossBets)
+        .set({ won, winAmount })
+        .where(eq(coinTossBets.id, betId))
+        .returning();
+      
+      let updatedPlayer;
+      if (won && winAmount > 0) {
+        const player = await tx.select().from(players)
+          .where(eq(players.id, bet[0].playerId));
+        
+        if (player[0]) {
+          updatedPlayer = await tx.update(players)
+            .set({ 
+              chips: player[0].chips + winAmount,
+              totalWins: player[0].totalWins + 1,
+              updatedAt: new Date() 
+            })
+            .where(eq(players.id, bet[0].playerId))
+            .returning();
+        }
+      } else {
+        const player = await tx.select().from(players)
+          .where(eq(players.id, bet[0].playerId));
+        
+        if (player[0]) {
+          updatedPlayer = await tx.update(players)
+            .set({ 
+              totalLosses: player[0].totalLosses + 1,
+              updatedAt: new Date() 
+            })
+            .where(eq(players.id, bet[0].playerId))
+            .returning();
+        }
+      }
+      
+      return { bet: bet[0], updatedPlayer: updatedPlayer?.[0] };
+    });
   }
 }
 
