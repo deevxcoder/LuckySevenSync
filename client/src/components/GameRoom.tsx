@@ -28,6 +28,8 @@ export default function GameRoom() {
   const [totalWinAmount, setTotalWinAmount] = useState<number>(0);
   const lastValidBetsRef = useRef<any[]>([]);
   const { playSuccess, playHit } = useAudio();
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Bet type mappings for display
   const BET_TYPE_LABELS = {
@@ -36,6 +38,60 @@ export default function GameRoom() {
     'high': '📈 High (8-13)',
     'low': '📉 Low (1-6)',
     'lucky7': '🍀 Lucky 7 (12x)'
+  };
+
+  // Fullscreen functions
+  const enterFullscreen = async () => {
+    if (containerRef.current && !document.fullscreenElement) {
+      try {
+        await containerRef.current.requestFullscreen();
+        setIsFullscreen(true);
+        
+        // Lock to landscape orientation
+        if (screen.orientation && (screen.orientation as any).lock) {
+          try {
+            await (screen.orientation as any).lock('landscape');
+          } catch (err) {
+            console.log('Orientation lock not supported or failed:', err);
+          }
+        }
+      } catch (err) {
+        console.error('Error entering fullscreen:', err);
+      }
+    }
+  };
+
+  const exitFullscreen = async () => {
+    // Exit fullscreen and close the game
+    if (document.fullscreenElement) {
+      try {
+        await document.exitFullscreen();
+      } catch (err) {
+        console.error('Error exiting fullscreen:', err);
+      }
+    }
+    
+    // Unlock orientation
+    if (screen.orientation && (screen.orientation as any).unlock) {
+      try {
+        (screen.orientation as any).unlock();
+      } catch (err) {
+        console.log('Orientation unlock not supported or failed:', err);
+      }
+    }
+    
+    // Dispatch custom event to notify App.tsx to navigate back to dashboard
+    window.dispatchEvent(new CustomEvent('exitLucky7'));
+  };
+
+  const handleFullscreenChange = () => {
+    const isCurrentlyFullscreen = !!document.fullscreenElement;
+    setIsFullscreen(isCurrentlyFullscreen);
+    
+    // If user exits fullscreen (ESC key or browser UI), close the game
+    if (!isCurrentlyFullscreen) {
+      exitFullscreen();
+    }
   };
 
   // Function to calculate if a bet won based on the revealed card
@@ -197,6 +253,19 @@ export default function GameRoom() {
     fetchGameCount();
   }, []);
 
+  // Auto-enter fullscreen on mount and listen for fullscreen changes
+  useEffect(() => {
+    // Enter fullscreen when component mounts
+    enterFullscreen();
+    
+    // Listen for fullscreen changes
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
+
   useEffect(() => {
     function onRoomUpdated(room: GameRoom) {
       setCurrentRoom(room);
@@ -289,10 +358,10 @@ export default function GameRoom() {
   };
 
   return (
-    <div className="min-h-screen bg-casino-green p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+    <div ref={containerRef} className="min-h-screen bg-casino-green p-4">
+      <div className="max-w-full mx-auto h-screen flex flex-col">
+        {/* Header with Exit Button */}
+        <div className="flex justify-between items-center mb-4">
           <div className="text-white">
             <h1 className="text-responsive-2xl font-bold text-casino-gold">
               🎰 Lucky 7
@@ -301,11 +370,18 @@ export default function GameRoom() {
               {getStatusMessage()}
             </p>
           </div>
+          <Button 
+            onClick={exitFullscreen}
+            variant="destructive"
+            className="bg-red-600 hover:bg-red-700"
+          >
+            ✕ Exit Game
+          </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 flex-1">
           {/* Main Game Area */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="lg:col-span-8 space-y-4 flex flex-col">
             {/* Countdown Timer */}
             {gameStatus === 'countdown' && (
               <UICard className="bg-casino-black border-casino-gold border-2">
