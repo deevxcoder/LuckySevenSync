@@ -30,7 +30,10 @@ export default function CoinTossRoom() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [flipDisplay, setFlipDisplay] = useState<'H' | 'T'>('H');
   const beepAudioRef = useRef<HTMLAudioElement | null>(null);
+  const winSoundRef = useRef<HTMLAudioElement | null>(null);
+  const loseSoundRef = useRef<HTMLAudioElement | null>(null);
   const lastBeepTimeRef = useRef<number>(0);
+  const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(true);
 
   // Betting state
   const [selectedBetType, setSelectedBetType] = useState<'heads' | 'tails' | ''>('');
@@ -50,21 +53,38 @@ export default function CoinTossRoom() {
   useEffect(() => {
     if (!beepAudioRef.current) {
       beepAudioRef.current = new Audio('/sounds/hit.mp3');
-      beepAudioRef.current.volume = 0.5;
+      beepAudioRef.current.volume = 0.4;
+    }
+    if (!winSoundRef.current) {
+      winSoundRef.current = new Audio('/sounds/success.mp3');
+      winSoundRef.current.volume = 0.6;
+    }
+    if (!loseSoundRef.current) {
+      loseSoundRef.current = new Audio('/sounds/hit.mp3');
+      loseSoundRef.current.volume = 0.5;
     }
   }, []);
 
   useEffect(() => {
-    if (countdownTime <= 5 && countdownTime > 0 && gameStatus === 'countdown') {
+    if (isSoundEnabled && countdownTime <= 5 && countdownTime > 0 && gameStatus === 'countdown') {
       if (lastBeepTimeRef.current !== countdownTime) {
         lastBeepTimeRef.current = countdownTime;
         if (beepAudioRef.current) {
+          // First "dub"
           beepAudioRef.current.currentTime = 0;
           beepAudioRef.current.play().catch(err => console.error('Beep sound error:', err));
+          
+          // Second "dub" after 150ms
+          setTimeout(() => {
+            if (beepAudioRef.current) {
+              beepAudioRef.current.currentTime = 0;
+              beepAudioRef.current.play().catch(err => console.error('Beep sound error:', err));
+            }
+          }, 150);
         }
       }
     }
-  }, [countdownTime, gameStatus]);
+  }, [countdownTime, gameStatus, isSoundEnabled]);
 
   const enterFullscreen = async () => {
     if (containerRef.current && !document.fullscreenElement) {
@@ -233,6 +253,15 @@ export default function CoinTossRoom() {
         setBetResults(results);
         setTotalWinAmount(totalWin);
         setShowResultPopup(results.length > 0);
+
+        // Play win or lose sound
+        if (isSoundEnabled && results.length > 0) {
+          if (totalWin > 0) {
+            winSoundRef.current?.play().catch(err => console.error('Win sound error:', err));
+          } else {
+            loseSoundRef.current?.play().catch(err => console.error('Lose sound error:', err));
+          }
+        }
       }, 1500);
     });
 
@@ -321,15 +350,27 @@ export default function CoinTossRoom() {
         background: 'linear-gradient(to bottom, #0a1628 0%, #0d1b2e 50%, #0a1628 100%)'
       }}
     >
-      {/* Exit Fullscreen Button */}
-      {isFullscreen && (
+      {/* Top Right Controls */}
+      <div className="fixed top-4 right-4 z-50 flex gap-2">
+        {/* Sound Toggle */}
         <button
-          onClick={exitFullscreen}
-          className="fixed top-4 right-4 z-50 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all"
+          onClick={() => setIsSoundEnabled(!isSoundEnabled)}
+          className="bg-gray-800 hover:bg-gray-700 text-white font-bold p-3 rounded-lg shadow-lg transition-all border-2 border-cyan-500"
+          title={isSoundEnabled ? 'Mute sounds' : 'Enable sounds'}
         >
-          ✕ Exit Fullscreen
+          <span className="text-2xl">{isSoundEnabled ? '🔊' : '🔇'}</span>
         </button>
-      )}
+
+        {/* Exit Fullscreen Button */}
+        {isFullscreen && (
+          <button
+            onClick={exitFullscreen}
+            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all"
+          >
+            ✕ Exit Fullscreen
+          </button>
+        )}
+      </div>
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
