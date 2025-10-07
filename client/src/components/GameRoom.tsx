@@ -410,62 +410,62 @@ export default function GameRoom() {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1f3d] to-[#1a2b4a] p-4 md:p-6">
+    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1f3d] to-[#1a2b4a] p-2 md:p-4">
       <div className="max-w-7xl mx-auto h-screen flex flex-col">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
+        {/* Header - Compact for Landscape */}
+        <div className="flex justify-between items-center mb-2">
           {/* Left: Chips */}
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-500/50">
-              <span className="text-2xl">💎</span>
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-500/50">
+              <span className="text-xl">🪙</span>
             </div>
-            <div className="text-cyan-300 font-bold text-2xl">{playerChips}</div>
+            <div className="text-cyan-300 font-bold text-xl">{playerChips}</div>
           </div>
 
-          {/* Center: Title */}
-          <h1 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 tracking-wider">
-            LUCKY 7 ARENA
-          </h1>
+          {/* Center: Title & Round Info */}
+          <div className="text-center">
+            <h1 className="text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 tracking-wider">
+              LUCKY 7 ARENA
+            </h1>
+            <div className="text-cyan-400 text-sm font-semibold">
+              ROUND #{currentRoom.currentGameId || totalGameCount + 1}
+            </div>
+          </div>
 
-          {/* Right: Exit Button */}
-          <Button 
-            onClick={exitFullscreen}
-            className="w-12 h-12 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 hover:from-cyan-500 hover:to-cyan-700 shadow-lg shadow-cyan-500/50"
-          >
-            👤
-          </Button>
+          {/* Right: Status & Exit */}
+          <div className="flex items-center gap-2">
+            <div className={`px-3 py-1 rounded-full text-xs font-semibold border-2 ${
+              getBettingStatus() === 'BETTING OPEN' 
+                ? 'bg-orange-500/20 border-orange-500 text-orange-400'
+                : getBettingStatus() === 'BETTING CLOSED'
+                ? 'bg-red-500/20 border-red-500 text-red-400'
+                : 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
+            }`}>
+              {getBettingStatus()}
+            </div>
+            <Button 
+              onClick={exitFullscreen}
+              className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 shadow-lg flex items-center justify-center"
+            >
+              ✕
+            </Button>
+          </div>
         </div>
 
-        {/* Round Info & Status */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="text-cyan-400 font-semibold">
-            ROUND #{currentRoom.currentGameId || totalGameCount + 1}
-          </div>
-          <div className={`px-4 py-1.5 rounded-full font-semibold border-2 ${
-            getBettingStatus() === 'BETTING OPEN' 
-              ? 'bg-orange-500/20 border-orange-500 text-orange-400'
-              : getBettingStatus() === 'BETTING CLOSED'
-              ? 'bg-red-500/20 border-red-500 text-red-400'
-              : 'bg-cyan-500/20 border-cyan-500 text-cyan-400'
-          }`}>
-            {getBettingStatus()}
-          </div>
-        </div>
-
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col items-center justify-start gap-6">
-          {/* Central Timer/Card Display */}
-          <div className="relative">
+        {/* Main Content Area - Optimized for Landscape */}
+        <div className="flex-1 flex gap-4">
+          {/* Left: Timer/Card Display */}
+          <div className="flex-1 flex items-center justify-center">
             {gameStatus === 'countdown' && (
               <div className="text-center">
-                <div className="relative w-48 h-48 md:w-64 md:h-64">
+                <div className="relative w-32 h-32 md:w-40 md:h-40">
                   <svg className="transform -rotate-90 w-full h-full">
                     <circle
                       cx="50%"
                       cy="50%"
                       r="45%"
                       stroke="rgba(6, 182, 212, 0.2)"
-                      strokeWidth="8"
+                      strokeWidth="6"
                       fill="none"
                     />
                     <circle
@@ -473,7 +473,7 @@ export default function GameRoom() {
                       cy="50%"
                       r="45%"
                       stroke="url(#gradient)"
-                      strokeWidth="8"
+                      strokeWidth="6"
                       fill="none"
                       strokeLinecap="round"
                       strokeDasharray={`${2 * Math.PI * 45} ${2 * Math.PI * 45}`}
@@ -488,15 +488,15 @@ export default function GameRoom() {
                     </defs>
                   </svg>
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-6xl md:text-8xl font-bold text-cyan-400">{countdownTime}s</div>
+                    <div className="text-4xl md:text-5xl font-bold text-cyan-400">{countdownTime}s</div>
                   </div>
                 </div>
-                <p className="text-cyan-300 text-lg mt-4">BETTING CLOSES IN...</p>
+                <p className="text-cyan-300 text-sm mt-2">BETTING CLOSES IN...</p>
               </div>
             )}
 
             {currentCard && gameStatus === 'revealed' && (
-              <div className="flex justify-center">
+              <div className="flex justify-center scale-90 md:scale-100">
                 <Card 
                   number={currentCard.number}
                   suit={currentCard.suit}
@@ -509,76 +509,79 @@ export default function GameRoom() {
 
             {gameStatus === 'waiting' && (
               <div className="text-center">
-                <div className="w-48 h-48 md:w-64 md:h-64 rounded-full bg-cyan-500/10 border-4 border-cyan-500/30 flex items-center justify-center">
-                  <div className="text-6xl">🃏</div>
+                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-cyan-500/10 border-4 border-cyan-500/30 flex items-center justify-center">
+                  <div className="text-4xl">🃏</div>
                 </div>
-                <p className="text-cyan-300 text-lg mt-4">NEXT ROUND STARTING...</p>
+                <p className="text-cyan-300 text-sm mt-2">NEXT ROUND STARTING...</p>
               </div>
             )}
           </div>
 
-          {/* Betting Options */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 w-full max-w-5xl">
-            {BET_TYPES.map((bet) => (
-              <button
-                key={bet.id}
-                onClick={() => setSelectedBetType(bet.id)}
-                className={`relative p-4 rounded-xl border-2 transition-all ${
-                  selectedBetType === bet.id
-                    ? 'border-cyan-400 bg-cyan-500/20 scale-105'
-                    : 'border-cyan-800/30 bg-gradient-to-br ' + bet.color + ' opacity-80 hover:opacity-100'
-                }`}
-              >
-                <div className="text-4xl mb-2">{bet.icon}</div>
-                <div className="text-white font-bold text-lg">{bet.label}</div>
-                <div className="text-cyan-300 text-xs">{bet.description}</div>
-                <div className="text-cyan-400 text-sm font-semibold mt-1">Odds: {bet.odds}</div>
-              </button>
-            ))}
-          </div>
-
-          {/* Bet Amount Selection */}
-          <div className="flex gap-3">
-            {QUICK_AMOUNTS.map((amount) => (
-              <button
-                key={amount}
-                onClick={() => setSelectedAmount(amount)}
-                className={`px-6 py-2 rounded-full font-bold transition-all ${
-                  selectedAmount === amount
-                    ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-2 border-orange-400'
-                    : 'bg-blue-900/50 text-cyan-300 border-2 border-cyan-800/50 hover:border-cyan-600'
-                }`}
-              >
-                {amount}
-              </button>
-            ))}
-          </div>
-
-          {/* Place Bet Button */}
-          <Button
-            onClick={handlePlaceBet}
-            disabled={!canPlaceBet()}
-            className="w-full max-w-md py-6 text-xl font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50"
-          >
-            PLACE BET
-          </Button>
-
-          {/* Current Bets Display */}
-          {currentBets.length > 0 && (
-            <div className="text-cyan-300 text-sm">
-              Total Bet: {totalBetAmount} chips ({currentBets.length} bet{currentBets.length > 1 ? 's' : ''})
+          {/* Right: Betting Area */}
+          <div className="flex-1 flex flex-col justify-center gap-3">
+            {/* Betting Options - Compact Grid */}
+            <div className="grid grid-cols-5 gap-2">
+              {BET_TYPES.map((bet) => (
+                <button
+                  key={bet.id}
+                  onClick={() => setSelectedBetType(bet.id)}
+                  className={`relative p-2 rounded-lg border-2 transition-all ${
+                    selectedBetType === bet.id
+                      ? 'border-cyan-400 bg-cyan-500/20 scale-105'
+                      : 'border-cyan-800/30 bg-gradient-to-br ' + bet.color + ' opacity-80 hover:opacity-100'
+                  }`}
+                >
+                  <div className="text-2xl mb-1">{bet.icon}</div>
+                  <div className="text-white font-bold text-xs">{bet.label}</div>
+                  <div className="text-cyan-300 text-[10px]">{bet.description}</div>
+                  <div className="text-cyan-400 text-[10px] font-semibold">{bet.odds}</div>
+                </button>
+              ))}
             </div>
-          )}
+
+            {/* Bet Amount Selection */}
+            <div className="flex gap-2 justify-center">
+              {QUICK_AMOUNTS.map((amount) => (
+                <button
+                  key={amount}
+                  onClick={() => setSelectedAmount(amount)}
+                  className={`px-4 py-1.5 rounded-full text-sm font-bold transition-all ${
+                    selectedAmount === amount
+                      ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-2 border-orange-400'
+                      : 'bg-blue-900/50 text-cyan-300 border-2 border-cyan-800/50 hover:border-cyan-600'
+                  }`}
+                >
+                  {amount}
+                </button>
+              ))}
+            </div>
+
+            {/* Place Bet Button */}
+            <Button
+              onClick={handlePlaceBet}
+              disabled={!canPlaceBet()}
+              className="w-full py-3 text-lg font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50"
+            >
+              PLACE BET
+            </Button>
+
+            {/* Current Bets Display */}
+            {currentBets.length > 0 && (
+              <div className="text-cyan-300 text-xs text-center">
+                Total Bet: {totalBetAmount} chips ({currentBets.length} bet{currentBets.length > 1 ? 's' : ''})
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Recent Results */}
-        <div className="mt-6">
-          <div className="text-cyan-400 text-sm mb-3 text-center">RECENT RESULTS</div>
+        {/* Recent Results - Bottom */}
+        <div className="mt-2">
+          <div className="text-cyan-400 text-xs mb-2 text-center">RECENT RESULTS</div>
           <div className="flex justify-center gap-2">
             {recentResults.slice(0, 7).map((result) => (
               <div 
                 key={result.id}
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border-2 ${
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 ${
                   result.cardColor === 'red' 
                     ? 'bg-gradient-to-br from-orange-500 to-orange-700 border-orange-400 text-white' 
                     : 'bg-gradient-to-br from-cyan-500 to-blue-600 border-cyan-400 text-white'
