@@ -70,17 +70,26 @@ export default function CoinTossRoom() {
       if (lastBeepTimeRef.current !== countdownTime) {
         lastBeepTimeRef.current = countdownTime;
         if (beepAudioRef.current) {
-          // First "dub"
+          // ECG heartbeat pattern: beep-beep-pause (like emergency monitor)
+          // First beep
           beepAudioRef.current.currentTime = 0;
           beepAudioRef.current.play().catch(err => console.error('Beep sound error:', err));
           
-          // Second "dub" after 150ms
+          // Second beep (quick after first - ECG style)
           setTimeout(() => {
             if (beepAudioRef.current) {
               beepAudioRef.current.currentTime = 0;
               beepAudioRef.current.play().catch(err => console.error('Beep sound error:', err));
             }
-          }, 150);
+          }, 100);
+          
+          // Third beep (emergency alarm style)
+          setTimeout(() => {
+            if (beepAudioRef.current) {
+              beepAudioRef.current.currentTime = 0;
+              beepAudioRef.current.play().catch(err => console.error('Beep sound error:', err));
+            }
+          }, 200);
         }
       }
     }
@@ -350,27 +359,15 @@ export default function CoinTossRoom() {
         background: 'linear-gradient(to bottom, #0a1628 0%, #0d1b2e 50%, #0a1628 100%)'
       }}
     >
-      {/* Top Right Controls */}
-      <div className="fixed top-4 right-4 z-50 flex gap-2">
-        {/* Sound Toggle */}
+      {/* Exit Fullscreen Button */}
+      {isFullscreen && (
         <button
-          onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-          className="bg-gray-800 hover:bg-gray-700 text-white font-bold p-3 rounded-lg shadow-lg transition-all border-2 border-cyan-500"
-          title={isSoundEnabled ? 'Mute sounds' : 'Enable sounds'}
+          onClick={exitFullscreen}
+          className="fixed top-4 right-4 z-50 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all"
         >
-          <span className="text-2xl">{isSoundEnabled ? '🔊' : '🔇'}</span>
+          ✕ Exit Fullscreen
         </button>
-
-        {/* Exit Fullscreen Button */}
-        {isFullscreen && (
-          <button
-            onClick={exitFullscreen}
-            className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg shadow-lg transition-all"
-          >
-            ✕ Exit Fullscreen
-          </button>
-        )}
-      </div>
+      )}
 
       <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         {/* Header */}
@@ -394,10 +391,14 @@ export default function CoinTossRoom() {
             COIN TOSS ARENA
           </h1>
 
-          {/* User Icon */}
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/50">
-            <span className="text-xl">👤</span>
-          </div>
+          {/* Sound Toggle Icon */}
+          <button
+            onClick={() => setIsSoundEnabled(!isSoundEnabled)}
+            className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/50 hover:scale-110 transition-transform"
+            title={isSoundEnabled ? 'Mute sounds' : 'Enable sounds'}
+          >
+            <span className="text-xl">{isSoundEnabled ? '🔊' : '🔇'}</span>
+          </button>
         </div>
 
         {/* Round Number and Status */}
