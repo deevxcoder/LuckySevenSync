@@ -1,9 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { socket } from '../../lib/socket';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
-import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
-import { Badge } from '../ui/badge';
-import CoinTossBettingPanel from './CoinTossBettingPanel';
 
 interface CoinTossRoomData {
   id: string;
@@ -12,6 +9,13 @@ interface CoinTossRoomData {
   roundNumber: number;
 }
 
+interface Bet {
+  type: string;
+  amount: number;
+}
+
+const QUICK_AMOUNTS = [10, 50, 100, 500];
+
 export default function CoinTossRoom() {
   const { user } = useAuthStore();
   const [currentResult, setCurrentResult] = useState<'heads' | 'tails' | null>(null);
@@ -19,37 +23,26 @@ export default function CoinTossRoom() {
   const [gameStatus, setGameStatus] = useState<string>('waiting');
   const [playerChips, setPlayerChips] = useState<number>(1000);
   const [recentResults, setRecentResults] = useState<any[]>([]);
-  const [socketConnected, setSocketConnected] = useState<boolean>(false);
   const [socketId, setSocketId] = useState<string>('');
   const [totalGameCount, setTotalGameCount] = useState<number>(0);
-  const [showResultPopup, setShowResultPopup] = useState<boolean>(false);
-  const [storedBets, setStoredBets] = useState<any[]>([]);
-  const [betResults, setBetResults] = useState<any[]>([]);
-  const [totalWinAmount, setTotalWinAmount] = useState<number>(0);
-  const lastValidBetsRef = useRef<any[]>([]);
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const BET_TYPE_LABELS = {
-    'heads': '🪙 Heads',
-    'tails': '🎯 Tails',
-  };
+  // Betting state
+  const [selectedBetType, setSelectedBetType] = useState<'heads' | 'tails' | ''>('');
+  const [selectedAmount, setSelectedAmount] = useState<number>(10);
+  const [currentBets, setCurrentBets] = useState<Bet[]>([]);
+  const [totalBetAmount, setTotalBetAmount] = useState<number>(0);
+  const [showResultPopup, setShowResultPopup] = useState<boolean>(false);
+  const [betResults, setBetResults] = useState<any[]>([]);
+  const [totalWinAmount, setTotalWinAmount] = useState<number>(0);
+  const lastValidBetsRef = useRef<any[]>([]);
 
-  const isBetWinner = (betType: string, result: 'heads' | 'tails'): boolean => {
-    return betType === result;
-  };
-
-  const calculateWinAmount = (betAmount: number): number => {
-    return betAmount * 2;
-  };
-
-  const storeBetsFromChild = (bets: any[]) => {
-    if (bets.length > 0) {
-      setStoredBets(bets);
-      lastValidBetsRef.current = bets;
-    }
-  };
+  useEffect(() => {
+    const total = currentBets.reduce((sum, bet) => sum + bet.amount, 0);
+    setTotalBetAmount(total);
+  }, [currentBets]);
 
   const enterFullscreen = async () => {
     if (containerRef.current && !document.fullscreenElement) {
@@ -75,6 +68,34 @@ export default function CoinTossRoom() {
 
   const handleFullscreenChange = () => {
     setIsFullscreen(!!document.fullscreenElement);
+  };
+
+  const canPlaceBet = () => {
+    return gameStatus === 'countdown' && 
+           countdownTime > 10 && 
+           selectedBetType && 
+           selectedAmount > 0 && 
+           (playerChips - totalBetAmount) >= selectedAmount;
+  };
+
+  const handlePlaceBet = () => {
+    if (!canPlaceBet()) return;
+
+    const newBet: Bet = {
+      type: selectedBetType,
+      amount: selectedAmount
+    };
+
+    setCurrentBets(prev => [...prev, newBet]);
+    lastValidBetsRef.current = [...currentBets, newBet];
+
+    socket.emit('coin-toss-place-bet', {
+      roomId: 'COIN_TOSS_GLOBAL',
+      betType: selectedBetType,
+      amount: selectedAmount
+    });
+
+    console.log(`Placed coin toss bet: ${selectedAmount} on ${selectedBetType}`);
   };
 
   useEffect(() => {
@@ -128,13 +149,11 @@ export default function CoinTossRoom() {
 
     socket.on('connect', () => {
       console.log('Connected to coin toss socket');
-      setSocketConnected(true);
       setSocketId(socket.id || '');
     });
 
     socket.on('disconnect', () => {
       console.log('Disconnected from coin toss socket');
-      setSocketConnected(false);
     });
 
     socket.on('coin-toss-room-joined', (data: { room: CoinTossRoomData; player: any }) => {
@@ -148,7 +167,7 @@ export default function CoinTossRoom() {
       setGameStatus('countdown');
       setCountdownTime(data.countdownTime);
       setCurrentResult(null);
-      setStoredBets([]);
+      setCurrentBets([]);
       setShowResultPopup(false);
       setIsFlipping(false);
     });
@@ -168,13 +187,13 @@ export default function CoinTossRoom() {
         setGameStatus('revealing');
         setIsFlipping(false);
 
-        const betsToProcess = lastValidBetsRef.current.length > 0 ? lastValidBetsRef.current : storedBets;
+        const betsToProcess = lastValidBetsRef.current.length > 0 ? lastValidBetsRef.current : currentBets;
         
         const results = betsToProcess.map(bet => ({
           betType: bet.type,
           betAmount: bet.amount,
-          won: isBetWinner(bet.type, data.result),
-          winAmount: isBetWinner(bet.type, data.result) ? calculateWinAmount(bet.amount) : 0,
+          won: bet.type === data.result,
+          winAmount: bet.type === data.result ? bet.amount * 2 : 0,
         }));
 
         const totalWin = results.reduce((sum, r) => sum + r.winAmount, 0);
@@ -188,7 +207,7 @@ export default function CoinTossRoom() {
       console.log('Coin toss round ended:', data);
       setGameStatus('waiting');
       setCurrentResult(null);
-      setStoredBets([]);
+      setCurrentBets([]);
       lastValidBetsRef.current = [];
 
       if (user && socket.id) {
@@ -240,7 +259,7 @@ export default function CoinTossRoom() {
       socket.off('coin-toss-bet-placed');
       socket.off('coin-toss-bet-error');
     };
-  }, [user, socketConnected, socketId]);
+  }, [user, socketId]);
 
   useEffect(() => {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
@@ -258,8 +277,18 @@ export default function CoinTossRoom() {
     };
   }, []);
 
+  const bettingWindowClosed = gameStatus !== 'countdown' || countdownTime <= 10;
+  const remainingChips = playerChips - totalBetAmount;
+
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900 p-4 relative">
+    <div 
+      ref={containerRef} 
+      className="min-h-screen bg-gradient-to-b from-[#0a1628] via-[#0d1b2e] to-[#0a1628] relative overflow-y-auto"
+      style={{
+        background: 'linear-gradient(to bottom, #0a1628 0%, #0d1b2e 50%, #0a1628 100%)'
+      }}
+    >
+      {/* Exit Fullscreen Button */}
       {isFullscreen && (
         <button
           onClick={exitFullscreen}
@@ -268,115 +297,238 @@ export default function CoinTossRoom() {
           ✕ Exit Fullscreen
         </button>
       )}
-      <div className="max-w-7xl mx-auto space-y-4">
-        <Card className="bg-gradient-to-br from-yellow-600 to-yellow-800 border-yellow-500 shadow-2xl">
-          <CardHeader>
-            <CardTitle className="text-4xl font-bold text-center text-white">
-              🪙 Coin Toss Game
-            </CardTitle>
-            <div className="text-center text-yellow-100 text-sm">
-              Round #{totalGameCount + 1}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex justify-between items-center bg-black bg-opacity-30 p-4 rounded-lg">
-              <div className="text-white">
-                <div className="text-sm opacity-80">Your Chips</div>
-                <div className="text-3xl font-bold">💰 {playerChips}</div>
-              </div>
-              <div className="text-white text-center">
-                <div className="text-sm opacity-80">Time Remaining</div>
-                <div className="text-5xl font-mono font-bold">
-                  {countdownTime}s
-                </div>
-                <div className="text-xs mt-1">
-                  {countdownTime > 10 ? '🎲 Betting Open' : countdownTime > 0 ? '🔒 Admin Override Window' : '⏰ Revealing...'}
-                </div>
-              </div>
-              <div className="text-white text-right">
-                <div className="text-sm opacity-80">Status</div>
-                <Badge variant={gameStatus === 'countdown' ? 'default' : 'secondary'} className="text-lg">
-                  {gameStatus === 'countdown' ? 'BETTING' : gameStatus === 'revealing' ? 'REVEALING' : 'WAITING'}
-                </Badge>
-              </div>
-            </div>
 
-            {(isFlipping || (currentResult && gameStatus === 'revealing')) && (
-              <div className="bg-gradient-to-r from-green-600 to-green-800 p-8 rounded-lg text-center">
-                <div className="flex justify-center items-center mb-4">
-                  <div className={`relative w-48 h-48 ${isFlipping ? 'animate-coin-flip' : 'animate-bounce-in'}`}>
-                    <img 
-                      src={`/coin-images/${currentResult === 'heads' ? 'heads' : 'tails'}.png`}
-                      alt={currentResult || 'coin'}
-                      className="w-full h-full object-contain"
-                    />
-                  </div>
-                </div>
-                {!isFlipping && (
-                  <div className="text-4xl font-bold text-white animate-fade-in">
-                    {currentResult?.toUpperCase()}
-                  </div>
-                )}
+      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          {/* Chips Display */}
+          <div className="flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-cyan-600 flex items-center justify-center shadow-lg shadow-cyan-500/50">
+              <span className="text-xl">💰</span>
+            </div>
+            <span className="text-white text-2xl font-bold">{remainingChips}</span>
+          </div>
+
+          {/* Title */}
+          <h1 
+            className="text-3xl font-bold text-center"
+            style={{
+              color: '#00d4ff',
+              textShadow: '0 0 20px rgba(0, 212, 255, 0.8), 0 0 40px rgba(0, 212, 255, 0.5)'
+            }}
+          >
+            COIN TOSS ARENA
+          </h1>
+
+          {/* User Icon */}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/50">
+            <span className="text-xl">👤</span>
+          </div>
+        </div>
+
+        {/* Round Number and Status */}
+        <div className="flex items-center justify-between">
+          <div className="text-cyan-300 text-sm font-semibold tracking-wider">
+            ROUND #{totalGameCount + 1}
+          </div>
+          <div 
+            className={`px-4 py-1 rounded-full border-2 text-sm font-bold ${
+              bettingWindowClosed 
+                ? 'border-red-500 text-red-400' 
+                : 'border-orange-500 text-orange-400'
+            }`}
+          >
+            {bettingWindowClosed ? 'BETTING CLOSED' : 'BETTING OPEN'}
+          </div>
+        </div>
+
+        {/* Circular Timer */}
+        <div className="flex flex-col items-center justify-center py-6">
+          <div 
+            className="w-48 h-48 rounded-full flex items-center justify-center relative"
+            style={{
+              border: '4px solid #00d4ff',
+              boxShadow: '0 0 30px rgba(0, 212, 255, 0.6), inset 0 0 30px rgba(0, 212, 255, 0.3)',
+              background: 'radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, rgba(10, 22, 40, 0.9) 100%)'
+            }}
+          >
+            {isFlipping ? (
+              <div className="animate-spin text-6xl">🪙</div>
+            ) : currentResult && gameStatus === 'revealing' ? (
+              <img 
+                src={`/coin-images/${currentResult}.png`}
+                alt={currentResult}
+                className="w-32 h-32 object-contain animate-bounce"
+              />
+            ) : (
+              <div 
+                className="text-7xl font-bold"
+                style={{
+                  color: '#00d4ff',
+                  textShadow: '0 0 20px rgba(0, 212, 255, 0.8)'
+                }}
+              >
+                {countdownTime}s
               </div>
             )}
+          </div>
+          <div className="mt-4 text-cyan-300 text-sm tracking-widest">
+            {isFlipping ? 'FLIPPING...' : currentResult ? currentResult.toUpperCase() : 'BETTING CLOSES IN...'}
+          </div>
+        </div>
 
-            {showResultPopup && betResults.length > 0 && (
-              <div className="bg-gradient-to-br from-purple-900 to-purple-700 p-6 rounded-lg border-2 border-purple-400 shadow-xl">
-                <h3 className="text-2xl font-bold text-white mb-4 text-center">
-                  {totalWinAmount > 0 ? '🎉 You Won!' : '😔 Better Luck Next Time'}
-                </h3>
-                <div className="space-y-2 mb-4">
-                  {betResults.map((result, index) => (
-                    <div
-                      key={index}
-                      className={`flex justify-between items-center p-3 rounded ${
-                        result.won ? 'bg-green-600' : 'bg-red-600'
-                      } text-white`}
-                    >
-                      <span>{BET_TYPE_LABELS[result.betType as keyof typeof BET_TYPE_LABELS]}</span>
-                      <span className="font-bold">{result.betAmount} chips</span>
-                      <span className="font-bold">
-                        {result.won ? `+${result.winAmount}` : '-'}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-                <div className="text-center text-2xl font-bold text-yellow-300">
-                  {totalWinAmount > 0 ? `Total Won: ${totalWinAmount} chips` : 'Total Lost: ' + betResults.reduce((sum, r) => sum + r.betAmount, 0) + ' chips'}
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <CoinTossBettingPanel
-          playerChips={playerChips}
-          gameStatus={gameStatus}
-          countdownTime={countdownTime}
-          roomId="COIN_TOSS_GLOBAL"
-          onBetsChange={storeBetsFromChild}
-        />
-
-        <Card className="bg-gray-800 border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Recent Results</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {recentResults.slice(0, 20).map((game, index) => (
-                <div
-                  key={index}
-                  className={`w-12 h-12 flex items-center justify-center rounded-full text-2xl ${
-                    game.result === 'heads' ? 'bg-yellow-600' : 'bg-blue-600'
-                  }`}
-                  title={`Round ${game.id}: ${game.result}`}
-                >
-                  {game.result === 'heads' ? '🪙' : '🎯'}
-                </div>
-              ))}
+        {/* Result Popup */}
+        {showResultPopup && betResults.length > 0 && (
+          <div className="bg-gradient-to-br from-purple-900/90 to-purple-700/90 p-6 rounded-lg border-2 border-purple-400 shadow-xl backdrop-blur-sm">
+            <h3 className="text-2xl font-bold text-white mb-4 text-center">
+              {totalWinAmount > 0 ? '🎉 You Won!' : '😔 Better Luck Next Time'}
+            </h3>
+            <div className="text-center text-2xl font-bold text-yellow-300">
+              {totalWinAmount > 0 ? `Won: ${totalWinAmount} chips` : `Lost: ${betResults.reduce((sum, r) => sum + r.betAmount, 0)} chips`}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        )}
+
+        {/* Betting Cards */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Heads Card */}
+          <button
+            onClick={() => setSelectedBetType('heads')}
+            disabled={bettingWindowClosed}
+            className={`p-6 rounded-xl border-2 transition-all ${
+              selectedBetType === 'heads'
+                ? 'border-orange-400 bg-gradient-to-br from-orange-900/40 to-purple-900/40'
+                : bettingWindowClosed
+                ? 'border-gray-600 bg-gray-800/40 cursor-not-allowed opacity-50'
+                : 'border-blue-600 bg-gradient-to-br from-blue-900/20 to-purple-900/20 hover:border-orange-400'
+            }`}
+            style={{
+              boxShadow: selectedBetType === 'heads' 
+                ? '0 0 20px rgba(251, 146, 60, 0.5)' 
+                : '0 0 10px rgba(37, 99, 235, 0.3)'
+            }}
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div 
+                className="w-20 h-20 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, #fb923c 0%, #f97316 100%)',
+                  boxShadow: '0 0 20px rgba(251, 146, 60, 0.6)'
+                }}
+              >
+                <span className="text-4xl">👑</span>
+              </div>
+              <div className="text-white font-bold text-xl">Heads</div>
+              <div className="text-cyan-300 text-sm">Bet on Heads</div>
+              <div className="text-cyan-400 text-xs font-semibold">Odds: 1:1</div>
+            </div>
+          </button>
+
+          {/* Tails Card */}
+          <button
+            onClick={() => setSelectedBetType('tails')}
+            disabled={bettingWindowClosed}
+            className={`p-6 rounded-xl border-2 transition-all ${
+              selectedBetType === 'tails'
+                ? 'border-cyan-400 bg-gradient-to-br from-cyan-900/40 to-purple-900/40'
+                : bettingWindowClosed
+                ? 'border-gray-600 bg-gray-800/40 cursor-not-allowed opacity-50'
+                : 'border-blue-600 bg-gradient-to-br from-blue-900/20 to-purple-900/20 hover:border-cyan-400'
+            }`}
+            style={{
+              boxShadow: selectedBetType === 'tails' 
+                ? '0 0 20px rgba(34, 211, 238, 0.5)' 
+                : '0 0 10px rgba(37, 99, 235, 0.3)'
+            }}
+          >
+            <div className="flex flex-col items-center gap-3">
+              <div 
+                className="w-20 h-20 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(135deg, #22d3ee 0%, #06b6d4 100%)',
+                  boxShadow: '0 0 20px rgba(34, 211, 238, 0.6)'
+                }}
+              >
+                <span className="text-4xl">🎯</span>
+              </div>
+              <div className="text-white font-bold text-xl">Tails</div>
+              <div className="text-cyan-300 text-sm">Bet on Tails</div>
+              <div className="text-cyan-400 text-xs font-semibold">Odds: 1:1</div>
+            </div>
+          </button>
+        </div>
+
+        {/* Quick Bet Amounts */}
+        <div className="flex justify-center gap-3">
+          {QUICK_AMOUNTS.map(amount => (
+            <button
+              key={amount}
+              onClick={() => setSelectedAmount(amount)}
+              disabled={bettingWindowClosed || amount > remainingChips}
+              className={`px-8 py-3 rounded-full font-bold text-lg transition-all ${
+                selectedAmount === amount
+                  ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white border-2 border-orange-400'
+                  : amount > remainingChips || bettingWindowClosed
+                  ? 'bg-gray-700 text-gray-500 cursor-not-allowed border-2 border-gray-600'
+                  : 'bg-blue-900/50 text-cyan-300 border-2 border-blue-600 hover:border-cyan-400'
+              }`}
+              style={{
+                boxShadow: selectedAmount === amount 
+                  ? '0 0 20px rgba(251, 146, 60, 0.6)' 
+                  : 'none'
+              }}
+            >
+              {amount}
+            </button>
+          ))}
+        </div>
+
+        {/* Place Bet Button */}
+        <button
+          onClick={handlePlaceBet}
+          disabled={!canPlaceBet()}
+          className={`w-full py-4 rounded-xl font-bold text-xl transition-all ${
+            canPlaceBet()
+              ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white border-2 border-cyan-400'
+              : 'bg-gray-700 text-gray-400 cursor-not-allowed border-2 border-gray-600'
+          }`}
+          style={{
+            boxShadow: canPlaceBet() 
+              ? '0 0 30px rgba(34, 211, 238, 0.6)' 
+              : 'none',
+            textShadow: canPlaceBet() 
+              ? '0 0 10px rgba(255, 255, 255, 0.8)' 
+              : 'none'
+          }}
+        >
+          PLACE BET
+        </button>
+
+        {/* Recent Results */}
+        <div className="space-y-3">
+          <div className="text-cyan-300 text-sm font-semibold tracking-wider">
+            RECENT RESULTS
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {recentResults.slice(0, 15).map((game, index) => (
+              <div
+                key={index}
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                  game.result === 'heads' 
+                    ? 'bg-gradient-to-br from-orange-400 to-orange-600' 
+                    : 'bg-gradient-to-br from-cyan-400 to-blue-600'
+                }`}
+                style={{
+                  boxShadow: game.result === 'heads'
+                    ? '0 0 10px rgba(251, 146, 60, 0.6)'
+                    : '0 0 10px rgba(34, 211, 238, 0.6)'
+                }}
+              >
+                <span className="text-xl">{game.result === 'heads' ? '👑' : '🎯'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
