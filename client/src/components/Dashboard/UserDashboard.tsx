@@ -8,11 +8,10 @@ import { socket } from '../../lib/socket';
 
 interface UserDashboardProps {
   onNavigateToGame?: () => void;
-  onNavigateToAndarBahar?: () => void;
   onNavigateToCoinToss?: () => void;
 }
 
-export default function UserDashboard({ onNavigateToGame, onNavigateToAndarBahar, onNavigateToCoinToss }: UserDashboardProps) {
+export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }: UserDashboardProps) {
   const { user, logout } = useAuthStore();
   const [socketId, setSocketId] = useState<string>('');
 
@@ -124,34 +123,6 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToAndarBahar
                       <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Multi-bet</span>
                       <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Live Rounds</span>
                       <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">20s Betting</span>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Andar Bahar Card */}
-              <Card className="bg-casino-black border-casino-gold hover:border-casino-gold/80 transition-all">
-                <CardHeader>
-                  <CardTitle className="text-casino-gold text-xl flex items-center gap-2">
-                    🃏 Andar Bahar (Cut Patti)
-                    <span className="text-xs bg-green-500 text-white px-2 py-1 rounded ml-auto">LIVE</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-white text-sm">
-                    Traditional 1v1 card game. Choose Andar or Bahar and match the joker card to win the pot!
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    <Button 
-                      className="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 w-full"
-                      onClick={onNavigateToAndarBahar}
-                    >
-                      🎮 Play Andar Bahar
-                    </Button>
-                    <div className="flex gap-2">
-                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">1v1 Match</span>
-                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Winner Takes All</span>
-                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Live Play</span>
                     </div>
                   </div>
                 </CardContent>

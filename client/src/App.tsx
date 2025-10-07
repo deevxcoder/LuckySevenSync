@@ -115,7 +115,6 @@ function App() {
   if (currentView === 'userDashboard') {
     return <UserDashboard 
       onNavigateToGame={() => setCurrentView('game')} 
-      onNavigateToAndarBahar={() => setCurrentView('andarBahar')}
       onNavigateToCoinToss={() => setCurrentView('coinToss')}
     />;
   }
