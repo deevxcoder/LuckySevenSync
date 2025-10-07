@@ -27,6 +27,7 @@ export default function CoinTossRoom() {
   const [betResults, setBetResults] = useState<any[]>([]);
   const [totalWinAmount, setTotalWinAmount] = useState<number>(0);
   const lastValidBetsRef = useRef<any[]>([]);
+  const [isFlipping, setIsFlipping] = useState<boolean>(false);
 
   const BET_TYPE_LABELS = {
     'heads': '🪙 Heads',
@@ -121,6 +122,7 @@ export default function CoinTossRoom() {
       setCurrentResult(null);
       setStoredBets([]);
       setShowResultPopup(false);
+      setIsFlipping(false);
     });
 
     socket.on('coin-toss-countdown-tick', (data: { time: number; room: CoinTossRoomData }) => {
@@ -130,22 +132,28 @@ export default function CoinTossRoom() {
 
     socket.on('coin-toss-result-revealed', (data: { result: 'heads' | 'tails'; room: CoinTossRoomData }) => {
       console.log('Coin toss result revealed:', data);
-      setCurrentResult(data.result);
-      setGameStatus('revealing');
-
-      const betsToProcess = lastValidBetsRef.current.length > 0 ? lastValidBetsRef.current : storedBets;
       
-      const results = betsToProcess.map(bet => ({
-        betType: bet.type,
-        betAmount: bet.amount,
-        won: isBetWinner(bet.type, data.result),
-        winAmount: isBetWinner(bet.type, data.result) ? calculateWinAmount(bet.amount) : 0,
-      }));
+      setIsFlipping(true);
+      
+      setTimeout(() => {
+        setCurrentResult(data.result);
+        setGameStatus('revealing');
+        setIsFlipping(false);
 
-      const totalWin = results.reduce((sum, r) => sum + r.winAmount, 0);
-      setBetResults(results);
-      setTotalWinAmount(totalWin);
-      setShowResultPopup(results.length > 0);
+        const betsToProcess = lastValidBetsRef.current.length > 0 ? lastValidBetsRef.current : storedBets;
+        
+        const results = betsToProcess.map(bet => ({
+          betType: bet.type,
+          betAmount: bet.amount,
+          won: isBetWinner(bet.type, data.result),
+          winAmount: isBetWinner(bet.type, data.result) ? calculateWinAmount(bet.amount) : 0,
+        }));
+
+        const totalWin = results.reduce((sum, r) => sum + r.winAmount, 0);
+        setBetResults(results);
+        setTotalWinAmount(totalWin);
+        setShowResultPopup(results.length > 0);
+      }, 1500);
     });
 
     socket.on('coin-toss-round-ended', async (data: { room: CoinTossRoomData }) => {
@@ -241,14 +249,22 @@ export default function CoinTossRoom() {
               </div>
             </div>
 
-            {currentResult && gameStatus === 'revealing' && (
-              <div className="bg-gradient-to-r from-green-600 to-green-800 p-8 rounded-lg text-center animate-pulse">
-                <div className="text-6xl mb-2">
-                  {currentResult === 'heads' ? '🪙' : '🎯'}
+            {(isFlipping || (currentResult && gameStatus === 'revealing')) && (
+              <div className="bg-gradient-to-r from-green-600 to-green-800 p-8 rounded-lg text-center">
+                <div className="flex justify-center items-center mb-4">
+                  <div className={`relative w-48 h-48 ${isFlipping ? 'animate-coin-flip' : 'animate-bounce-in'}`}>
+                    <img 
+                      src={`/coin-images/${currentResult === 'heads' ? 'heads' : 'tails'}.png`}
+                      alt={currentResult || 'coin'}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
                 </div>
-                <div className="text-4xl font-bold text-white">
-                  {currentResult.toUpperCase()}
-                </div>
+                {!isFlipping && (
+                  <div className="text-4xl font-bold text-white animate-fade-in">
+                    {currentResult?.toUpperCase()}
+                  </div>
+                )}
               </div>
             )}
 
