@@ -70,26 +70,10 @@ export default function CoinTossRoom() {
       if (lastBeepTimeRef.current !== countdownTime) {
         lastBeepTimeRef.current = countdownTime;
         if (beepAudioRef.current) {
-          // ECG heartbeat pattern: beep-beep-pause (like emergency monitor)
-          // First beep
+          // Single intense ECG heartbeat per second
           beepAudioRef.current.currentTime = 0;
+          beepAudioRef.current.volume = 0.7; // More intense
           beepAudioRef.current.play().catch(err => console.error('Beep sound error:', err));
-          
-          // Second beep (quick after first - ECG style)
-          setTimeout(() => {
-            if (beepAudioRef.current) {
-              beepAudioRef.current.currentTime = 0;
-              beepAudioRef.current.play().catch(err => console.error('Beep sound error:', err));
-            }
-          }, 100);
-          
-          // Third beep (emergency alarm style)
-          setTimeout(() => {
-            if (beepAudioRef.current) {
-              beepAudioRef.current.currentTime = 0;
-              beepAudioRef.current.play().catch(err => console.error('Beep sound error:', err));
-            }
-          }, 200);
         }
       }
     }
