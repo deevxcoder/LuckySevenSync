@@ -29,6 +29,8 @@ export default function CoinTossRoom() {
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [flipDisplay, setFlipDisplay] = useState<'H' | 'T'>('H');
+  const beepAudioRef = useRef<HTMLAudioElement | null>(null);
+  const lastBeepTimeRef = useRef<number>(0);
 
   // Betting state
   const [selectedBetType, setSelectedBetType] = useState<'heads' | 'tails' | ''>('');
@@ -44,6 +46,25 @@ export default function CoinTossRoom() {
     const total = currentBets.reduce((sum, bet) => sum + bet.amount, 0);
     setTotalBetAmount(total);
   }, [currentBets]);
+
+  useEffect(() => {
+    if (!beepAudioRef.current) {
+      beepAudioRef.current = new Audio('/sounds/hit.mp3');
+      beepAudioRef.current.volume = 0.5;
+    }
+  }, []);
+
+  useEffect(() => {
+    if (countdownTime <= 5 && countdownTime > 0 && gameStatus === 'countdown') {
+      if (lastBeepTimeRef.current !== countdownTime) {
+        lastBeepTimeRef.current = countdownTime;
+        if (beepAudioRef.current) {
+          beepAudioRef.current.currentTime = 0;
+          beepAudioRef.current.play().catch(err => console.error('Beep sound error:', err));
+        }
+      }
+    }
+  }, [countdownTime, gameStatus]);
 
   const enterFullscreen = async () => {
     if (containerRef.current && !document.fullscreenElement) {
@@ -357,11 +378,19 @@ export default function CoinTossRoom() {
         {/* Circular Timer */}
         <div className="flex flex-col items-center justify-center py-6">
           <div 
-            className="w-48 h-48 rounded-full flex items-center justify-center relative"
+            className={`w-48 h-48 rounded-full flex items-center justify-center relative ${
+              countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? 'animate-heartbeat' : ''
+            }`}
             style={{
-              border: '4px solid #00d4ff',
-              boxShadow: '0 0 30px rgba(0, 212, 255, 0.6), inset 0 0 30px rgba(0, 212, 255, 0.3)',
-              background: 'radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, rgba(10, 22, 40, 0.9) 100%)'
+              border: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult 
+                ? '4px solid #ff0000' 
+                : '4px solid #00d4ff',
+              boxShadow: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult
+                ? '0 0 40px rgba(255, 0, 0, 0.8), inset 0 0 30px rgba(255, 0, 0, 0.3)'
+                : '0 0 30px rgba(0, 212, 255, 0.6), inset 0 0 30px rgba(0, 212, 255, 0.3)',
+              background: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult
+                ? 'radial-gradient(circle, rgba(255, 0, 0, 0.15) 0%, rgba(10, 22, 40, 0.9) 100%)'
+                : 'radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, rgba(10, 22, 40, 0.9) 100%)'
             }}
           >
             {isFlipping ? (
@@ -385,8 +414,10 @@ export default function CoinTossRoom() {
               <div 
                 className="text-7xl font-bold"
                 style={{
-                  color: '#00d4ff',
-                  textShadow: '0 0 20px rgba(0, 212, 255, 0.8)'
+                  color: countdownTime <= 5 && countdownTime > 0 ? '#ff0000' : '#00d4ff',
+                  textShadow: countdownTime <= 5 && countdownTime > 0 
+                    ? '0 0 30px rgba(255, 0, 0, 0.9)' 
+                    : '0 0 20px rgba(0, 212, 255, 0.8)'
                 }}
               >
                 {countdownTime}s
