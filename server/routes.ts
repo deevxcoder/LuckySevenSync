@@ -510,4 +510,113 @@ export async function registerRoutes(app: Express): Promise<void> {
       res.status(500).json({ message: "Failed to fetch user stats" });
     }
   });
+
+  // Coin Toss API Routes
+  app.get("/api/coin-toss/games/recent", async (req, res) => {
+    try {
+      const games = await storage.getCoinTossGameHistory(10);
+      res.json(games);
+    } catch (error) {
+      console.error('Error fetching recent coin toss games:', error);
+      res.status(500).json({ message: "Failed to fetch recent coin toss games" });
+    }
+  });
+
+  app.get("/api/coin-toss/games/count", async (req, res) => {
+    try {
+      const count = await storage.getTotalCoinTossGameCount();
+      res.json({ totalGames: count });
+    } catch (error) {
+      console.error('Error fetching coin toss game count:', error);
+      res.status(500).json({ message: "Failed to fetch coin toss game count" });
+    }
+  });
+
+  app.get("/api/admin/coin-toss/house-stats", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const coinTossManager = (app as any).coinTossManager;
+      
+      if (!coinTossManager) {
+        return res.status(500).json({ message: "Coin toss manager not available" });
+      }
+
+      const houseStats = coinTossManager.getHouseStats();
+      
+      if (houseStats) {
+        res.json({
+          stats: {
+            totalWagered: houseStats.totalWagered,
+            totalPaidOut: houseStats.totalPaidOut,
+            houseProfitThisRound: houseStats.houseProfitThisRound,
+            houseProfitTotal: houseStats.houseProfitTotal,
+            roundCount: houseStats.roundCount,
+            houseEdgePercent: houseStats.houseEdgePercent
+          }
+        });
+      } else {
+        res.json({ message: "Coin toss house statistics not available" });
+      }
+    } catch (error) {
+      console.error('Error fetching coin toss house statistics:', error);
+      res.status(500).json({ message: "Failed to fetch coin toss house statistics" });
+    }
+  });
+
+  app.get("/api/admin/coin-toss/current-round", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const coinTossManager = (app as any).coinTossManager;
+      
+      if (!coinTossManager) {
+        return res.status(500).json({ message: "Coin toss manager not available" });
+      }
+
+      const currentRoundData = coinTossManager.getCurrentRoundData();
+      
+      if (!currentRoundData) {
+        return res.json({ message: "No active coin toss round found" });
+      }
+
+      res.json(currentRoundData);
+    } catch (error) {
+      console.error('Error fetching current coin toss round data:', error);
+      res.status(500).json({ message: "Failed to fetch current coin toss round data" });
+    }
+  });
+
+  app.post("/api/admin/coin-toss/override-result", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { gameId, overrideResult } = req.body;
+      
+      if (!gameId || !overrideResult) {
+        return res.status(400).json({ message: "Game ID and override result are required" });
+      }
+
+      const validResults = ['heads', 'tails'];
+      if (!validResults.includes(overrideResult)) {
+        return res.status(400).json({ message: "Invalid override result. Must be 'heads' or 'tails'" });
+      }
+
+      const coinTossManager = (app as any).coinTossManager;
+      
+      if (!coinTossManager) {
+        return res.status(500).json({ message: "Coin toss manager not available" });
+      }
+
+      const success = coinTossManager.setAdminOverride(gameId, overrideResult);
+      
+      if (success) {
+        console.log(`Admin ${req.user!.username} overrode coin toss result for game ${gameId} to: ${overrideResult}`);
+        res.json({ 
+          message: "Coin toss result override set successfully",
+          gameId: gameId,
+          overrideResult: overrideResult
+        });
+      } else {
+        res.status(400).json({ message: "Failed to set override - game may not be in countdown phase" });
+      }
+    } catch (error) {
+      console.error('Error setting coin toss admin override:', error);
+      res.status(500).json({ message: "Failed to set coin toss admin override" });
+    }
+  });
 }

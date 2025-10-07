@@ -318,7 +318,7 @@ export class CoinTossManager {
     let totalWagered = 0;
     let totalPaidOut = 0;
 
-    for (const [socketId, bets] of room.activeBets.entries()) {
+    for (const [socketId, bets] of Array.from(room.activeBets.entries())) {
       for (const bet of bets) {
         totalWagered += bet.betAmount;
         
