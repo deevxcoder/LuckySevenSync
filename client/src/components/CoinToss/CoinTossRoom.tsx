@@ -186,9 +186,10 @@ export default function CoinTossRoom() {
     });
 
     if (user && socket.connected && socket.id) {
-      socket.emit('coin-toss-join-room', {
-        playerId: user.id,
-        playerName: user.username,
+      socket.emit('coin-toss-join', {
+        roomId: 'COIN_TOSS_GLOBAL',
+        userId: user.id,
+        username: user.username,
       });
     }
 
