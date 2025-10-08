@@ -14,7 +14,8 @@ interface Bet {
   amount: number;
 }
 
-const QUICK_AMOUNTS = [10, 20, 20, 500];
+const QUICK_AMOUNTS = [10, 20, 50, 100];
+const MULTIPLIERS = [2, 5, 10];
 
 export default function CoinTossRoom() {
   const { user } = useAuthStore();
@@ -511,7 +512,18 @@ export default function CoinTossRoom() {
               }}
             >
               {isFlipping ? (
-                <div className="text-4xl font-bold text-cyan-400">{flipDisplay}</div>
+                <div 
+                  className="w-20 h-20 rounded-full flex items-center justify-center"
+                  style={{
+                    background: flipDisplay === 'H' 
+                      ? 'linear-gradient(145deg, #f97316, #ea580c)' 
+                      : 'linear-gradient(145deg, #0ea5e9, #0284c7)',
+                    transform: 'rotateY(180deg)',
+                    animation: 'flipCoin 0.15s linear'
+                  }}
+                >
+                  <span className="text-4xl font-bold text-white">{flipDisplay}</span>
+                </div>
               ) : currentResult ? (
                 <div className="text-center">
                   <div 
@@ -609,6 +621,23 @@ export default function CoinTossRoom() {
                 }}
               >
                 {amount}
+              </button>
+            ))}
+            {MULTIPLIERS.map((multiplier, index) => (
+              <button
+                key={`mult-${index}`}
+                onClick={() => setSelectedAmount(prev => prev * multiplier)}
+                disabled={bettingWindowClosed || selectedAmount * multiplier > remainingChips}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-purple-700 text-white border border-purple-500 ${
+                  bettingWindowClosed || selectedAmount * multiplier > remainingChips
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-purple-600'
+                }`}
+                style={{
+                  minWidth: '45px'
+                }}
+              >
+                {multiplier}x
               </button>
             ))}
             <button
