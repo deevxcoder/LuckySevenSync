@@ -179,21 +179,13 @@ export default function CoinTossRoom() {
   const handlePlaceBet = () => {
     if (!canPlaceBet()) return;
 
-    const newBet: Bet = {
-      type: selectedBetType,
-      amount: selectedAmount
-    };
-
-    setCurrentBets(prev => [...prev, newBet]);
-    lastValidBetsRef.current = [...currentBets, newBet];
-
     socket.emit('coin-toss-place-bet', {
       roomId: 'COIN_TOSS_GLOBAL',
       betType: selectedBetType,
       amount: selectedAmount
     });
 
-    console.log(`Placed coin toss bet: ${selectedAmount} on ${selectedBetType}`);
+    console.log(`Placing coin toss bet: ${selectedAmount} on ${selectedBetType}`);
   };
 
   useEffect(() => {
@@ -371,6 +363,14 @@ export default function CoinTossRoom() {
     socket.on('coin-toss-bet-placed', (data: { bet: any; remainingChips: number }) => {
       console.log('Coin toss bet placed:', data);
       setPlayerChips(data.remainingChips);
+      
+      const newBet: Bet = {
+        type: data.bet.betType,
+        amount: data.bet.betAmount
+      };
+      
+      setCurrentBets(prev => [...prev, newBet]);
+      lastValidBetsRef.current = [...currentBets, newBet];
     });
 
     socket.on('coin-toss-bet-error', (data: { message: string }) => {
@@ -521,7 +521,7 @@ export default function CoinTossRoom() {
             <div className="text-xs text-white font-mono font-semibold">Odds 1:1</div>
             {headsBetTotal > 0 && (
               <div className="text-xs font-mono font-bold text-neo-accent mt-1">
-                ${headsBetTotal}
+                {headsBetTotal}
               </div>
             )}
           </button>
@@ -627,7 +627,7 @@ export default function CoinTossRoom() {
             <div className="text-xs text-white font-mono font-semibold">Odds 1:1</div>
             {tailsBetTotal > 0 && (
               <div className="text-xs font-mono font-bold text-neo-accent-secondary mt-1">
-                ${tailsBetTotal}
+                {tailsBetTotal}
               </div>
             )}
           </button>
