@@ -259,6 +259,10 @@ export default function CoinTossRoom() {
       setGameStatus(data.room.status);
       setCurrentResult(data.room.currentResult);
       
+      if (data.room.roundNumber !== undefined) {
+        setTotalGameCount(data.room.roundNumber - 1);
+      }
+      
       if (data.countdownTime !== undefined) {
         setCountdownTime(data.countdownTime);
       }
@@ -342,6 +346,10 @@ export default function CoinTossRoom() {
       setCurrentBets([]);
       lastValidBetsRef.current = [];
 
+      if (data.room.roundNumber !== undefined) {
+        setTotalGameCount(data.room.roundNumber - 1);
+      }
+
       if (user && socket.id) {
         try {
           const response = await fetch('/api/player/me', {
@@ -358,7 +366,6 @@ export default function CoinTossRoom() {
         }
       }
 
-      fetchGameCount();
       fetchRecentGames();
     });
 
