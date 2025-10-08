@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { socket } from '../../lib/socket';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
+import { Volume2, VolumeX, X, DollarSign, Coins, Target } from 'lucide-react';
 
 interface CoinTossRoomData {
   id: string;
@@ -400,7 +401,7 @@ export default function CoinTossRoom() {
       ref={containerRef} 
       className="h-screen relative overflow-hidden"
       style={{
-        background: '#0a0e1a'
+        background: '#0E0E0E'
       }}
     >
       <div className="h-full flex flex-col p-2 gap-2">
@@ -411,24 +412,24 @@ export default function CoinTossRoom() {
             <div 
               className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{
-                background: 'linear-gradient(145deg, #fbbf24, #f59e0b)',
-                boxShadow: '0 0 20px rgba(251, 191, 36, 0.6)'
+                background: 'linear-gradient(145deg, #00FFC6, #00d4a8)',
+                boxShadow: '0 0 20px rgba(0, 255, 198, 0.6)'
               }}
             >
-              <span className="text-xl font-bold text-white">$</span>
+              <DollarSign className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-yellow-400">{playerChips}</span>
+            <span className="text-xl font-bold text-neo-accent">{playerChips}</span>
           </div>
 
           {/* Center - Title & Round */}
           <div className="flex flex-col items-center">
-            <h1 className="text-3xl font-bold tracking-widest" style={{
-              color: '#00d4ff',
-              textShadow: '0 0 30px rgba(0, 212, 255, 0.8)'
+            <h1 className="text-3xl font-heading font-bold tracking-widest" style={{
+              color: '#00FFC6',
+              textShadow: '0 0 30px rgba(0, 255, 198, 0.8)'
             }}>
-              COINARENA
+              COIN TOSS
             </h1>
-            <div className="text-xs text-cyan-400 tracking-wider">
+            <div className="text-xs text-neo-accent tracking-wider font-mono">
               ROUND: #{totalGameCount + 1}
             </div>
           </div>
@@ -437,17 +438,17 @@ export default function CoinTossRoom() {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-              className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center shadow-lg transition-all"
+              className="w-10 h-10 rounded-full bg-neo-accent/20 hover:bg-neo-accent/30 border border-neo-accent text-neo-accent font-bold flex items-center justify-center shadow-lg transition-all"
               aria-label="Toggle Sound"
             >
-              <span className="text-lg">{isSoundEnabled ? '🔊' : '🔇'}</span>
+              {isSoundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
             </button>
             <button
               onClick={exitFullscreen}
-              className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center shadow-lg transition-all"
+              className="w-10 h-10 rounded-full bg-neo-accent-secondary/20 hover:bg-neo-accent-secondary/30 border border-neo-accent-secondary text-neo-accent-secondary font-bold flex items-center justify-center shadow-lg transition-all"
               aria-label="Exit Game"
             >
-              ✕
+              <X className="w-5 h-5" />
             </button>
           </div>
         </div>
@@ -455,11 +456,11 @@ export default function CoinTossRoom() {
         {/* Status */}
         <div className="text-center">
           <div 
-            className="inline-block px-4 py-1 rounded-lg text-xs font-bold tracking-wider"
+            className="inline-block px-4 py-1 rounded-lg text-xs font-heading font-bold tracking-wider"
             style={{
-              border: '2px solid #f97316',
-              color: '#fb923c',
-              background: 'rgba(249, 115, 22, 0.1)'
+              border: bettingWindowClosed ? '2px solid #FF005C' : '2px solid #00FFC6',
+              color: bettingWindowClosed ? '#FF005C' : '#00FFC6',
+              background: bettingWindowClosed ? 'rgba(255, 0, 92, 0.1)' : 'rgba(0, 255, 198, 0.1)'
             }}
           >
             {bettingWindowClosed ? 'BETTING CLOSED' : 'BETTING OPEN'}
@@ -474,8 +475,9 @@ export default function CoinTossRoom() {
             disabled={bettingWindowClosed}
             className="flex flex-col items-center justify-center p-2 rounded-xl transition-all"
             style={{
-              border: selectedBetType === 'heads' ? '3px solid #f97316' : '2px solid #f97316',
-              background: selectedBetType === 'heads' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(30, 27, 75, 0.5)',
+              border: selectedBetType === 'heads' ? '3px solid #00FFC6' : '2px solid #00FFC6',
+              background: selectedBetType === 'heads' ? 'rgba(0, 255, 198, 0.2)' : 'rgba(20, 20, 30, 0.6)',
+              backdropFilter: 'blur(10px)',
               width: '110px',
               opacity: bettingWindowClosed ? 0.5 : 1,
               cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
@@ -484,14 +486,14 @@ export default function CoinTossRoom() {
             <div 
               className="w-12 h-12 rounded-full flex items-center justify-center mb-1"
               style={{
-                background: 'linear-gradient(145deg, #f97316, #ea580c)'
+                background: 'linear-gradient(145deg, #00FFC6, #00d4a8)'
               }}
             >
-              <span className="text-2xl font-bold text-white">H</span>
+              <Coins className="w-7 h-7 text-white" />
             </div>
-            <div className="text-sm font-bold text-cyan-400">Head</div>
-            <div className="text-xs text-cyan-300">Bet Head</div>
-            <div className="text-xs text-white font-semibold">Odds 1:1</div>
+            <div className="text-sm font-heading font-bold text-neo-accent">Heads</div>
+            <div className="text-xs text-neo-text-secondary">Bet Heads</div>
+            <div className="text-xs text-white font-mono font-semibold">Odds 1:1</div>
           </button>
 
           {/* Center - Timer */}
@@ -502,14 +504,15 @@ export default function CoinTossRoom() {
               }`}
               style={{
                 border: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult 
-                  ? '4px solid #ef4444' 
-                  : '3px solid #00d4ff',
+                  ? '4px solid #FF005C' 
+                  : '3px solid #00FFC6',
                 boxShadow: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult
-                  ? '0 0 40px rgba(239, 68, 68, 0.8), 0 0 80px rgba(239, 68, 68, 0.6)'
-                  : '0 0 30px rgba(0, 212, 255, 0.6)',
+                  ? '0 0 40px rgba(255, 0, 92, 0.8), 0 0 80px rgba(255, 0, 92, 0.6)'
+                  : '0 0 30px rgba(0, 255, 198, 0.6)',
                 background: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult
-                  ? 'radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, rgba(10, 14, 26, 0.9) 100%)'
-                  : 'rgba(10, 14, 26, 0.8)',
+                  ? 'radial-gradient(circle, rgba(255, 0, 92, 0.2) 0%, rgba(14, 14, 14, 0.9) 100%)'
+                  : 'rgba(14, 14, 14, 0.8)',
+                backdropFilter: 'blur(10px)',
                 animation: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult
                   ? 'heartbeat 1s ease-in-out infinite'
                   : 'none'
@@ -520,8 +523,8 @@ export default function CoinTossRoom() {
                   className="w-20 h-20 rounded-full flex items-center justify-center"
                   style={{
                     background: flipDisplay === 'H' 
-                      ? 'linear-gradient(145deg, #f97316, #ea580c)' 
-                      : 'linear-gradient(145deg, #0ea5e9, #0284c7)',
+                      ? 'linear-gradient(145deg, #00FFC6, #00d4a8)' 
+                      : 'linear-gradient(145deg, #FF005C, #d40049)',
                     transform: 'rotateY(180deg)',
                     animation: 'flipCoin 0.15s linear'
                   }}
@@ -534,36 +537,36 @@ export default function CoinTossRoom() {
                     className="w-20 h-20 rounded-full flex items-center justify-center animate-bounce"
                     style={{
                       background: currentResult === 'heads' 
-                        ? 'linear-gradient(145deg, #f97316, #ea580c)' 
-                        : 'linear-gradient(145deg, #0ea5e9, #0284c7)'
+                        ? 'linear-gradient(145deg, #00FFC6, #00d4a8)' 
+                        : 'linear-gradient(145deg, #FF005C, #d40049)'
                     }}
                   >
                     <span className="text-5xl font-bold text-white">
                       {currentResult === 'heads' ? 'H' : 'T'}
                     </span>
                   </div>
-                  <div className="text-sm font-bold mt-1" style={{
-                    color: currentResult === 'heads' ? '#f97316' : '#00d4ff'
+                  <div className="text-sm font-heading font-bold mt-1" style={{
+                    color: currentResult === 'heads' ? '#00FFC6' : '#FF005C'
                   }}>
                     {currentResult.toUpperCase()}
                   </div>
                 </div>
               ) : (
                 <div 
-                  className="text-4xl font-bold"
+                  className="text-4xl font-mono font-bold"
                   style={{
-                    color: countdownTime <= 5 && countdownTime > 0 ? '#ef4444' : '#00d4ff',
+                    color: countdownTime <= 5 && countdownTime > 0 ? '#FF005C' : '#00FFC6',
                     textShadow: countdownTime <= 5 && countdownTime > 0 
-                      ? '0 0 30px rgba(239, 68, 68, 0.8)' 
-                      : '0 0 20px rgba(0, 212, 255, 0.6)'
+                      ? '0 0 30px rgba(255, 0, 92, 0.8)' 
+                      : '0 0 20px rgba(0, 255, 198, 0.6)'
                   }}
                 >
                   {countdownTime}s
                 </div>
               )}
             </div>
-            <div className="text-xs text-cyan-400 tracking-wider">
-              TIME -{Math.max(0, countdownTime - 10)}s
+            <div className="text-xs text-neo-accent tracking-wider font-mono">
+              TIME: {Math.max(0, countdownTime - 10)}s
             </div>
           </div>
 
@@ -573,8 +576,9 @@ export default function CoinTossRoom() {
             disabled={bettingWindowClosed}
             className="flex flex-col items-center justify-center p-2 rounded-xl transition-all"
             style={{
-              border: selectedBetType === 'tails' ? '3px solid #0ea5e9' : '2px solid #0ea5e9',
-              background: selectedBetType === 'tails' ? 'rgba(14, 165, 233, 0.3)' : 'rgba(30, 27, 75, 0.5)',
+              border: selectedBetType === 'tails' ? '3px solid #FF005C' : '2px solid #FF005C',
+              background: selectedBetType === 'tails' ? 'rgba(255, 0, 92, 0.2)' : 'rgba(20, 20, 30, 0.6)',
+              backdropFilter: 'blur(10px)',
               width: '110px',
               opacity: bettingWindowClosed ? 0.5 : 1,
               cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
@@ -583,15 +587,14 @@ export default function CoinTossRoom() {
             <div 
               className="w-12 h-12 rounded-full flex items-center justify-center mb-1"
               style={{
-                background: 'linear-gradient(145deg, #0ea5e9, #0284c7)',
-                border: '2px solid #00d4ff'
+                background: 'linear-gradient(145deg, #FF005C, #d40049)'
               }}
             >
-              <span className="text-2xl font-bold text-white">T</span>
+              <Target className="w-7 h-7 text-white" />
             </div>
-            <div className="text-sm font-bold text-cyan-400">Tail</div>
-            <div className="text-xs text-cyan-300">Bet Tail</div>
-            <div className="text-xs text-white font-semibold">Odds 1:1</div>
+            <div className="text-sm font-heading font-bold text-neo-accent-secondary">Tails</div>
+            <div className="text-xs text-neo-text-secondary">Bet Tails</div>
+            <div className="text-xs text-white font-mono font-semibold">Odds 1:1</div>
           </button>
         </div>
 
@@ -599,8 +602,8 @@ export default function CoinTossRoom() {
         <div className="space-y-1.5">
           {/* Total Bet Display */}
           <div className="text-center">
-            <span className="text-xs text-cyan-300">Total Bet: </span>
-            <span className="text-sm font-bold text-white">{totalBetAmount}</span>
+            <span className="text-xs text-neo-text-secondary font-mono">Total Bet: </span>
+            <span className="text-sm font-mono font-bold text-neo-accent">{totalBetAmount}</span>
           </div>
 
           {/* Bet Amount & Place Bet */}
@@ -610,10 +613,10 @@ export default function CoinTossRoom() {
                 key={index}
                 onClick={() => setSelectedAmount(amount)}
                 disabled={bettingWindowClosed || amount > remainingChips}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all ${
                   selectedAmount === amount
-                    ? 'bg-orange-500 text-white border-2 border-orange-400'
-                    : 'bg-gray-800 text-cyan-400 border border-cyan-500'
+                    ? 'bg-neo-accent text-neo-bg border-2 border-neo-accent'
+                    : 'bg-gray-800/60 text-neo-accent border border-neo-accent/50'
                 } ${
                   bettingWindowClosed || amount > remainingChips
                     ? 'opacity-50 cursor-not-allowed'
@@ -621,7 +624,7 @@ export default function CoinTossRoom() {
                 }`}
                 style={{
                   minWidth: '50px',
-                  boxShadow: selectedAmount === amount ? '0 0 15px rgba(249, 115, 22, 0.6)' : 'none'
+                  boxShadow: selectedAmount === amount ? '0 0 15px rgba(0, 255, 198, 0.6)' : 'none'
                 }}
               >
                 {amount}
@@ -632,10 +635,10 @@ export default function CoinTossRoom() {
                 key={`mult-${index}`}
                 onClick={() => setSelectedAmount(prev => prev * multiplier)}
                 disabled={bettingWindowClosed || selectedAmount * multiplier > remainingChips}
-                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all bg-purple-700 text-white border border-purple-500 ${
+                className={`px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all bg-neo-accent-secondary/20 text-neo-accent-secondary border border-neo-accent-secondary ${
                   bettingWindowClosed || selectedAmount * multiplier > remainingChips
                     ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:bg-purple-600'
+                    : 'hover:bg-neo-accent-secondary/30'
                 }`}
                 style={{
                   minWidth: '45px'
@@ -647,13 +650,13 @@ export default function CoinTossRoom() {
             <button
               onClick={handlePlaceBet}
               disabled={!canPlaceBet()}
-              className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${
+              className={`px-5 py-1.5 rounded-full text-xs font-heading font-bold transition-all ${
                 canPlaceBet()
-                  ? 'bg-cyan-500 text-white border-2 border-cyan-400'
+                  ? 'bg-neo-accent text-neo-bg border-2 border-neo-accent'
                   : 'bg-gray-700 text-gray-400 border border-gray-600 cursor-not-allowed'
               }`}
               style={{
-                boxShadow: canPlaceBet() ? '0 0 25px rgba(6, 182, 212, 0.8)' : 'none'
+                boxShadow: canPlaceBet() ? '0 0 25px rgba(0, 255, 198, 0.8)' : 'none'
               }}
             >
               {getPlaceBetButtonText()}
@@ -662,7 +665,7 @@ export default function CoinTossRoom() {
 
           {/* Recent Results */}
           <div className="text-center">
-            <div className="text-xs text-cyan-400 tracking-wider mb-1">RECENT RESULT</div>
+            <div className="text-xs text-neo-accent tracking-wider font-mono mb-1">RECENT RESULTS</div>
             <div className="flex gap-1 justify-center">
               {recentResults.slice(0, 6).map((game, index) => (
                 <div
@@ -670,9 +673,9 @@ export default function CoinTossRoom() {
                   className="w-6 h-6 rounded-full flex items-center justify-center"
                   style={{
                     background: game.result === 'heads' 
-                      ? 'linear-gradient(145deg, #f97316, #ea580c)' 
-                      : 'linear-gradient(145deg, #0ea5e9, #0284c7)',
-                    border: '2px solid ' + (game.result === 'heads' ? '#fb923c' : '#38bdf8')
+                      ? 'linear-gradient(145deg, #00FFC6, #00d4a8)' 
+                      : 'linear-gradient(145deg, #FF005C, #d40049)',
+                    border: '2px solid ' + (game.result === 'heads' ? '#00FFC6' : '#FF005C')
                   }}
                 >
                   <span className="text-xs font-bold text-white">
@@ -691,16 +694,17 @@ export default function CoinTossRoom() {
           className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-4 rounded-xl text-center"
           style={{
             background: totalWinAmount > 0 
-              ? 'linear-gradient(145deg, #10b981, #059669)' 
-              : 'linear-gradient(145deg, #ef4444, #dc2626)',
-            border: '3px solid ' + (totalWinAmount > 0 ? '#34d399' : '#f87171'),
-            boxShadow: '0 0 40px rgba(0, 0, 0, 0.8)'
+              ? 'linear-gradient(145deg, #00FFC6, #00d4a8)' 
+              : 'linear-gradient(145deg, #FF005C, #d40049)',
+            border: '3px solid ' + (totalWinAmount > 0 ? '#00FFC6' : '#FF005C'),
+            boxShadow: '0 0 40px rgba(0, 0, 0, 0.8)',
+            backdropFilter: 'blur(10px)'
           }}
         >
-          <div className="text-2xl font-bold text-white mb-2">
-            {totalWinAmount > 0 ? '🎉 YOU WON!' : '😔 YOU LOST'}
+          <div className="text-2xl font-heading font-bold text-white mb-2">
+            {totalWinAmount > 0 ? 'YOU WON!' : 'YOU LOST'}
           </div>
-          <div className="text-4xl font-bold text-white">
+          <div className="text-4xl font-mono font-bold text-white">
             {totalWinAmount > 0 ? `+${totalWinAmount}` : `-${betResults.reduce((sum, r) => sum + r.betAmount, 0)}`}
           </div>
         </div>
