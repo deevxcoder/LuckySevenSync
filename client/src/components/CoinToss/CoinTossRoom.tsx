@@ -157,11 +157,20 @@ export default function CoinTossRoom() {
   };
 
   const canPlaceBet = () => {
+    const hasEnoughBalance = (playerChips - totalBetAmount) >= selectedAmount;
     return gameStatus === 'countdown' && 
            countdownTime > 10 && 
            selectedBetType && 
            selectedAmount > 0 && 
-           (playerChips - totalBetAmount) >= selectedAmount;
+           hasEnoughBalance;
+  };
+
+  const getPlaceBetButtonText = () => {
+    const hasEnoughBalance = (playerChips - totalBetAmount) >= selectedAmount;
+    if (!hasEnoughBalance && selectedBetType) {
+      return 'INSUFFICIENT BALANCE';
+    }
+    return `PLACE BET (${selectedAmount})`;
   };
 
   const handlePlaceBet = () => {
@@ -652,7 +661,7 @@ export default function CoinTossRoom() {
                 boxShadow: canPlaceBet() ? '0 0 25px rgba(6, 182, 212, 0.8)' : 'none'
               }}
             >
-              PLACE BET ({selectedAmount})
+              {getPlaceBetButtonText()}
             </button>
           </div>
 
