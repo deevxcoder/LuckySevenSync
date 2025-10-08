@@ -14,7 +14,7 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
         background: 'radial-gradient(circle at 50% 0%, rgba(0, 255, 198, 0.1) 0%, transparent 50%)',
       }}>
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-6xl font-heading font-extrabold text-neo-accent mb-4 animate-neon-pulse">
+          <h1 className="text-6xl font-heading font-extrabold text-neo-accent mb-4">
             👑 King Games
           </h1>
           <p className="text-2xl text-neo-text mb-8 font-heading">
