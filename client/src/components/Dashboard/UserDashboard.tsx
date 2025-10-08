@@ -81,15 +81,6 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
       {/* Dashboard Content with top padding for navigation */}
       <div className="pt-20 sm:pt-16 p-4">
         <div className="max-w-4xl mx-auto">
-          {/* Dashboard Title */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-purple-accent glow-purple">
-              Your Dashboard
-            </h1>
-            <p className="text-white/90 mt-1">Track your KingGames performance</p>
-          </div>
-
-
           {/* Available Games */}
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-purple-accent mb-4">Available Games</h2>
