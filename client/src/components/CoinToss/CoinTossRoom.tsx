@@ -411,18 +411,13 @@ export default function CoinTossRoom() {
             <div 
               className="w-10 h-10 rounded-full flex items-center justify-center"
               style={{
-                background: 'linear-gradient(145deg, #00d4ff, #0099cc)',
-                boxShadow: '0 0 20px rgba(0, 212, 255, 0.6)'
+                background: 'linear-gradient(145deg, #fbbf24, #f59e0b)',
+                boxShadow: '0 0 20px rgba(251, 191, 36, 0.6)'
               }}
             >
-              <span className="text-lg">💰</span>
+              <span className="text-xl font-bold text-white">$</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-4 h-4 rounded-full bg-cyan-500 flex items-center justify-center">
-                <span className="text-xs">💰</span>
-              </div>
-              <span className="text-xl font-bold text-cyan-400">{playerChips}</span>
-            </div>
+            <span className="text-xl font-bold text-yellow-400">{playerChips}</span>
           </div>
 
           {/* Center - Title & Round */}
