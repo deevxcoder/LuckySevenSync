@@ -411,7 +411,7 @@ export default function CoinTossRoom() {
               <div className="w-4 h-4 rounded-full bg-cyan-500 flex items-center justify-center">
                 <span className="text-xs">💰</span>
               </div>
-              <span className="text-xl font-bold text-cyan-400">{remainingChips}</span>
+              <span className="text-xl font-bold text-cyan-400">{playerChips}</span>
             </div>
           </div>
 
@@ -424,7 +424,7 @@ export default function CoinTossRoom() {
               COINARENA
             </h1>
             <div className="text-xs text-cyan-400 tracking-wider">
-              ROUND: #{totalGameCount + 1}/12
+              ROUND: #{totalGameCount + 1}
             </div>
           </div>
 
@@ -473,7 +473,7 @@ export default function CoinTossRoom() {
                 background: 'linear-gradient(145deg, #f97316, #ea580c)'
               }}
             >
-              <span className="text-xl">🪙</span>
+              <span className="text-2xl font-bold text-white">H</span>
             </div>
             <div className="text-sm font-bold text-cyan-400">Head</div>
             <div className="text-xs text-cyan-300">Bet Head</div>
@@ -494,8 +494,17 @@ export default function CoinTossRoom() {
                 <div className="text-4xl font-bold text-cyan-400">{flipDisplay}</div>
               ) : currentResult ? (
                 <div className="text-center">
-                  <div className="text-5xl animate-bounce">
-                    {currentResult === 'heads' ? '🪙' : '🔮'}
+                  <div 
+                    className="w-20 h-20 rounded-full flex items-center justify-center animate-bounce"
+                    style={{
+                      background: currentResult === 'heads' 
+                        ? 'linear-gradient(145deg, #f97316, #ea580c)' 
+                        : 'linear-gradient(145deg, #0ea5e9, #0284c7)'
+                    }}
+                  >
+                    <span className="text-5xl font-bold text-white">
+                      {currentResult === 'heads' ? 'H' : 'T'}
+                    </span>
                   </div>
                   <div className="text-sm font-bold mt-1" style={{
                     color: currentResult === 'heads' ? '#f97316' : '#00d4ff'
@@ -532,7 +541,7 @@ export default function CoinTossRoom() {
                 border: '2px solid #00d4ff'
               }}
             >
-              <span className="text-xl">🔮</span>
+              <span className="text-2xl font-bold text-white">T</span>
             </div>
             <div className="text-sm font-bold text-cyan-400">Tail</div>
             <div className="text-xs text-cyan-300">Bet Tail</div>
@@ -595,14 +604,18 @@ export default function CoinTossRoom() {
               {recentResults.slice(0, 6).map((game, index) => (
                 <div
                   key={index}
-                  className="w-6 h-6 rounded-full"
+                  className="w-6 h-6 rounded-full flex items-center justify-center"
                   style={{
                     background: game.result === 'heads' 
                       ? 'linear-gradient(145deg, #f97316, #ea580c)' 
                       : 'linear-gradient(145deg, #0ea5e9, #0284c7)',
                     border: '2px solid ' + (game.result === 'heads' ? '#fb923c' : '#38bdf8')
                   }}
-                />
+                >
+                  <span className="text-xs font-bold text-white">
+                    {game.result === 'heads' ? 'H' : 'T'}
+                  </span>
+                </div>
               ))}
             </div>
           </div>
