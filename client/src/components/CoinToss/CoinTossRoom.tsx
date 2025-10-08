@@ -428,14 +428,23 @@ export default function CoinTossRoom() {
             </div>
           </div>
 
-          {/* Right - Close Button */}
-          <button
-            onClick={exitFullscreen}
-            className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center shadow-lg transition-all"
-            aria-label="Exit Game"
-          >
-            ✕
-          </button>
+          {/* Right - Speaker & Close Button */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsSoundEnabled(!isSoundEnabled)}
+              className="w-10 h-10 rounded-full bg-blue-600 hover:bg-blue-700 text-white font-bold flex items-center justify-center shadow-lg transition-all"
+              aria-label="Toggle Sound"
+            >
+              <span className="text-lg">{isSoundEnabled ? '🔊' : '🔇'}</span>
+            </button>
+            <button
+              onClick={exitFullscreen}
+              className="w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center shadow-lg transition-all"
+              aria-label="Exit Game"
+            >
+              ✕
+            </button>
+          </div>
         </div>
 
         {/* Status */}
@@ -483,11 +492,22 @@ export default function CoinTossRoom() {
           {/* Center - Timer */}
           <div className="flex-1 flex flex-col items-center justify-center">
             <div 
-              className="w-32 h-32 rounded-full flex flex-col items-center justify-center mb-1"
+              className={`w-32 h-32 rounded-full flex flex-col items-center justify-center mb-1 ${
+                countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? 'animate-pulse' : ''
+              }`}
               style={{
-                border: '3px solid #00d4ff',
-                boxShadow: '0 0 30px rgba(0, 212, 255, 0.6)',
-                background: 'rgba(10, 14, 26, 0.8)'
+                border: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult 
+                  ? '4px solid #ef4444' 
+                  : '3px solid #00d4ff',
+                boxShadow: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult
+                  ? '0 0 40px rgba(239, 68, 68, 0.8), 0 0 80px rgba(239, 68, 68, 0.6)'
+                  : '0 0 30px rgba(0, 212, 255, 0.6)',
+                background: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult
+                  ? 'radial-gradient(circle, rgba(239, 68, 68, 0.2) 0%, rgba(10, 14, 26, 0.9) 100%)'
+                  : 'rgba(10, 14, 26, 0.8)',
+                animation: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult
+                  ? 'heartbeat 1s ease-in-out infinite'
+                  : 'none'
               }}
             >
               {isFlipping ? (
@@ -513,7 +533,17 @@ export default function CoinTossRoom() {
                   </div>
                 </div>
               ) : (
-                <div className="text-4xl font-bold text-cyan-400">{countdownTime}s</div>
+                <div 
+                  className="text-4xl font-bold"
+                  style={{
+                    color: countdownTime <= 5 && countdownTime > 0 ? '#ef4444' : '#00d4ff',
+                    textShadow: countdownTime <= 5 && countdownTime > 0 
+                      ? '0 0 30px rgba(239, 68, 68, 0.8)' 
+                      : '0 0 20px rgba(0, 212, 255, 0.6)'
+                  }}
+                >
+                  {countdownTime}s
+                </div>
               )}
             </div>
             <div className="text-xs text-cyan-400 tracking-wider">
