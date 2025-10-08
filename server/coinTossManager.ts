@@ -183,9 +183,36 @@ export class CoinTossManager {
       this.globalRoom.players.push(player);
     }
 
+    let activeBets: any[] = [];
+    if (this.globalRoom.currentGameId && player.dbId) {
+      try {
+        const playerBets = await storage.getPlayerBetsByGame(player.dbId, this.globalRoom.currentGameId);
+        activeBets = playerBets.map(bet => ({
+          id: bet.id,
+          type: bet.betType,
+          amount: bet.betAmount
+        }));
+
+        if (activeBets.length > 0) {
+          if (!this.globalRoom.activeBets) {
+            this.globalRoom.activeBets = new Map();
+          }
+          this.globalRoom.activeBets.set(socket.id, activeBets.map(bet => ({
+            betId: bet.id,
+            betType: bet.type,
+            betAmount: bet.amount
+          })));
+        }
+      } catch (error) {
+        console.error('Error fetching player bets:', error);
+      }
+    }
+
     socket.emit('coin-toss-room-joined', {
       room: this.sanitizeRoomForBroadcast(this.globalRoom),
-      player
+      player,
+      activeBets,
+      countdownTime: this.globalRoom.countdownTime
     });
 
     this.io.to(roomId).emit('coin-toss-player-joined', { player, room: this.sanitizeRoomForBroadcast(this.globalRoom) });
