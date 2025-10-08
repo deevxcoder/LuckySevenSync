@@ -453,133 +453,120 @@ export default function CoinTossRoom() {
         </div>
 
         {/* Main Game Area */}
-        <div className="flex-1 flex items-center gap-2 min-h-0">
-          {/* Left Panel - Total Bet */}
-          <div 
-            className="flex flex-col items-center justify-center p-3 rounded-xl"
+        <div className="flex-1 flex items-center gap-1.5 min-h-0">
+          {/* Left Panel - Heads Selection */}
+          <button
+            onClick={() => setSelectedBetType('heads')}
+            disabled={bettingWindowClosed}
+            className="flex flex-col items-center justify-center p-2 rounded-xl transition-all"
             style={{
-              border: '2px solid #f97316',
-              background: 'rgba(30, 27, 75, 0.5)',
-              width: '140px'
+              border: selectedBetType === 'heads' ? '3px solid #f97316' : '2px solid #f97316',
+              background: selectedBetType === 'heads' ? 'rgba(249, 115, 22, 0.3)' : 'rgba(30, 27, 75, 0.5)',
+              width: '110px',
+              opacity: bettingWindowClosed ? 0.5 : 1,
+              cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
             }}
           >
             <div 
-              className="w-14 h-14 rounded-full flex items-center justify-center mb-2"
+              className="w-12 h-12 rounded-full flex items-center justify-center mb-1"
               style={{
                 background: 'linear-gradient(145deg, #f97316, #ea580c)'
               }}
             >
-              <span className="text-2xl">🪙</span>
+              <span className="text-xl">🪙</span>
             </div>
-            <div className="text-lg font-bold text-cyan-400">Total</div>
-            <div className="text-xs text-cyan-300">Total Bet</div>
-            <div className="text-2xl font-bold text-white">{totalBetAmount}</div>
-          </div>
+            <div className="text-sm font-bold text-cyan-400">Head</div>
+            <div className="text-xs text-cyan-300">Bet Head</div>
+            <div className="text-xs text-white font-semibold">Odds 1:1</div>
+          </button>
 
           {/* Center - Timer */}
           <div className="flex-1 flex flex-col items-center justify-center">
             <div 
-              className="w-40 h-40 rounded-full flex flex-col items-center justify-center mb-2"
+              className="w-32 h-32 rounded-full flex flex-col items-center justify-center mb-1"
               style={{
                 border: '3px solid #00d4ff',
-                boxShadow: '0 0 40px rgba(0, 212, 255, 0.6)',
+                boxShadow: '0 0 30px rgba(0, 212, 255, 0.6)',
                 background: 'rgba(10, 14, 26, 0.8)'
               }}
             >
               {isFlipping ? (
-                <div className="text-5xl font-bold text-cyan-400">{flipDisplay}</div>
+                <div className="text-4xl font-bold text-cyan-400">{flipDisplay}</div>
               ) : currentResult ? (
                 <div className="text-center">
-                  <div className="text-6xl animate-bounce">
+                  <div className="text-5xl animate-bounce">
                     {currentResult === 'heads' ? '🪙' : '🔮'}
                   </div>
-                  <div className="text-lg font-bold mt-2" style={{
+                  <div className="text-sm font-bold mt-1" style={{
                     color: currentResult === 'heads' ? '#f97316' : '#00d4ff'
                   }}>
                     {currentResult.toUpperCase()}
                   </div>
                 </div>
               ) : (
-                <div className="text-5xl font-bold text-cyan-400">{countdownTime}s</div>
+                <div className="text-4xl font-bold text-cyan-400">{countdownTime}s</div>
               )}
             </div>
-            <div className="text-sm text-cyan-400 tracking-wider">
-              TIME REMAIN FOR -{Math.max(0, countdownTime - 10)}s
+            <div className="text-xs text-cyan-400 tracking-wider">
+              TIME -{Math.max(0, countdownTime - 10)}s
             </div>
           </div>
 
-          {/* Right Panel - Bet Type */}
-          <div 
-            className="flex flex-col items-center justify-center p-3 rounded-xl"
+          {/* Right Panel - Tails Selection */}
+          <button
+            onClick={() => setSelectedBetType('tails')}
+            disabled={bettingWindowClosed}
+            className="flex flex-col items-center justify-center p-2 rounded-xl transition-all"
             style={{
-              border: '2px solid #0ea5e9',
-              background: 'rgba(30, 27, 75, 0.5)',
-              width: '140px'
+              border: selectedBetType === 'tails' ? '3px solid #0ea5e9' : '2px solid #0ea5e9',
+              background: selectedBetType === 'tails' ? 'rgba(14, 165, 233, 0.3)' : 'rgba(30, 27, 75, 0.5)',
+              width: '110px',
+              opacity: bettingWindowClosed ? 0.5 : 1,
+              cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
             }}
           >
             <div 
-              className="w-14 h-14 rounded-full flex items-center justify-center mb-2"
+              className="w-12 h-12 rounded-full flex items-center justify-center mb-1"
               style={{
                 background: 'linear-gradient(145deg, #0ea5e9, #0284c7)',
                 border: '2px solid #00d4ff'
               }}
             >
-              <span className="text-2xl font-bold text-white">{selectedBetType === 'heads' ? 'H' : 'T'}</span>
+              <span className="text-xl">🔮</span>
             </div>
-            <div className="text-lg font-bold text-cyan-400">
-              Bet on {selectedBetType === 'heads' ? 'Head' : 'Tail'}
-            </div>
-            <div className="text-xs text-cyan-300">Odds: 1:1</div>
-          </div>
+            <div className="text-sm font-bold text-cyan-400">Tail</div>
+            <div className="text-xs text-cyan-300">Bet Tail</div>
+            <div className="text-xs text-white font-semibold">Odds 1:1</div>
+          </button>
         </div>
 
         {/* Bottom Controls */}
-        <div className="space-y-2">
-          {/* Bet Type Selection */}
-          <div className="flex gap-2 justify-center">
-            <button
-              onClick={() => setSelectedBetType('heads')}
-              disabled={bettingWindowClosed}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                selectedBetType === 'heads' 
-                  ? 'bg-orange-500 text-white border-2 border-orange-400' 
-                  : 'bg-gray-700 text-gray-300 border-2 border-gray-600'
-              } ${bettingWindowClosed ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}`}
-            >
-              SELECT HEADS
-            </button>
-            <button
-              onClick={() => setSelectedBetType('tails')}
-              disabled={bettingWindowClosed}
-              className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                selectedBetType === 'tails' 
-                  ? 'bg-cyan-500 text-white border-2 border-cyan-400' 
-                  : 'bg-gray-700 text-gray-300 border-2 border-gray-600'
-              } ${bettingWindowClosed ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}`}
-            >
-              SELECT TAILS
-            </button>
+        <div className="space-y-1.5">
+          {/* Total Bet Display */}
+          <div className="text-center">
+            <span className="text-xs text-cyan-300">Total Bet: </span>
+            <span className="text-sm font-bold text-white">{totalBetAmount}</span>
           </div>
 
           {/* Bet Amount & Place Bet */}
-          <div className="flex items-center justify-center gap-2">
+          <div className="flex items-center justify-center gap-1.5">
             {QUICK_AMOUNTS.map((amount, index) => (
               <button
                 key={index}
                 onClick={() => setSelectedAmount(amount)}
                 disabled={bettingWindowClosed || amount > remainingChips}
-                className={`px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
                   selectedAmount === amount
                     ? 'bg-orange-500 text-white border-2 border-orange-400'
-                    : 'bg-gray-800 text-cyan-400 border-2 border-cyan-500'
+                    : 'bg-gray-800 text-cyan-400 border border-cyan-500'
                 } ${
                   bettingWindowClosed || amount > remainingChips
                     ? 'opacity-50 cursor-not-allowed'
                     : 'hover:opacity-90'
                 }`}
                 style={{
-                  minWidth: '60px',
-                  boxShadow: selectedAmount === amount ? '0 0 20px rgba(249, 115, 22, 0.6)' : 'none'
+                  minWidth: '50px',
+                  boxShadow: selectedAmount === amount ? '0 0 15px rgba(249, 115, 22, 0.6)' : 'none'
                 }}
               >
                 {amount}
@@ -588,13 +575,13 @@ export default function CoinTossRoom() {
             <button
               onClick={handlePlaceBet}
               disabled={!canPlaceBet()}
-              className={`px-6 py-2 rounded-full text-sm font-bold transition-all ${
+              className={`px-5 py-1.5 rounded-full text-xs font-bold transition-all ${
                 canPlaceBet()
                   ? 'bg-cyan-500 text-white border-2 border-cyan-400'
-                  : 'bg-gray-700 text-gray-400 border-2 border-gray-600 cursor-not-allowed'
+                  : 'bg-gray-700 text-gray-400 border border-gray-600 cursor-not-allowed'
               }`}
               style={{
-                boxShadow: canPlaceBet() ? '0 0 30px rgba(6, 182, 212, 0.8)' : 'none'
+                boxShadow: canPlaceBet() ? '0 0 25px rgba(6, 182, 212, 0.8)' : 'none'
               }}
             >
               PLACE BET ({selectedAmount})
@@ -608,7 +595,7 @@ export default function CoinTossRoom() {
               {recentResults.slice(0, 6).map((game, index) => (
                 <div
                   key={index}
-                  className="w-8 h-8 rounded-full"
+                  className="w-6 h-6 rounded-full"
                   style={{
                     background: game.result === 'heads' 
                       ? 'linear-gradient(145deg, #f97316, #ea580c)' 
