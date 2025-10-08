@@ -49,7 +49,7 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
   return (
     <div className="min-h-screen bg-neo-bg relative">
       {/* Top Navigation Bar - Responsive */}
-      <div className="absolute top-0 left-0 right-0 z-50 neo-glass-card border-b border-neo-border rounded-none">
+      <div className="absolute top-0 left-0 right-0 z-50 neo-glass-card border-b border-neo-border" style={{ borderRadius: 0 }}>
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-2 sm:px-4 py-3 gap-2 sm:gap-0">
           {/* Left side - Title and Welcome */}
           <div className="flex items-center gap-2 sm:gap-4 justify-center sm:justify-start">

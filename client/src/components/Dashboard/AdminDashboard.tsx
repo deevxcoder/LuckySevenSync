@@ -365,7 +365,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-neo-bg p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="neo-glass-card p-6 mb-6 flex justify-between items-center rounded-none">
+        <div className="neo-glass-card p-6 mb-6 flex justify-between items-center" style={{ borderRadius: 0 }}>
           <div>
             <h1 className="text-3xl font-heading font-bold text-neo-accent">
               🛠️ Admin Dashboard
