@@ -117,9 +117,11 @@ function App() {
 
   if (!isConnected) {
     return (
-      <div className="min-h-screen bg-casino-green flex items-center justify-center">
-        <div className="text-white text-xl font-bold">
-          Connecting to KingGames...
+      <div className="min-h-screen bg-gradient-purple flex items-center justify-center">
+        <div className="glass-card px-8 py-6 rounded-3xl">
+          <div className="text-white text-xl font-bold glow-purple">
+            Connecting to KingGames...
+          </div>
         </div>
       </div>
     );
@@ -140,12 +142,12 @@ function App() {
   // Show Andar Bahar game view
   if (currentView === 'andarBahar') {
     return (
-      <div className="min-h-screen bg-casino-green relative">
-        <div className="absolute top-0 left-0 right-0 z-50 bg-casino-black/80 border-b border-casino-gold">
-          <div className="flex justify-between items-center px-4 py-2">
+      <div className="min-h-screen bg-gradient-purple relative">
+        <div className="absolute top-0 left-0 right-0 z-50 glass-header border-b border-purple-accent/30">
+          <div className="flex justify-between items-center px-4 py-3">
             <div className="flex items-center gap-4">
-              <h2 className="text-casino-gold font-bold text-lg">🃏 Andar Bahar</h2>
-              <span className="text-white">Welcome, {user?.username}</span>
+              <h2 className="text-purple-accent font-bold text-lg glow-purple">🃏 Andar Bahar</h2>
+              <span className="text-white/90">Welcome, {user?.username}</span>
             </div>
             
             <div className="flex items-center gap-2">
@@ -154,7 +156,7 @@ function App() {
                 onClick={() => setCurrentView('userDashboard')}
                 variant="outline"
                 size="sm"
-                className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
               >
                 📊 Dashboard
               </Button>
@@ -162,7 +164,7 @@ function App() {
                 onClick={toggleMute}
                 variant="outline"
                 size="sm"
-                className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
               >
                 {isMuted ? '🔇' : '🔊'}
               </Button>
@@ -180,12 +182,12 @@ function App() {
   // Show Coin Toss game view
   if (currentView === 'coinToss') {
     return (
-      <div className="min-h-screen bg-casino-green relative">
-        <div className="absolute top-0 left-0 right-0 z-50 bg-casino-black/80 border-b border-casino-gold">
-          <div className="flex justify-between items-center px-4 py-2">
+      <div className="min-h-screen bg-gradient-purple relative">
+        <div className="absolute top-0 left-0 right-0 z-50 glass-header border-b border-purple-accent/30">
+          <div className="flex justify-between items-center px-4 py-3">
             <div className="flex items-center gap-4">
-              <h2 className="text-casino-gold font-bold text-lg">🪙 Coin Toss</h2>
-              <span className="text-white">Welcome, {user?.username}</span>
+              <h2 className="text-purple-accent font-bold text-lg glow-purple">🪙 Coin Toss</h2>
+              <span className="text-white/90">Welcome, {user?.username}</span>
             </div>
             
             <div className="flex items-center gap-2">
@@ -194,7 +196,7 @@ function App() {
                 onClick={() => setCurrentView('userDashboard')}
                 variant="outline"
                 size="sm"
-                className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
               >
                 📊 Dashboard
               </Button>
@@ -202,7 +204,7 @@ function App() {
                 onClick={toggleMute}
                 variant="outline"
                 size="sm"
-                className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
               >
                 {isMuted ? '🔇' : '🔊'}
               </Button>
@@ -219,13 +221,13 @@ function App() {
 
   // Show main game interface with navigation (only for regular users)
   return (
-    <div className="min-h-screen bg-casino-green relative">
+    <div className="min-h-screen bg-gradient-purple relative">
       {/* Top Navigation Bar */}
-      <div className="absolute top-0 left-0 right-0 z-50 bg-casino-black/80 border-b border-casino-gold">
-        <div className="flex justify-between items-center px-4 py-2">
+      <div className="absolute top-0 left-0 right-0 z-50 glass-header border-b border-purple-accent/30">
+        <div className="flex justify-between items-center px-4 py-3">
           <div className="flex items-center gap-4">
-            <h2 className="text-casino-gold font-bold text-lg">👑 KingGames</h2>
-            <span className="text-white">Welcome, {user?.username}</span>
+            <h2 className="text-purple-accent font-bold text-lg glow-purple">👑 KingGames</h2>
+            <span className="text-white/90">Welcome, {user?.username}</span>
           </div>
           
           <div className="flex items-center gap-2">
@@ -234,7 +236,7 @@ function App() {
               onClick={() => setCurrentView('userDashboard')}
               variant="outline"
               size="sm"
-              className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+              className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
             >
               📊 Dashboard
             </Button>
@@ -242,7 +244,7 @@ function App() {
               onClick={toggleMute}
               variant="outline"
               size="sm"
-              className="bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+              className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
             >
               {isMuted ? '🔇' : '🔊'}
             </Button>

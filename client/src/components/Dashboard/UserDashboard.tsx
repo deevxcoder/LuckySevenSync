@@ -47,17 +47,17 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
 
 
   return (
-    <div className="min-h-screen bg-casino-green relative">
+    <div className="min-h-screen bg-gradient-purple relative">
       {/* Top Navigation Bar - Responsive */}
-      <div className="absolute top-0 left-0 right-0 z-50 bg-casino-black/80 border-b border-casino-gold">
-        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-2 sm:px-4 py-2 gap-2 sm:gap-0">
+      <div className="absolute top-0 left-0 right-0 z-50 glass-header border-b border-purple-accent/30">
+        <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-2 sm:px-4 py-3 gap-2 sm:gap-0">
           {/* Left side - Title and Welcome */}
           <div className="flex items-center gap-2 sm:gap-4 justify-center sm:justify-start">
-            <h2 className="text-casino-gold font-bold text-base sm:text-lg">👑 KingGames</h2>
-            <span className="text-white text-sm sm:text-base hidden sm:inline">
+            <h2 className="text-purple-accent font-bold text-base sm:text-lg glow-purple">👑 KingGames</h2>
+            <span className="text-white/90 text-sm sm:text-base hidden sm:inline">
               Welcome, {user?.username}
             </span>
-            <span className="text-white text-sm sm:hidden">
+            <span className="text-white/90 text-sm sm:hidden">
               Hi, {user?.username}
             </span>
           </div>
@@ -69,7 +69,7 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
               onClick={handleLogout}
               variant="outline"
               size="sm"
-              className="bg-transparent border-red-400 text-red-400 hover:bg-red-400 hover:text-black text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+              className="glass-button border-purple-accent/50 text-white hover:border-purple-accent text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
             >
               <span className="hidden sm:inline">Sign Out</span>
               <span className="sm:hidden">Out</span>
@@ -83,67 +83,67 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
         <div className="max-w-4xl mx-auto">
           {/* Dashboard Title */}
           <div className="mb-6">
-            <h1 className="text-3xl font-bold text-casino-gold">
+            <h1 className="text-3xl font-bold text-purple-accent glow-purple">
               Your Dashboard
             </h1>
-            <p className="text-white mt-1">Track your KingGames performance</p>
+            <p className="text-white/90 mt-1">Track your KingGames performance</p>
           </div>
 
 
           {/* Available Games */}
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-casino-gold mb-4">Available Games</h2>
+            <h2 className="text-2xl font-bold text-purple-accent mb-4">Available Games</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Lucky 7 Card */}
-              <Card className="bg-casino-black border-casino-gold hover:border-casino-gold/80 transition-all">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-casino-gold text-xl flex items-center gap-2">
+                  <CardTitle className="text-purple-accent text-xl flex items-center gap-2">
                     🎰 Lucky 7
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-white text-sm">
+                  <p className="text-white/90 text-sm">
                     Bet on card outcomes in this fast-paced casino classic. Will it be red or black? Higher or lower than 7?
                   </p>
                   <div className="flex flex-col gap-2">
                     <Button 
-                      className="bg-casino-red hover:bg-red-700 text-white font-bold py-3 px-6 glow-red w-full"
+                      className="glass-button text-white font-bold py-3 px-6 glow-purple w-full border-purple-accent/50 hover:border-purple-accent"
                       onClick={onNavigateToGame}
                     >
                       🎮 Play Lucky 7
                     </Button>
                     <div className="flex gap-2">
-                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Multi-bet</span>
-                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Live Rounds</span>
-                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">20s Betting</span>
+                      <span className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">Multi-bet</span>
+                      <span className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">Live Rounds</span>
+                      <span className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">20s Betting</span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               {/* Coin Toss Card */}
-              <Card className="bg-casino-black border-casino-gold hover:border-casino-gold/80 transition-all">
+              <Card>
                 <CardHeader>
-                  <CardTitle className="text-casino-gold text-xl flex items-center gap-2">
+                  <CardTitle className="text-purple-accent text-xl flex items-center gap-2">
                     🪙 Coin Toss
-                    <span className="text-xs bg-yellow-500 text-black px-2 py-1 rounded ml-auto">NEW</span>
+                    <span className="text-xs bg-gradient-purple-light text-white px-2 py-1 rounded ml-auto">NEW</span>
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <p className="text-white text-sm">
+                  <p className="text-white/90 text-sm">
                     Simple yet exciting! Bet on Heads or Tails in quick 30-second rounds with real-time results.
                   </p>
                   <div className="flex flex-col gap-2">
                     <Button 
-                      className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 px-6 w-full"
+                      className="glass-button text-white font-bold py-3 px-6 w-full border-purple-accent/50 hover:border-purple-accent glow-purple"
                       onClick={onNavigateToCoinToss}
                     >
                       🎮 Play Coin Toss
                     </Button>
                     <div className="flex gap-2">
-                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">Quick Rounds</span>
-                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">2x Payout</span>
-                      <span className="text-xs text-gray-400 bg-casino-green/20 px-2 py-1 rounded">30s Game</span>
+                      <span className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">Quick Rounds</span>
+                      <span className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">2x Payout</span>
+                      <span className="text-xs text-white/70 bg-white/10 px-2 py-1 rounded">30s Game</span>
                     </div>
                   </div>
                 </CardContent>
@@ -153,16 +153,16 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
 
           {/* Stats and Betting History */}
           {!showHistory ? (
-            <Card className="bg-casino-black border-casino-gold">
+            <Card>
               <CardHeader>
-                <CardTitle className="text-casino-gold text-xl">Your Stats</CardTitle>
+                <CardTitle className="text-purple-accent text-xl">Your Stats</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="flex justify-between items-center">
-                  <p className="text-white">Ready to play and build your game history!</p>
+                  <p className="text-white/90">Ready to play and build your game history!</p>
                   <Button 
                     variant="outline"
-                    className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                    className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
                     onClick={() => setShowHistory(true)}
                   >
                     📊 View History
@@ -173,10 +173,10 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
           ) : (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-casino-gold">Betting History</h2>
+                <h2 className="text-2xl font-bold text-purple-accent">Betting History</h2>
                 <Button 
                   variant="outline"
-                  className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                  className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
                   onClick={() => setShowHistory(false)}
                 >
                   ← Back to Dashboard

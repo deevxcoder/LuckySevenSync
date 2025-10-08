@@ -362,22 +362,22 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-casino-green p-4">
+    <div className="min-h-screen bg-gradient-purple p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-6">
+        <div className="glass-header rounded-2xl p-6 mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-casino-gold">
+            <h1 className="text-3xl font-bold text-purple-accent glow-purple">
               🛠️ Admin Dashboard
             </h1>
-            <p className="text-white mt-1">
+            <p className="text-white/90 mt-1">
               Manage KingGames users and game oversight
             </p>
           </div>
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="bg-casino-red border-casino-gold text-white hover:bg-red-700"
+            className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
           >
             Sign Out
           </Button>
@@ -385,47 +385,47 @@ export default function AdminDashboard() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="bg-casino-black border-casino-gold">
+          <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-casino-gold text-lg">Total Users</CardTitle>
+              <CardTitle className="text-purple-accent text-lg">Total Users</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-white">
                 {users.length}
               </div>
-              <p className="text-gray-400 text-sm">Registered players</p>
+              <p className="text-white/60 text-sm">Registered players</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-casino-black border-casino-gold">
+          <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-casino-gold text-lg">Active Games</CardTitle>
+              <CardTitle className="text-purple-accent text-lg">Active Games</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-400">
+              <div className="text-2xl font-bold text-green-300">
                 1
               </div>
-              <p className="text-gray-400 text-sm">Current running games</p>
+              <p className="text-white/60 text-sm">Current running games</p>
             </CardContent>
           </Card>
 
-          <Card className="bg-casino-black border-casino-gold">
+          <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-casino-gold text-lg">System Status</CardTitle>
+              <CardTitle className="text-purple-accent text-lg">System Status</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-400">
+              <div className="text-2xl font-bold text-green-300">
                 ✅ Online
               </div>
-              <p className="text-gray-400 text-sm">All systems operational</p>
+              <p className="text-white/60 text-sm">All systems operational</p>
             </CardContent>
           </Card>
         </div>
 
         {/* Users Management */}
-        <Card className="bg-casino-black border-casino-gold">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-casino-gold text-xl">👥 User Management</CardTitle>
+            <CardTitle className="text-purple-accent text-xl">👥 User Management</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -437,29 +437,29 @@ export default function AdminDashboard() {
                 {error}
               </div>
             ) : users.length === 0 ? (
-              <div className="text-center text-gray-400 py-8">
+              <div className="text-center text-white/60 py-8">
                 No users registered yet.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow className="border-casino-gold hover:bg-casino-green/20">
-                      <TableHead className="text-casino-gold">ID</TableHead>
-                      <TableHead className="text-casino-gold">Username</TableHead>
-                      <TableHead className="text-casino-gold">Status</TableHead>
-                      <TableHead className="text-casino-gold">Online</TableHead>
-                      <TableHead className="text-casino-gold">Chips</TableHead>
-                      <TableHead className="text-casino-gold">Stats</TableHead>
-                      <TableHead className="text-casino-gold">Last Activity</TableHead>
-                      <TableHead className="text-casino-gold">Actions</TableHead>
+                    <TableRow className="border-purple-accent/30 hover:bg-white/10">
+                      <TableHead className="text-purple-accent">ID</TableHead>
+                      <TableHead className="text-purple-accent">Username</TableHead>
+                      <TableHead className="text-purple-accent">Status</TableHead>
+                      <TableHead className="text-purple-accent">Online</TableHead>
+                      <TableHead className="text-purple-accent">Chips</TableHead>
+                      <TableHead className="text-purple-accent">Stats</TableHead>
+                      <TableHead className="text-purple-accent">Last Activity</TableHead>
+                      <TableHead className="text-purple-accent">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {users.map((user) => (
                       <TableRow 
                         key={user.id}
-                        className="border-casino-gold/50 hover:bg-casino-green/20"
+                        className="border-purple-accent/20 hover:bg-white/10"
                       >
                         <TableCell className="text-white font-medium">
                           {user.id}
@@ -467,7 +467,7 @@ export default function AdminDashboard() {
                         <TableCell className="text-white font-semibold">
                           {user.username}
                           {user.role === 'admin' && (
-                            <span className="ml-2 text-xs bg-casino-gold text-casino-black px-2 py-1 rounded">
+                            <span className="ml-2 text-xs bg-gradient-purple-light text-white px-2 py-1 rounded">
                               ADMIN
                             </span>
                           )}
@@ -552,32 +552,32 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Game Management */}
-        <Card className="bg-casino-black border-casino-gold mt-6">
+        <Card className="mt-6">
           <CardHeader>
-            <CardTitle className="text-casino-gold text-xl">🎮 Game Management</CardTitle>
+            <CardTitle className="text-purple-accent text-xl">🎮 Game Management</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <Button 
-                className="bg-casino-red hover:bg-red-700 text-white font-bold py-3 px-4"
+                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent font-bold py-3 px-4"
               >
                 🔄 Restart Games
               </Button>
               <Button 
                 variant="outline"
-                className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
               >
                 📊 Game History
               </Button>
               <Button 
                 variant="outline"
-                className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
               >
                 ⚙️ Game Settings
               </Button>
               <Button 
                 variant="outline"
-                className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
+                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
               >
                 📈 Analytics
               </Button>
@@ -586,9 +586,9 @@ export default function AdminDashboard() {
         </Card>
 
         {/* Results Control */}
-        <Card className="bg-casino-black border-casino-gold mt-6">
+        <Card className="mt-6">
           <CardHeader>
-            <CardTitle className="text-casino-gold text-xl">🎯 Lucky 7 Results Control</CardTitle>
+            <CardTitle className="text-purple-accent text-xl">🎯 Lucky 7 Results Control</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingRound ? (
@@ -596,7 +596,7 @@ export default function AdminDashboard() {
                 Loading current round data...
               </div>
             ) : !currentRound || !currentRound.gameId ? (
-              <div className="text-center text-gray-400 py-8">
+              <div className="text-center text-white/60 py-8">
                 No active round found.
               </div>
             ) : (
@@ -617,48 +617,48 @@ export default function AdminDashboard() {
                     </Badge>
                   </div>
                   <div className="text-right">
-                    <p className="text-casino-gold font-semibold">Total Bets:</p>
+                    <p className="text-purple-accent font-semibold">Total Bets:</p>
                     <p className="text-white text-xl">{currentRound.totalBets} chips</p>
                   </div>
                 </div>
 
                 {/* Betting Breakdown */}
                 <div>
-                  <h4 className="text-casino-gold font-semibold mb-3">Current Round Betting:</h4>
+                  <h4 className="text-purple-accent font-semibold mb-3">Current Round Betting:</h4>
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <div className="bg-casino-green p-3 rounded border border-red-500">
+                    <div className="bg-white/10 p-3 rounded border border-red-400/50">
                       <div className="text-center">
-                        <div className="text-red-400 font-semibold">🔴 Red</div>
+                        <div className="text-red-300 font-semibold">🔴 Red</div>
                         <div className="text-white text-lg">{currentRound.betsByType.red}</div>
-                        <div className="text-gray-400 text-sm">chips</div>
+                        <div className="text-white/60 text-sm">chips</div>
                       </div>
                     </div>
-                    <div className="bg-casino-green p-3 rounded border border-gray-500">
+                    <div className="bg-white/10 p-3 rounded border border-gray-400/50">
                       <div className="text-center">
                         <div className="text-gray-300 font-semibold">⚫ Black</div>
                         <div className="text-white text-lg">{currentRound.betsByType.black}</div>
-                        <div className="text-gray-400 text-sm">chips</div>
+                        <div className="text-white/60 text-sm">chips</div>
                       </div>
                     </div>
-                    <div className="bg-casino-green p-3 rounded border border-blue-500">
+                    <div className="bg-white/10 p-3 rounded border border-blue-400/50">
                       <div className="text-center">
-                        <div className="text-blue-400 font-semibold">📉 Low (1-6)</div>
+                        <div className="text-blue-300 font-semibold">📉 Low (1-6)</div>
                         <div className="text-white text-lg">{currentRound.betsByType.low}</div>
-                        <div className="text-gray-400 text-sm">chips</div>
+                        <div className="text-white/60 text-sm">chips</div>
                       </div>
                     </div>
-                    <div className="bg-casino-green p-3 rounded border border-orange-500">
+                    <div className="bg-white/10 p-3 rounded border border-orange-400/50">
                       <div className="text-center">
-                        <div className="text-orange-400 font-semibold">📈 High (8-13)</div>
+                        <div className="text-orange-300 font-semibold">📈 High (8-13)</div>
                         <div className="text-white text-lg">{currentRound.betsByType.high}</div>
-                        <div className="text-gray-400 text-sm">chips</div>
+                        <div className="text-white/60 text-sm">chips</div>
                       </div>
                     </div>
-                    <div className="bg-casino-green p-3 rounded border border-yellow-500">
+                    <div className="bg-white/10 p-3 rounded border border-yellow-400/50">
                       <div className="text-center">
-                        <div className="text-yellow-400 font-semibold">🍀 Lucky 7</div>
+                        <div className="text-yellow-300 font-semibold">🍀 Lucky 7</div>
                         <div className="text-white text-lg">{currentRound.betsByType.lucky7}</div>
-                        <div className="text-gray-400 text-sm">chips</div>
+                        <div className="text-white/60 text-sm">chips</div>
                       </div>
                     </div>
                   </div>
@@ -890,16 +890,16 @@ export default function AdminDashboard() {
 
         {/* Lucky 7 Confirmation Dialog */}
         <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <DialogContent className="bg-casino-black border-casino-gold">
+          <DialogContent className="glass-card border-purple-accent/30">
             <DialogHeader>
-              <DialogTitle className="text-casino-gold">⚠️ Confirm Result Override</DialogTitle>
+              <DialogTitle className="text-purple-accent">⚠️ Confirm Result Override</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <p className="text-white text-center">
                 Are you sure you want to override the game result to:
               </p>
               <div className="text-center mt-4">
-                <span className="inline-block bg-casino-green px-4 py-2 rounded border border-casino-gold text-casino-gold font-bold text-lg">
+                <span className="inline-block bg-white/20 px-4 py-2 rounded border border-purple-accent text-purple-accent font-bold text-lg">
                   {pendingOverride?.toUpperCase()}
                 </span>
               </div>
@@ -911,13 +911,13 @@ export default function AdminDashboard() {
               <Button
                 variant="outline"
                 onClick={cancelOverride}
-                className="border-gray-500 text-gray-300 hover:bg-gray-700"
+                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
               >
                 Cancel
               </Button>
               <Button
                 onClick={confirmOverride}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="glass-button border-red-400/50 text-white hover:border-red-400 bg-red-500/30"
               >
                 Yes, Override Result
               </Button>
@@ -927,16 +927,16 @@ export default function AdminDashboard() {
 
         {/* Coin Toss Confirmation Dialog */}
         <Dialog open={showCoinTossConfirmDialog} onOpenChange={setShowCoinTossConfirmDialog}>
-          <DialogContent className="bg-gray-900 border-yellow-600">
+          <DialogContent className="glass-card border-purple-accent/30">
             <DialogHeader>
-              <DialogTitle className="text-yellow-400">⚠️ Confirm Coin Toss Override</DialogTitle>
+              <DialogTitle className="text-purple-accent">⚠️ Confirm Coin Toss Override</DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <p className="text-white text-center">
                 Are you sure you want to override the coin toss result to:
               </p>
               <div className="text-center mt-4">
-                <span className="inline-block bg-yellow-900 px-4 py-2 rounded border border-yellow-500 text-yellow-300 font-bold text-lg">
+                <span className="inline-block bg-white/20 px-4 py-2 rounded border border-purple-accent text-purple-accent font-bold text-lg">
                   {pendingCoinTossOverride?.toUpperCase()}
                 </span>
               </div>
@@ -948,13 +948,13 @@ export default function AdminDashboard() {
               <Button
                 variant="outline"
                 onClick={cancelCoinTossOverride}
-                className="border-gray-500 text-gray-300 hover:bg-gray-700"
+                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
               >
                 Cancel
               </Button>
               <Button
                 onClick={confirmCoinTossOverride}
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="glass-button border-red-400/50 text-white hover:border-red-400 bg-red-500/30"
               >
                 Yes, Override Result
               </Button>
@@ -964,7 +964,7 @@ export default function AdminDashboard() {
 
         {/* Success Message */}
         {showSuccessMessage && (
-          <div className="fixed top-4 right-4 bg-green-600 border border-green-500 text-white px-6 py-3 rounded shadow-lg z-50">
+          <div className="fixed top-4 right-4 glass-card border-green-400/50 text-white px-6 py-3 rounded-xl shadow-lg z-50 glow-purple">
             <div className="flex items-center">
               <span className="mr-2">✅</span>
               {showSuccessMessage}
@@ -974,7 +974,7 @@ export default function AdminDashboard() {
 
         {/* Error Message */}
         {showErrorMessage && (
-          <div className="fixed top-4 right-4 bg-red-600 border border-red-500 text-white px-6 py-3 rounded shadow-lg z-50">
+          <div className="fixed top-4 right-4 glass-card border-red-400/50 text-white px-6 py-3 rounded-xl shadow-lg z-50">
             <div className="flex items-center">
               <span className="mr-2">❌</span>
               {showErrorMessage}

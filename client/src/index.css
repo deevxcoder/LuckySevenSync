@@ -21,6 +21,19 @@
   --casino-green: #0F5132;
   --casino-gold: #FFD700;
   --text-white: #FFFFFF;
+  
+  --purple-primary: #8B5CF6;
+  --purple-secondary: #A78BFA;
+  --purple-accent: #C4B5FD;
+  --purple-dark: #6D28D9;
+  --purple-light: #DDD6FE;
+  --glass-white: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+}
+
+body {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-attachment: fixed;
 }
 
 .bg-casino-red {
@@ -67,6 +80,64 @@
   border-color: var(--casino-red);
 }
 
+.bg-gradient-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-purple-light {
+  background: linear-gradient(135deg, #a78bfa 0%, #c4b5fd 100%);
+}
+
+.text-purple-primary {
+  color: var(--purple-primary);
+}
+
+.text-purple-accent {
+  color: var(--purple-accent);
+}
+
+.border-purple-accent {
+  border-color: var(--purple-accent);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.glass-header {
+  background: rgba(139, 92, 246, 0.15);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
+
+.glass-card-hover {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(139, 92, 246, 0.5);
+  transform: translateY(-2px);
+}
+
+.glass-button {
+  background: rgba(167, 139, 250, 0.3);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease;
+}
+
+.glass-button:hover {
+  background: rgba(167, 139, 250, 0.5);
+  box-shadow: 0 4px 20px rgba(167, 139, 250, 0.6);
+}
+
 /* Card animations */
 .card-flip {
   transform-style: preserve-3d;
@@ -98,6 +169,15 @@
 
 .glow-red {
   box-shadow: 0 0 20px rgba(196, 30, 58, 0.5);
+}
+
+.glow-purple {
+  box-shadow: 0 0 30px rgba(139, 92, 246, 0.6), 0 0 60px rgba(167, 139, 250, 0.4);
+}
+
+.glass-3d {
+  transform-style: preserve-3d;
+  perspective: 1000px;
 }
 
 /* Pulse animation */
