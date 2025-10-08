@@ -24,47 +24,47 @@ export default function LoginForm({ onLogin, onSwitchToRegister, onBackToHome, i
   };
 
   return (
-    <div className="min-h-screen bg-casino-green flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-casino-black border-casino-gold border-2">
+    <div className="min-h-screen bg-neo-bg flex items-center justify-center p-4">
+      <Card className="w-full max-w-md neo-glass-card">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-casino-gold mb-2">
-            👑 Login to KingGames 👑
+          <CardTitle className="heading-primary text-neo-accent mb-2">
+            Welcome Back
           </CardTitle>
-          <p className="text-white text-sm">
+          <p className="text-neo-text-secondary text-sm">
             Sign in to your account
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+              <div className="p-3 bg-neo-danger/20 border border-neo-danger rounded-lg text-neo-danger text-sm">
                 {error}
               </div>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-white">Username</Label>
+              <Label htmlFor="username" className="text-neo-text">Username</Label>
               <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter your username"
-                className="bg-casino-green border-casino-gold text-white placeholder-gray-300"
+                className="bg-neo-card/50 border-neo-border text-neo-text placeholder-neo-text-secondary focus:border-neo-accent transition-colors"
                 disabled={isLoading}
                 required
               />
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Password</Label>
+              <Label htmlFor="password" className="text-neo-text">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Enter your password"
-                className="bg-casino-green border-casino-gold text-white placeholder-gray-300"
+                className="bg-neo-card/50 border-neo-border text-neo-text placeholder-neo-text-secondary focus:border-neo-accent transition-colors"
                 disabled={isLoading}
                 required
               />
@@ -72,30 +72,30 @@ export default function LoginForm({ onLogin, onSwitchToRegister, onBackToHome, i
             
             <Button 
               type="submit" 
-              className="w-full bg-casino-red hover:bg-red-700 text-white font-bold py-3 text-lg glow-red"
+              className="w-full bg-neo-accent hover:bg-neo-accent/90 text-neo-bg font-bold py-3 text-lg transition-all hover:shadow-[0_0_20px_rgba(0,255,198,0.5)]"
               disabled={isLoading || !username.trim() || !password.trim()}
             >
               {isLoading ? 'Signing In...' : 'Sign In'}
             </Button>
             
             <div className="text-center pt-4 space-y-2">
-              <p className="text-white text-sm">
+              <p className="text-neo-text-secondary text-sm">
                 Don't have an account?{' '}
                 <button
                   type="button"
                   onClick={onSwitchToRegister}
-                  className="text-casino-gold hover:underline font-semibold"
+                  className="text-neo-accent hover:text-neo-accent/80 font-semibold transition-colors"
                   disabled={isLoading}
                 >
                   Sign Up
                 </button>
               </p>
               {onBackToHome && (
-                <p className="text-white text-sm">
+                <p className="text-neo-text-secondary text-sm">
                   <button
                     type="button"
                     onClick={onBackToHome}
-                    className="text-casino-gold hover:underline font-semibold"
+                    className="text-neo-accent hover:text-neo-accent/80 font-semibold transition-colors"
                     disabled={isLoading}
                   >
                     ← Back to Home

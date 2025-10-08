@@ -48,33 +48,33 @@ export default function RegisterForm({ onRegister, onSwitchToLogin, onBackToHome
   const displayError = validationError || error;
 
   return (
-    <div className="min-h-screen bg-casino-green flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-casino-black border-casino-gold border-2">
+    <div className="min-h-screen bg-neo-bg flex items-center justify-center p-4">
+      <Card className="w-full max-w-md neo-glass-card">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-bold text-casino-gold mb-2">
-            👑 Join KingGames 👑
+          <CardTitle className="heading-primary text-neo-accent mb-2">
+            Create Account
           </CardTitle>
-          <p className="text-white text-sm">
-            Create your account
+          <p className="text-neo-text-secondary text-sm">
+            Join us today
           </p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {displayError && (
-              <div className="p-3 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+              <div className="p-3 bg-neo-danger/20 border border-neo-danger rounded-lg text-neo-danger text-sm">
                 {displayError}
               </div>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="username" className="text-white">Username</Label>
+              <Label htmlFor="username" className="text-neo-text">Username</Label>
               <Input
                 id="username"
                 type="text"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Choose a username (min 3 chars)"
-                className="bg-casino-green border-casino-gold text-white placeholder-gray-300"
+                className="bg-neo-card/50 border-neo-border text-neo-text placeholder-neo-text-secondary focus:border-neo-accent transition-colors"
                 disabled={isLoading}
                 required
                 minLength={3}
@@ -82,14 +82,14 @@ export default function RegisterForm({ onRegister, onSwitchToLogin, onBackToHome
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white">Password</Label>
+              <Label htmlFor="password" className="text-neo-text">Password</Label>
               <Input
                 id="password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Choose a password (min 6 chars)"
-                className="bg-casino-green border-casino-gold text-white placeholder-gray-300"
+                className="bg-neo-card/50 border-neo-border text-neo-text placeholder-neo-text-secondary focus:border-neo-accent transition-colors"
                 disabled={isLoading}
                 required
                 minLength={6}
@@ -97,14 +97,14 @@ export default function RegisterForm({ onRegister, onSwitchToLogin, onBackToHome
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
+              <Label htmlFor="confirmPassword" className="text-neo-text">Confirm Password</Label>
               <Input
                 id="confirmPassword"
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder="Confirm your password"
-                className="bg-casino-green border-casino-gold text-white placeholder-gray-300"
+                className="bg-neo-card/50 border-neo-border text-neo-text placeholder-neo-text-secondary focus:border-neo-accent transition-colors"
                 disabled={isLoading}
                 required
                 minLength={6}
@@ -113,30 +113,30 @@ export default function RegisterForm({ onRegister, onSwitchToLogin, onBackToHome
             
             <Button 
               type="submit" 
-              className="w-full bg-casino-red hover:bg-red-700 text-white font-bold py-3 text-lg glow-red"
+              className="w-full bg-neo-accent hover:bg-neo-accent/90 text-neo-bg font-bold py-3 text-lg transition-all hover:shadow-[0_0_20px_rgba(0,255,198,0.5)]"
               disabled={isLoading || !username.trim() || !password.trim() || !confirmPassword.trim()}
             >
               {isLoading ? 'Creating Account...' : 'Create Account'}
             </Button>
             
             <div className="text-center pt-4 space-y-2">
-              <p className="text-white text-sm">
+              <p className="text-neo-text-secondary text-sm">
                 Already have an account?{' '}
                 <button
                   type="button"
                   onClick={onSwitchToLogin}
-                  className="text-casino-gold hover:underline font-semibold"
+                  className="text-neo-accent hover:text-neo-accent/80 font-semibold transition-colors"
                   disabled={isLoading}
                 >
                   Sign In
                 </button>
               </p>
               {onBackToHome && (
-                <p className="text-white text-sm">
+                <p className="text-neo-text-secondary text-sm">
                   <button
                     type="button"
                     onClick={onBackToHome}
-                    className="text-casino-gold hover:underline font-semibold"
+                    className="text-neo-accent hover:text-neo-accent/80 font-semibold transition-colors"
                     disabled={isLoading}
                   >
                     ← Back to Home
