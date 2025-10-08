@@ -400,14 +400,14 @@ export default function GameRoom() {
   };
 
   const BET_TYPES = [
-    { id: 'red', label: 'Red', icon: '🔴', description: '7 loses', odds: '1:1', color: 'from-red-600 to-red-800' },
-    { id: 'black', label: 'Black', icon: '⚫', description: '7 loses', odds: '1:1', color: 'from-gray-700 to-gray-900' },
     { id: 'high', label: 'High', icon: '📈', description: '8-13', odds: '1:1', color: 'from-blue-600 to-blue-800' },
     { id: 'low', label: 'Low', icon: '📉', description: '1-6', odds: '1:1', color: 'from-green-600 to-green-800' },
     { id: 'lucky7', label: 'Lucky 7', icon: '🍀', description: 'Number 7', odds: '11:1', color: 'from-yellow-500 to-yellow-700' },
+    { id: 'red', label: 'Red', icon: '🔴', description: '7 loses', odds: '1:1', color: 'from-red-600 to-red-800' },
+    { id: 'black', label: 'Black', icon: '⚫', description: '7 loses', odds: '1:1', color: 'from-gray-700 to-gray-900' },
   ];
 
-  const QUICK_AMOUNTS = [10, 50, 100, 500];
+  const QUICK_AMOUNTS = [10, 50, 100, 500, 1000, 5000];
 
   const getBettingStatus = () => {
     if (gameStatus === 'countdown' && countdownTime > 10) return 'BETTING OPEN';
