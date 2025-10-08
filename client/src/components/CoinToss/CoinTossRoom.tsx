@@ -14,7 +14,7 @@ interface Bet {
   amount: number;
 }
 
-const QUICK_AMOUNTS = [10, 50, 100, 500];
+const QUICK_AMOUNTS = [10, 20, 20, 500];
 
 export default function CoinTossRoom() {
   const { user } = useAuthStore();
@@ -38,7 +38,7 @@ export default function CoinTossRoom() {
 
   // Betting state
   const [selectedBetType, setSelectedBetType] = useState<'heads' | 'tails' | ''>('');
-  const [selectedAmount, setSelectedAmount] = useState<number>(10);
+  const [selectedAmount, setSelectedAmount] = useState<number>(20);
   const [currentBets, setCurrentBets] = useState<Bet[]>([]);
   const [totalBetAmount, setTotalBetAmount] = useState<number>(0);
   const [showResultPopup, setShowResultPopup] = useState<boolean>(false);
@@ -388,174 +388,278 @@ export default function CoinTossRoom() {
   return (
     <div 
       ref={containerRef} 
-      className="h-screen bg-gradient-to-b from-[#0a1628] via-[#0d1b2e] to-[#0a1628] relative overflow-hidden"
+      className="h-screen relative overflow-hidden"
       style={{
-        background: 'linear-gradient(to bottom, #0a1628 0%, #0d1b2e 50%, #0a1628 100%)'
+        background: '#0a0e1a'
       }}
     >
       {/* Exit Fullscreen Button */}
       {isFullscreen && (
         <button
           onClick={exitFullscreen}
-          className="fixed top-2 right-2 z-50 w-8 h-8 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center shadow-lg transition-all"
+          className="fixed top-4 right-4 z-50 w-10 h-10 rounded-full bg-red-600 hover:bg-red-700 text-white font-bold flex items-center justify-center shadow-lg transition-all"
           aria-label="Exit Fullscreen"
         >
           ✕
         </button>
       )}
 
-      {/* Landscape Gaming Layout */}
-      <div className="h-full flex flex-col p-2 gap-2">
+      <div className="h-full flex flex-col p-6 gap-6">
         {/* Header */}
-        <div className="text-center border-2 border-cyan-500/50 rounded-lg py-1 px-4" style={{ background: 'rgba(0, 212, 255, 0.1)' }}>
-          <h1 className="text-xl font-bold tracking-wider" style={{ color: '#00d4ff', textShadow: '0 0 20px rgba(0, 212, 255, 0.8)' }}>
-            COIN TOSS GAME
-          </h1>
-          <div className="text-xs text-cyan-300 tracking-widest">ROUND #{totalGameCount + 1}</div>
-        </div>
-
-        {/* Main Game Area */}
-        <div className="flex-1 flex gap-2 min-h-0">
-          {/* Left Panel - Betting Controls */}
-          <div className="w-72 flex flex-col gap-1.5 bg-[#0d1b2e]/60 rounded-lg p-2 border border-cyan-500/30">
-            {/* Chips & Timer */}
-            <div className="grid grid-cols-2 gap-1.5">
-              <div className="border border-cyan-500/50 rounded-lg p-1.5 bg-[#0a1628]/80">
-                <div className="text-xs text-cyan-300 uppercase tracking-wider">Your Chips</div>
-                <div className="flex items-center gap-1">
-                  <span className="text-sm">💰</span>
-                  <span className="text-lg font-bold text-white">{remainingChips}</span>
-                </div>
-              </div>
-              <div className="border border-cyan-500/50 rounded-lg p-1.5 bg-[#0a1628]/80">
-                <div className="text-xs text-cyan-300 uppercase tracking-wider">Time Remaining</div>
-                <div className="text-lg font-bold" style={{ color: countdownTime <= 5 && countdownTime > 0 ? '#ff0000' : '#00d4ff' }}>
-                  {countdownTime}s
-                </div>
-                <div className="text-xs text-cyan-400">{isFlipping ? 'FLIPPING...' : currentResult ? 'REVEALING...' : 'BETTING...'}</div>
+        <div className="flex items-center justify-between">
+          {/* Left - Coin Balance */}
+          <div className="flex flex-col items-center gap-1">
+            <div 
+              className="w-16 h-16 rounded-full flex items-center justify-center"
+              style={{
+                background: 'linear-gradient(145deg, #00d4ff, #0099cc)',
+                boxShadow: '0 0 30px rgba(0, 212, 255, 0.6)'
+              }}
+            >
+              <div className="w-12 h-12 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(145deg, #00b8e6, #0099cc)'
+                }}
+              >
+                <span className="text-2xl">💰</span>
               </div>
             </div>
-
-            {/* Place Bets Section */}
-            <div>
-              <div className="text-xs font-bold text-cyan-300 uppercase tracking-wider mb-1">Place Your Bets</div>
-              
-              {/* Heads/Tails Buttons */}
-              <div className="grid grid-cols-2 gap-1.5 mb-2">
-                <button onClick={() => setSelectedBetType('heads')} disabled={bettingWindowClosed} className={`p-2 rounded-lg border-2 transition-all ${selectedBetType === 'heads' ? 'border-orange-400 bg-orange-900/40' : bettingWindowClosed ? 'border-gray-600 bg-gray-800/40 cursor-not-allowed opacity-50' : 'border-cyan-500/50 bg-[#0a1628]/60 hover:border-orange-400'}`}>
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-xl">🪙</span>
-                    <div className="text-white font-bold text-xs">Heads</div>
-                    <div className="text-xs text-yellow-400">Bet on Heads</div>
-                    <div className="text-xs text-cyan-400 font-semibold">000$ +1</div>
-                  </div>
-                </button>
-
-                <button onClick={() => setSelectedBetType('tails')} disabled={bettingWindowClosed} className={`p-2 rounded-lg border-2 transition-all ${selectedBetType === 'tails' ? 'border-pink-400 bg-pink-900/40' : bettingWindowClosed ? 'border-gray-600 bg-gray-800/40 cursor-not-allowed opacity-50' : 'border-cyan-500/50 bg-[#0a1628]/60 hover:border-pink-400'}`}>
-                  <div className="flex flex-col items-center gap-0.5">
-                    <span className="text-xl">🔮</span>
-                    <div className="text-white font-bold text-xs">Tails</div>
-                    <div className="text-xs text-yellow-400">Bet on Tails</div>
-                    <div className="text-xs text-cyan-400 font-semibold">000$ +1</div>
-                  </div>
-                </button>
+            <div className="flex items-center gap-1">
+              <div className="w-6 h-6 rounded-full bg-cyan-500 flex items-center justify-center">
+                <span className="text-xs">💰</span>
               </div>
-
-              {/* Bet Amounts */}
-              <div className="grid grid-cols-2 gap-1 mb-2">
-                {QUICK_AMOUNTS.map(amount => (
-                  <button key={amount} onClick={() => setSelectedAmount(amount)} disabled={bettingWindowClosed || amount > remainingChips} className={`py-1.5 px-2 rounded font-bold text-xs transition-all ${selectedAmount === amount ? 'bg-cyan-500 text-white' : amount > remainingChips || bettingWindowClosed ? 'bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-[#0a1628] text-cyan-300 border border-cyan-500/50 hover:bg-cyan-500/20'}`}>
-                    {amount}
-                  </button>
-                ))}
-              </div>
-
-              {/* Available Chips & Total Bet */}
-              <div className="space-y-0.5">
-                <div className="flex justify-between text-xs">
-                  <span className="text-cyan-300">Available Chips:</span>
-                  <span className="text-cyan-400 font-bold">{remainingChips}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-cyan-300">Total Bet:</span>
-                  <span className="text-cyan-400 font-bold">{totalBetAmount}</span>
-                </div>
-              </div>
+              <span className="text-2xl font-bold text-cyan-400">{remainingChips}</span>
             </div>
           </div>
 
-          {/* Right Panel - Coin Display */}
-          <div className="flex-1 flex flex-col gap-1.5">
-            {/* Result Display Area */}
-            <div className="flex-1 border-2 border-cyan-500/50 rounded-lg flex items-center justify-center relative" style={{ background: 'radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, rgba(10, 22, 40, 0.9) 100%)' }}>
-              {/* Result Popup */}
-              {showResultPopup && betResults.length > 0 && (
-                <div className="absolute top-2 right-2 bg-gradient-to-br from-purple-900/90 to-purple-700/90 p-2 rounded-lg border-2 border-purple-400 shadow-xl z-40">
-                  <h3 className="text-sm font-bold text-white text-center">
-                    {totalWinAmount > 0 ? '🎉 Won!' : '😔 Lost'}
-                  </h3>
-                  <div className="text-center text-base font-bold text-yellow-300">
-                    {totalWinAmount > 0 ? totalWinAmount : betResults.reduce((sum, r) => sum + r.betAmount, 0)}
+          {/* Center - Title */}
+          <h1 className="text-6xl font-bold tracking-widest" style={{
+            color: '#00d4ff',
+            textShadow: '0 0 40px rgba(0, 212, 255, 0.8)'
+          }}>
+            COINARENA
+          </h1>
+
+          {/* Right - User Profile */}
+          <div 
+            className="w-16 h-16 rounded-full flex items-center justify-center"
+            style={{
+              background: 'linear-gradient(145deg, #1e3a8a, #1e40af)',
+              border: '3px solid #3b82f6',
+              boxShadow: '0 0 30px rgba(59, 130, 246, 0.6)'
+            }}
+          >
+            <span className="text-3xl">👤</span>
+          </div>
+        </div>
+
+        {/* Round Info & Status */}
+        <div className="flex items-center justify-between">
+          <div className="text-xl text-cyan-400 tracking-wider">
+            ROUND: #{totalGameCount + 1}/12
+          </div>
+          <div 
+            className="px-6 py-2 rounded-lg font-bold tracking-wider"
+            style={{
+              border: '2px solid #f97316',
+              color: '#fb923c',
+              background: 'rgba(249, 115, 22, 0.1)'
+            }}
+          >
+            {bettingWindowClosed ? 'BETTING CLOSED' : 'BETTING OPEN'}
+          </div>
+        </div>
+
+        {/* Main Game Area */}
+        <div className="flex-1 flex items-center gap-6">
+          {/* Left Panel - Total Bet */}
+          <div 
+            className="flex flex-col items-center justify-center p-8 rounded-2xl"
+            style={{
+              border: '3px solid #f97316',
+              background: 'rgba(30, 27, 75, 0.5)',
+              minWidth: '280px'
+            }}
+          >
+            <div 
+              className="w-24 h-24 rounded-full flex items-center justify-center mb-4"
+              style={{
+                background: 'linear-gradient(145deg, #f97316, #ea580c)'
+              }}
+            >
+              <span className="text-5xl">🪙</span>
+            </div>
+            <div className="text-3xl font-bold text-cyan-400 mb-2">Total</div>
+            <div className="text-xl text-cyan-300 mb-2">Total Bet</div>
+            <div className="text-4xl font-bold text-white">{totalBetAmount}</div>
+          </div>
+
+          {/* Center - Timer */}
+          <div className="flex-1 flex flex-col items-center justify-center">
+            <div 
+              className="w-72 h-72 rounded-full flex flex-col items-center justify-center mb-6"
+              style={{
+                border: '4px solid #00d4ff',
+                boxShadow: '0 0 60px rgba(0, 212, 255, 0.6)',
+                background: 'rgba(10, 14, 26, 0.8)'
+              }}
+            >
+              {isFlipping ? (
+                <div className="text-8xl font-bold text-cyan-400">{flipDisplay}</div>
+              ) : currentResult ? (
+                <div className="text-center">
+                  <div className="text-9xl animate-bounce">
+                    {currentResult === 'heads' ? '🪙' : '🔮'}
+                  </div>
+                  <div className="text-3xl font-bold mt-4" style={{
+                    color: currentResult === 'heads' ? '#f97316' : '#00d4ff'
+                  }}>
+                    {currentResult.toUpperCase()}
                   </div>
                 </div>
+              ) : (
+                <div className="text-9xl font-bold text-cyan-400">{countdownTime}s</div>
               )}
+            </div>
+            <div className="text-2xl text-cyan-400 tracking-wider">
+              TIME REMAIN FOR -{Math.max(0, countdownTime - 10)}s
+            </div>
+          </div>
 
-              {/* Coin/Result Circle */}
-              <div className="flex flex-col items-center">
-                <div 
-                  className={`w-40 h-40 rounded-full flex items-center justify-center ${countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? 'animate-heartbeat' : ''}`}
+          {/* Right Panel - Bet Type */}
+          <div 
+            className="flex flex-col items-center justify-center p-8 rounded-2xl"
+            style={{
+              border: '3px solid #0ea5e9',
+              background: 'rgba(30, 27, 75, 0.5)',
+              minWidth: '280px'
+            }}
+          >
+            <div 
+              className="w-24 h-24 rounded-full flex items-center justify-center mb-4"
+              style={{
+                background: 'linear-gradient(145deg, #0ea5e9, #0284c7)',
+                border: '3px solid #00d4ff'
+              }}
+            >
+              <span className="text-5xl font-bold text-white">{selectedBetType === 'heads' ? 'H' : 'T'}</span>
+            </div>
+            <div className="text-3xl font-bold text-cyan-400 mb-2">
+              Bet on {selectedBetType === 'heads' ? 'Head' : 'Tail'}
+            </div>
+            <div className="text-xl text-cyan-300">Odds: 1:1</div>
+          </div>
+        </div>
+
+        {/* Bottom Controls */}
+        <div className="space-y-4">
+          {/* Bet Type Selection (Hidden buttons for selection) */}
+          <div className="flex gap-4 justify-center">
+            <button
+              onClick={() => setSelectedBetType('heads')}
+              disabled={bettingWindowClosed}
+              className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                selectedBetType === 'heads' 
+                  ? 'bg-orange-500 text-white border-2 border-orange-400' 
+                  : 'bg-gray-700 text-gray-300 border-2 border-gray-600'
+              } ${bettingWindowClosed ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}`}
+            >
+              SELECT HEADS
+            </button>
+            <button
+              onClick={() => setSelectedBetType('tails')}
+              disabled={bettingWindowClosed}
+              className={`px-6 py-3 rounded-lg font-bold transition-all ${
+                selectedBetType === 'tails' 
+                  ? 'bg-cyan-500 text-white border-2 border-cyan-400' 
+                  : 'bg-gray-700 text-gray-300 border-2 border-gray-600'
+              } ${bettingWindowClosed ? 'opacity-50 cursor-not-allowed' : 'hover:opacity-90'}`}
+            >
+              SELECT TAILS
+            </button>
+          </div>
+
+          {/* Bet Amount & Place Bet */}
+          <div className="flex items-center justify-center gap-4">
+            {QUICK_AMOUNTS.map((amount, index) => (
+              <button
+                key={index}
+                onClick={() => setSelectedAmount(amount)}
+                disabled={bettingWindowClosed || amount > remainingChips}
+                className={`px-8 py-4 rounded-full font-bold text-xl transition-all ${
+                  selectedAmount === amount
+                    ? 'bg-orange-500 text-white border-3 border-orange-400'
+                    : 'bg-gray-800 text-cyan-400 border-2 border-cyan-500'
+                } ${
+                  bettingWindowClosed || amount > remainingChips
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:opacity-90'
+                }`}
+                style={{
+                  minWidth: '100px',
+                  boxShadow: selectedAmount === amount ? '0 0 30px rgba(249, 115, 22, 0.6)' : 'none'
+                }}
+              >
+                {amount}
+              </button>
+            ))}
+            <button
+              onClick={handlePlaceBet}
+              disabled={!canPlaceBet()}
+              className={`px-12 py-4 rounded-full font-bold text-xl transition-all ${
+                canPlaceBet()
+                  ? 'bg-cyan-500 text-white border-3 border-cyan-400'
+                  : 'bg-gray-700 text-gray-400 border-2 border-gray-600 cursor-not-allowed'
+              }`}
+              style={{
+                boxShadow: canPlaceBet() ? '0 0 40px rgba(6, 182, 212, 0.8)' : 'none'
+              }}
+            >
+              PLACE BET ({selectedAmount})
+            </button>
+          </div>
+
+          {/* Recent Results */}
+          <div className="text-center">
+            <div className="text-lg text-cyan-400 tracking-wider mb-2">RECENT RESULT</div>
+            <div className="flex gap-2 justify-center">
+              {recentResults.slice(0, 6).map((game, index) => (
+                <div
+                  key={index}
+                  className="w-12 h-12 rounded-full"
                   style={{
-                    border: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? '4px solid #ff0000' : '4px solid #00d4ff',
-                    boxShadow: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? '0 0 60px rgba(255, 0, 0, 0.8), inset 0 0 40px rgba(255, 0, 0, 0.3)' : '0 0 40px rgba(0, 212, 255, 0.6), inset 0 0 40px rgba(0, 212, 255, 0.3)',
-                    background: currentResult ? (currentResult === 'heads' ? 'linear-gradient(145deg, #fbbf24 0%, #f59e0b 100%)' : 'linear-gradient(145deg, #22d3ee 0%, #06b6d4 100%)') : countdownTime <= 5 && countdownTime > 0 && !isFlipping ? 'radial-gradient(circle, rgba(255, 0, 0, 0.15) 0%, rgba(10, 22, 40, 0.9) 100%)' : 'radial-gradient(circle, rgba(0, 212, 255, 0.1) 0%, rgba(10, 22, 40, 0.9) 100%)'
+                    background: game.result === 'heads' 
+                      ? 'linear-gradient(145deg, #f97316, #ea580c)' 
+                      : 'linear-gradient(145deg, #0ea5e9, #0284c7)',
+                    border: '2px solid ' + (game.result === 'heads' ? '#fb923c' : '#38bdf8')
                   }}
-                >
-                  {isFlipping ? (
-                    <div className="text-6xl font-bold text-white">{flipDisplay}</div>
-                  ) : currentResult && gameStatus === 'revealing' ? (
-                    <div className="text-center">
-                      <div className="text-7xl font-bold text-white animate-bounce">
-                        {currentResult === 'heads' ? '🪙' : '🔮'}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-5xl font-bold" style={{ color: countdownTime <= 5 && countdownTime > 0 ? '#ff0000' : '#00d4ff', textShadow: '0 0 30px currentColor' }}>
-                      {countdownTime}s
-                    </div>
-                  )}
-                </div>
-                {currentResult && (
-                  <div className="mt-2 text-3xl font-bold uppercase" style={{ color: currentResult === 'heads' ? '#fbbf24' : '#22d3ee', textShadow: '0 0 20px currentColor' }}>
-                    {currentResult}
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Bottom Bar - Place Bet & Sound */}
-            <div className="flex gap-1.5 items-center">
-              <button onClick={handlePlaceBet} disabled={!canPlaceBet()} className={`flex-1 py-2 rounded-lg font-bold text-sm transition-all ${canPlaceBet() ? 'bg-gradient-to-r from-cyan-500 to-cyan-600 text-white border-2 border-cyan-400' : 'bg-gray-700 text-gray-400 cursor-not-allowed border-2 border-gray-600'}`} style={{ boxShadow: canPlaceBet() ? '0 0 30px rgba(34, 211, 238, 0.6)' : 'none' }}>
-                PLACE YOUR BETS - {totalBetAmount}
-              </button>
-              <button onClick={() => setIsSoundEnabled(!isSoundEnabled)} className="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg border-2 border-cyan-400">
-                <span className="text-lg">{isSoundEnabled ? '🔊' : '🔇'}</span>
-              </button>
-            </div>
-
-            {/* Recent Results */}
-            <div className="border border-cyan-500/30 rounded-lg p-1.5 bg-[#0d1b2e]/60">
-              <div className="text-xs text-cyan-300 uppercase tracking-wider mb-1">Recent Results</div>
-              <div className="flex gap-1">
-                {recentResults.slice(0, 15).map((game, index) => (
-                  <div key={index} className={`w-5 h-5 rounded-full flex items-center justify-center ${game.result === 'heads' ? 'bg-gradient-to-br from-orange-400 to-orange-600' : 'bg-gradient-to-br from-cyan-400 to-blue-600'}`}>
-                    <span className="text-xs font-bold text-white">{game.result === 'heads' ? 'H' : 'T'}</span>
-                  </div>
-                ))}
-              </div>
+                />
+              ))}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Result Popup */}
+      {showResultPopup && betResults.length > 0 && (
+        <div 
+          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-8 rounded-2xl text-center"
+          style={{
+            background: totalWinAmount > 0 
+              ? 'linear-gradient(145deg, #10b981, #059669)' 
+              : 'linear-gradient(145deg, #ef4444, #dc2626)',
+            border: '4px solid ' + (totalWinAmount > 0 ? '#34d399' : '#f87171'),
+            boxShadow: '0 0 60px rgba(0, 0, 0, 0.8)'
+          }}
+        >
+          <div className="text-4xl font-bold text-white mb-4">
+            {totalWinAmount > 0 ? '🎉 YOU WON!' : '😔 YOU LOST'}
+          </div>
+          <div className="text-6xl font-bold text-white">
+            {totalWinAmount > 0 ? `+${totalWinAmount}` : `-${betResults.reduce((sum, r) => sum + r.betAmount, 0)}`}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
