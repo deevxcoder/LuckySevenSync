@@ -762,6 +762,17 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(coinTossBets.createdAt));
   }
 
+  async getPlayerBetsByGame(playerId: number, gameId: number): Promise<CoinTossBet[]> {
+    return await db.select().from(coinTossBets)
+      .where(
+        and(
+          eq(coinTossBets.playerId, playerId),
+          eq(coinTossBets.gameId, gameId)
+        )
+      )
+      .orderBy(desc(coinTossBets.createdAt));
+  }
+
   async placeCoinTossBet(playerId: number, betAmount: number, betType: string, gameId: number): Promise<{ bet: CoinTossBet; updatedPlayer: Player }> {
     return await db.transaction(async (tx) => {
       const player = await tx.select().from(players)
