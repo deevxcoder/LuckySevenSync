@@ -259,6 +259,10 @@ export default function CoinTossRoom() {
       setGameStatus(data.room.status);
       setCurrentResult(data.room.currentResult);
       
+      if (data.player?.chips !== undefined) {
+        setPlayerChips(data.player.chips);
+      }
+      
       if (data.room.roundNumber !== undefined) {
         setTotalGameCount(data.room.roundNumber - 1);
       }
