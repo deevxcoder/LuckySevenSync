@@ -362,22 +362,22 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-purple p-4">
+    <div className="min-h-screen bg-neo-bg p-4">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="glass-header rounded-2xl p-6 mb-6 flex justify-between items-center">
+        <div className="neo-glass-card p-6 mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-purple-accent glow-purple">
+            <h1 className="text-3xl font-heading font-bold text-neo-accent neon-glow-mint">
               🛠️ Admin Dashboard
             </h1>
-            <p className="text-white/90 mt-1">
+            <p className="text-neo-text-secondary mt-1">
               Manage KingGames users and game oversight
             </p>
           </div>
           <Button
             onClick={handleLogout}
             variant="outline"
-            className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
+            className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
           >
             Sign Out
           </Button>
@@ -385,76 +385,62 @@ export default function AdminDashboard() {
 
         {/* Stats Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-purple-accent text-lg">Total Users</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-white">
-                {users.length}
-              </div>
-              <p className="text-white/60 text-sm">Registered players</p>
-            </CardContent>
-          </Card>
+          <div className="neo-glass-card p-6">
+            <h3 className="text-neo-accent text-lg font-heading font-semibold mb-2">Total Users</h3>
+            <div className="text-3xl font-mono font-bold text-neo-text">
+              {users.length}
+            </div>
+            <p className="text-neo-text-secondary text-sm">Registered players</p>
+          </div>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-purple-accent text-lg">Active Games</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-300">
-                1
-              </div>
-              <p className="text-white/60 text-sm">Current running games</p>
-            </CardContent>
-          </Card>
+          <div className="neo-glass-card p-6">
+            <h3 className="text-neo-accent text-lg font-heading font-semibold mb-2">Active Games</h3>
+            <div className="text-3xl font-mono font-bold text-neo-success flex items-center gap-2">
+              1 <span className="live-indicator"></span>
+            </div>
+            <p className="text-neo-text-secondary text-sm">Current running games</p>
+          </div>
 
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-purple-accent text-lg">System Status</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-300">
-                ✅ Online
-              </div>
-              <p className="text-white/60 text-sm">All systems operational</p>
-            </CardContent>
-          </Card>
+          <div className="neo-glass-card p-6">
+            <h3 className="text-neo-accent text-lg font-heading font-semibold mb-2">System Status</h3>
+            <div className="text-3xl font-mono font-bold text-neo-success">
+              ✅ Online
+            </div>
+            <p className="text-neo-text-secondary text-sm">All systems operational</p>
+          </div>
         </div>
 
         {/* Users Management */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-purple-accent text-xl">👥 User Management</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <div className="text-center text-white py-8">
-                Loading users...
-              </div>
-            ) : error ? (
-              <div className="text-center text-red-300 py-8">
-                {error}
-              </div>
-            ) : users.length === 0 ? (
-              <div className="text-center text-white/60 py-8">
-                No users registered yet.
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow className="border-purple-accent/30 hover:bg-white/10">
-                      <TableHead className="text-purple-accent">ID</TableHead>
-                      <TableHead className="text-purple-accent">Username</TableHead>
-                      <TableHead className="text-purple-accent">Status</TableHead>
-                      <TableHead className="text-purple-accent">Online</TableHead>
-                      <TableHead className="text-purple-accent">Chips</TableHead>
-                      <TableHead className="text-purple-accent">Stats</TableHead>
-                      <TableHead className="text-purple-accent">Last Activity</TableHead>
-                      <TableHead className="text-purple-accent">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
+        <div className="neo-glass-card p-6">
+          <h2 className="text-neo-accent text-xl font-heading font-bold mb-6">👥 User Management</h2>
+          
+          {isLoading ? (
+            <div className="text-center text-neo-text py-8">
+              Loading users...
+            </div>
+          ) : error ? (
+            <div className="text-center text-neo-danger py-8">
+              {error}
+            </div>
+          ) : users.length === 0 ? (
+            <div className="text-center text-neo-text-secondary py-8">
+              No users registered yet.
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-neo-border hover:bg-white/5">
+                    <TableHead className="text-neo-accent font-heading">ID</TableHead>
+                    <TableHead className="text-neo-accent font-heading">Username</TableHead>
+                    <TableHead className="text-neo-accent font-heading">Status</TableHead>
+                    <TableHead className="text-neo-accent font-heading">Online</TableHead>
+                    <TableHead className="text-neo-accent font-heading">Chips</TableHead>
+                    <TableHead className="text-neo-accent font-heading">Stats</TableHead>
+                    <TableHead className="text-neo-accent font-heading">Last Activity</TableHead>
+                    <TableHead className="text-neo-accent font-heading">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
                   <TableBody>
                     {users.map((user) => (
                       <TableRow 
@@ -548,49 +534,41 @@ export default function AdminDashboard() {
                 </Table>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Game Management */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-purple-accent text-xl">🎮 Game Management</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Button 
-                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent font-bold py-3 px-4"
-              >
-                🔄 Restart Games
-              </Button>
-              <Button 
-                variant="outline"
-                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
-              >
-                📊 Game History
-              </Button>
-              <Button 
-                variant="outline"
-                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
-              >
-                ⚙️ Game Settings
-              </Button>
-              <Button 
-                variant="outline"
-                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
-              >
-                📈 Analytics
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="neo-glass-card p-6 mt-6">
+          <h2 className="text-neo-accent text-xl font-heading font-bold mb-6">🎮 Game Management</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Button 
+              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading font-semibold py-3 px-4 transition-all duration-300"
+            >
+              🔄 Restart Games
+            </Button>
+            <Button 
+              variant="outline"
+              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+            >
+              📊 Game History
+            </Button>
+            <Button 
+              variant="outline"
+              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+            >
+              ⚙️ Game Settings
+            </Button>
+            <Button 
+              variant="outline"
+              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+            >
+              📈 Analytics
+            </Button>
+          </div>
+        </div>
 
         {/* Results Control */}
-        <Card className="mt-6">
-          <CardHeader>
-            <CardTitle className="text-purple-accent text-xl">🎯 Lucky 7 Results Control</CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="neo-glass-card p-6 mt-6">
+          <h2 className="text-neo-accent text-xl font-heading font-bold mb-6">🎯 Lucky 7 Results Control</h2>
             {isLoadingRound ? (
               <div className="text-center text-white py-8">
                 Loading current round data...
@@ -766,18 +744,17 @@ export default function AdminDashboard() {
                 </div>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Coin Toss Results Control Card */}
-        <Card className="bg-gradient-to-br from-yellow-900 to-yellow-800 border-yellow-600 shadow-2xl">
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold text-yellow-100 flex items-center">
-              <span className="mr-2">🪙</span>
-              Coin Toss Results Control
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <div className="neo-glass-card p-6 mt-6" style={{
+          background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.1) 0%, rgba(202, 138, 4, 0.1) 100%)',
+          borderColor: 'rgba(234, 179, 8, 0.3)'
+        }}>
+          <h2 className="text-2xl font-heading font-bold text-neo-accent flex items-center mb-6">
+            <span className="mr-2">🪙</span>
+            Coin Toss Results Control
+          </h2>
             {isLoadingCoinTossRound ? (
               <div className="text-center py-8">
                 <div className="text-yellow-300">Loading coin toss round data...</div>
@@ -885,25 +862,24 @@ export default function AdminDashboard() {
                 <div className="text-yellow-300">No active coin toss round found</div>
               </div>
             )}
-          </CardContent>
-        </Card>
+        </div>
 
         {/* Lucky 7 Confirmation Dialog */}
         <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-          <DialogContent className="glass-card border-purple-accent/30">
+          <DialogContent className="neo-glass-card border-neo-accent/30">
             <DialogHeader>
-              <DialogTitle className="text-purple-accent">⚠️ Confirm Result Override</DialogTitle>
+              <DialogTitle className="text-neo-accent font-heading font-bold">⚠️ Confirm Result Override</DialogTitle>
             </DialogHeader>
             <div className="py-4">
-              <p className="text-white text-center">
+              <p className="text-neo-text text-center">
                 Are you sure you want to override the game result to:
               </p>
               <div className="text-center mt-4">
-                <span className="inline-block bg-white/20 px-4 py-2 rounded border border-purple-accent text-purple-accent font-bold text-lg">
+                <span className="inline-block bg-white/20 px-4 py-2 rounded-lg border-2 border-neo-accent text-neo-accent font-heading font-bold text-lg">
                   {pendingOverride?.toUpperCase()}
                 </span>
               </div>
-              <p className="text-red-300 text-sm text-center mt-4">
+              <p className="text-neo-danger text-sm text-center mt-4">
                 This action will permanently affect the game outcome and cannot be undone.
               </p>
             </div>
@@ -911,13 +887,13 @@ export default function AdminDashboard() {
               <Button
                 variant="outline"
                 onClick={cancelOverride}
-                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
+                className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
               >
                 Cancel
               </Button>
               <Button
                 onClick={confirmOverride}
-                className="glass-button border-red-400/50 text-white hover:border-red-400 bg-red-500/30"
+                className="border-2 border-neo-danger bg-neo-danger/30 text-neo-text hover:bg-neo-danger hover:text-white font-heading transition-all duration-300"
               >
                 Yes, Override Result
               </Button>
@@ -927,20 +903,20 @@ export default function AdminDashboard() {
 
         {/* Coin Toss Confirmation Dialog */}
         <Dialog open={showCoinTossConfirmDialog} onOpenChange={setShowCoinTossConfirmDialog}>
-          <DialogContent className="glass-card border-purple-accent/30">
+          <DialogContent className="neo-glass-card border-neo-accent/30">
             <DialogHeader>
-              <DialogTitle className="text-purple-accent">⚠️ Confirm Coin Toss Override</DialogTitle>
+              <DialogTitle className="text-neo-accent font-heading font-bold">⚠️ Confirm Coin Toss Override</DialogTitle>
             </DialogHeader>
             <div className="py-4">
-              <p className="text-white text-center">
+              <p className="text-neo-text text-center">
                 Are you sure you want to override the coin toss result to:
               </p>
               <div className="text-center mt-4">
-                <span className="inline-block bg-white/20 px-4 py-2 rounded border border-purple-accent text-purple-accent font-bold text-lg">
+                <span className="inline-block bg-white/20 px-4 py-2 rounded-lg border-2 border-neo-accent text-neo-accent font-heading font-bold text-lg">
                   {pendingCoinTossOverride?.toUpperCase()}
                 </span>
               </div>
-              <p className="text-red-300 text-sm text-center mt-4">
+              <p className="text-neo-danger text-sm text-center mt-4">
                 This action will permanently affect the coin toss outcome and cannot be undone.
               </p>
             </div>
@@ -948,13 +924,13 @@ export default function AdminDashboard() {
               <Button
                 variant="outline"
                 onClick={cancelCoinTossOverride}
-                className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
+                className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
               >
                 Cancel
               </Button>
               <Button
                 onClick={confirmCoinTossOverride}
-                className="glass-button border-red-400/50 text-white hover:border-red-400 bg-red-500/30"
+                className="border-2 border-neo-danger bg-neo-danger/30 text-neo-text hover:bg-neo-danger hover:text-white font-heading transition-all duration-300"
               >
                 Yes, Override Result
               </Button>
@@ -964,8 +940,8 @@ export default function AdminDashboard() {
 
         {/* Success Message */}
         {showSuccessMessage && (
-          <div className="fixed top-4 right-4 glass-card border-green-400/50 text-white px-6 py-3 rounded-xl shadow-lg z-50 glow-purple">
-            <div className="flex items-center">
+          <div className="fixed top-4 right-4 neo-glass-card border-2 border-neo-success text-neo-text px-6 py-3 rounded-xl shadow-lg z-50 neon-glow-success animate-fade-in">
+            <div className="flex items-center font-heading">
               <span className="mr-2">✅</span>
               {showSuccessMessage}
             </div>
@@ -974,8 +950,8 @@ export default function AdminDashboard() {
 
         {/* Error Message */}
         {showErrorMessage && (
-          <div className="fixed top-4 right-4 glass-card border-red-400/50 text-white px-6 py-3 rounded-xl shadow-lg z-50">
-            <div className="flex items-center">
+          <div className="fixed top-4 right-4 neo-glass-card border-2 border-neo-danger text-neo-text px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
+            <div className="flex items-center font-heading">
               <span className="mr-2">❌</span>
               {showErrorMessage}
             </div>

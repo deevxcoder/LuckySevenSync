@@ -5,12 +5,29 @@ export default {
   content: ["./client/index.html", "./client/src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Manrope', 'Roboto', 'sans-serif'],
+        heading: ['Poppins', 'Inter', 'sans-serif'],
+        mono: ['JetBrains Mono', 'monospace'],
+      },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "16px",
+        md: "12px",
+        sm: "8px",
       },
       colors: {
+        // 2025 Neo-Glassmorphism Design System
+        'neo-bg': '#0E0E0E',
+        'neo-card': 'rgba(26, 26, 26, 0.85)',
+        'neo-accent': '#00FFC6',
+        'neo-accent-secondary': '#FF005C',
+        'neo-text': '#FFFFFF',
+        'neo-text-secondary': '#A0A0A0',
+        'neo-success': '#4ADE80',
+        'neo-danger': '#EF4444',
+        'neo-border': 'rgba(255, 255, 255, 0.1)',
+        
+        // Compatibility with existing theme
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         card: {
@@ -79,10 +96,45 @@ export default {
             height: "0",
           },
         },
+        "neon-pulse": {
+          "0%, 100%": {
+            boxShadow: "0 0 8px var(--accent-primary), 0 0 16px var(--accent-primary)",
+          },
+          "50%": {
+            boxShadow: "0 0 16px var(--accent-primary), 0 0 32px var(--accent-primary)",
+          },
+        },
+        "live-pulse": {
+          "0%, 100%": {
+            opacity: "1",
+            transform: "scale(1)",
+          },
+          "50%": {
+            opacity: "0.7",
+            transform: "scale(1.1)",
+          },
+        },
+        "gradient-slide": {
+          "0%": {
+            backgroundPosition: "0% 50%",
+          },
+          "50%": {
+            backgroundPosition: "100% 50%",
+          },
+          "100%": {
+            backgroundPosition: "0% 50%",
+          },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "neon-pulse": "neon-pulse 1.2s infinite",
+        "live-pulse": "live-pulse 1.2s infinite",
+        "gradient-slide": "gradient-slide 3s ease infinite",
+      },
+      backgroundImage: {
+        'gradient-hover': 'linear-gradient(90deg, #00FFC6 0%, #005BFF 100%)',
       },
     },
   },

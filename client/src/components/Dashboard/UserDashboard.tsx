@@ -47,17 +47,17 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
 
 
   return (
-    <div className="min-h-screen bg-gradient-purple relative">
+    <div className="min-h-screen bg-neo-bg relative">
       {/* Top Navigation Bar - Responsive */}
-      <div className="absolute top-0 left-0 right-0 z-50 glass-header border-b border-purple-accent/30">
+      <div className="absolute top-0 left-0 right-0 z-50 neo-glass-card border-b border-neo-border rounded-none">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-2 sm:px-4 py-3 gap-2 sm:gap-0">
           {/* Left side - Title and Welcome */}
           <div className="flex items-center gap-2 sm:gap-4 justify-center sm:justify-start">
-            <h2 className="text-white font-bold text-base sm:text-lg glow-purple">👑 KingGames</h2>
-            <span className="text-white text-sm sm:text-base hidden sm:inline">
+            <h2 className="text-neo-accent font-heading font-bold text-base sm:text-lg neon-glow-mint">👑 KingGames</h2>
+            <span className="text-neo-text text-sm sm:text-base hidden sm:inline">
               Welcome, {user?.username}
             </span>
-            <span className="text-white text-sm sm:hidden">
+            <span className="text-neo-text text-sm sm:hidden">
               Hi, {user?.username}
             </span>
           </div>
@@ -69,7 +69,7 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
               onClick={handleLogout}
               variant="outline"
               size="sm"
-              className="glass-button border-purple-accent/50 text-white hover:border-purple-accent text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
+              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2"
             >
               <span className="hidden sm:inline">Sign Out</span>
               <span className="sm:hidden">Out</span>
@@ -83,91 +83,83 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
         <div className="max-w-4xl mx-auto">
           {/* Available Games */}
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-white mb-4">Available Games</h2>
+            <h2 className="text-2xl font-heading font-bold text-neo-accent mb-4">Available Games</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Lucky 7 Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-white text-xl flex items-center gap-2">
-                    🎰 Lucky 7
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-white text-sm">
+              <div className="neo-glass-card p-6">
+                <h3 className="text-neo-accent text-xl font-heading font-bold flex items-center gap-2 mb-4">
+                  🎰 Lucky 7
+                </h3>
+                <div className="space-y-4">
+                  <p className="text-neo-text-secondary text-sm">
                     Bet on card outcomes in this fast-paced casino classic. Will it be red or black? Higher or lower than 7?
                   </p>
                   <div className="flex flex-col gap-2">
                     <Button 
-                      className="glass-button text-white font-bold py-3 px-6 glow-purple w-full border-purple-accent/50 hover:border-purple-accent"
+                      className="bg-neo-accent hover:bg-gradient-hover text-neo-bg font-heading font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 w-full"
                       onClick={onNavigateToGame}
                     >
                       🎮 Play Lucky 7
                     </Button>
-                    <div className="flex gap-2">
-                      <span className="text-xs text-white bg-white/10 px-2 py-1 rounded">Multi-bet</span>
-                      <span className="text-xs text-white bg-white/10 px-2 py-1 rounded">Live Rounds</span>
-                      <span className="text-xs text-white bg-white/10 px-2 py-1 rounded">20s Betting</span>
+                    <div className="flex gap-2 flex-wrap">
+                      <span className="text-xs text-neo-text bg-white/10 px-2 py-1 rounded-lg border border-neo-border">Multi-bet</span>
+                      <span className="text-xs text-neo-text bg-white/10 px-2 py-1 rounded-lg border border-neo-border">Live Rounds</span>
+                      <span className="text-xs text-neo-text bg-white/10 px-2 py-1 rounded-lg border border-neo-border">20s Betting</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* Coin Toss Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-white text-xl flex items-center gap-2">
-                    🪙 Coin Toss
-                    <span className="text-xs bg-purple-accent/80 text-white px-2 py-1 rounded ml-auto">NEW</span>
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-white text-sm">
+              <div className="neo-glass-card p-6">
+                <h3 className="text-neo-accent text-xl font-heading font-bold flex items-center gap-2 mb-4">
+                  🪙 Coin Toss
+                  <span className="text-xs bg-neo-accent-secondary text-white px-2 py-1 rounded ml-auto">NEW</span>
+                </h3>
+                <div className="space-y-4">
+                  <p className="text-neo-text-secondary text-sm">
                     Simple yet exciting! Bet on Heads or Tails in quick 30-second rounds with real-time results.
                   </p>
                   <div className="flex flex-col gap-2">
                     <Button 
-                      className="glass-button text-white font-bold py-3 px-6 w-full border-purple-accent/50 hover:border-purple-accent glow-purple"
+                      className="bg-neo-accent hover:bg-gradient-hover text-neo-bg font-heading font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 w-full"
                       onClick={onNavigateToCoinToss}
                     >
                       🎮 Play Coin Toss
                     </Button>
-                    <div className="flex gap-2">
-                      <span className="text-xs text-white bg-white/10 px-2 py-1 rounded">Quick Rounds</span>
-                      <span className="text-xs text-white bg-white/10 px-2 py-1 rounded">2x Payout</span>
-                      <span className="text-xs text-white bg-white/10 px-2 py-1 rounded">30s Game</span>
+                    <div className="flex gap-2 flex-wrap">
+                      <span className="text-xs text-neo-text bg-white/10 px-2 py-1 rounded-lg border border-neo-border">Quick Rounds</span>
+                      <span className="text-xs text-neo-text bg-white/10 px-2 py-1 rounded-lg border border-neo-border">2x Payout</span>
+                      <span className="text-xs text-neo-text bg-white/10 px-2 py-1 rounded-lg border border-neo-border">30s Game</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </div>
           </div>
 
           {/* Stats and Betting History */}
           {!showHistory ? (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-white text-xl">Your Stats</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between items-center">
-                  <p className="text-white">Ready to play and build your game history!</p>
-                  <Button 
-                    variant="outline"
-                    className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
-                    onClick={() => setShowHistory(true)}
-                  >
-                    📊 View History
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="neo-glass-card p-6">
+              <h3 className="text-neo-accent text-xl font-heading font-bold mb-4">Your Stats</h3>
+              <div className="flex justify-between items-center">
+                <p className="text-neo-text-secondary">Ready to play and build your game history!</p>
+                <Button 
+                  variant="outline"
+                  className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+                  onClick={() => setShowHistory(true)}
+                >
+                  📊 View History
+                </Button>
+              </div>
+            </div>
           ) : (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-white">Betting History</h2>
+                <h2 className="text-2xl font-heading font-bold text-neo-accent">Betting History</h2>
                 <Button 
                   variant="outline"
-                  className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
+                  className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
                   onClick={() => setShowHistory(false)}
                 >
                   ← Back to Dashboard
