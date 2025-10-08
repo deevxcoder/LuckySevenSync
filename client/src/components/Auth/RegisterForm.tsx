@@ -3,6 +3,7 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Label } from '../ui/label';
+import { UserPlus, ArrowLeft } from 'lucide-react';
 
 interface RegisterFormProps {
   onRegister: (username: string, password: string) => Promise<void>;
@@ -51,6 +52,9 @@ export default function RegisterForm({ onRegister, onSwitchToLogin, onBackToHome
     <div className="min-h-screen bg-neo-bg flex items-center justify-center p-4">
       <Card className="w-full max-w-md neo-glass-card">
         <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <UserPlus className="w-12 h-12 text-neo-accent" />
+          </div>
           <CardTitle className="heading-primary text-neo-accent mb-2">
             Create Account
           </CardTitle>
@@ -136,10 +140,11 @@ export default function RegisterForm({ onRegister, onSwitchToLogin, onBackToHome
                   <button
                     type="button"
                     onClick={onBackToHome}
-                    className="text-neo-accent hover:text-neo-accent/80 font-semibold transition-colors"
+                    className="text-neo-accent hover:text-neo-accent/80 font-semibold transition-colors inline-flex items-center gap-1"
                     disabled={isLoading}
                   >
-                    ← Back to Home
+                    <ArrowLeft className="w-4 h-4" />
+                    Back to Home
                   </button>
                 </p>
               )}

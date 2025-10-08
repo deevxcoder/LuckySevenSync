@@ -5,6 +5,7 @@ import { HeaderWallet } from '../HeaderWallet';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
 import { socket } from '../../lib/socket';
 import { ComprehensiveBettingHistory } from '../ComprehensiveBettingHistory';
+import { Crown, Sparkles, Play, Coins, BarChart, ArrowLeft } from 'lucide-react';
 
 
 interface UserDashboardProps {
@@ -53,7 +54,10 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-2 sm:px-4 py-3 gap-2 sm:gap-0">
           {/* Left side - Title and Welcome */}
           <div className="flex items-center gap-2 sm:gap-4 justify-center sm:justify-start">
-            <h2 className="text-neo-accent font-heading font-bold text-base sm:text-lg">👑 KingGames</h2>
+            <h2 className="text-neo-accent font-heading font-bold text-base sm:text-lg flex items-center gap-2">
+              <Crown className="w-5 h-5" />
+              KingGames
+            </h2>
             <span className="text-neo-text text-sm sm:text-base hidden sm:inline">
               Welcome, {user?.username}
             </span>
@@ -88,7 +92,8 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
               {/* Lucky 7 Card */}
               <div className="neo-glass-card p-6">
                 <h3 className="text-neo-accent text-xl font-heading font-bold flex items-center gap-2 mb-4">
-                  🎰 Lucky 7
+                  <Sparkles className="w-6 h-6" />
+                  Lucky 7
                 </h3>
                 <div className="space-y-4">
                   <p className="text-neo-text-secondary text-sm">
@@ -96,10 +101,11 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
                   </p>
                   <div className="flex flex-col gap-2">
                     <Button 
-                      className="bg-neo-accent hover:bg-gradient-hover text-neo-bg font-heading font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 w-full"
+                      className="bg-neo-accent hover:bg-gradient-hover text-neo-bg font-heading font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 w-full flex items-center justify-center gap-2"
                       onClick={onNavigateToGame}
                     >
-                      🎮 Play Lucky 7
+                      <Play className="w-5 h-5" />
+                      Play Lucky 7
                     </Button>
                     <div className="flex gap-2 flex-wrap">
                       <span className="text-xs text-neo-text bg-white/10 px-2 py-1 rounded-lg border border-neo-border">Multi-bet</span>
@@ -113,7 +119,8 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
               {/* Coin Toss Card */}
               <div className="neo-glass-card p-6">
                 <h3 className="text-neo-accent text-xl font-heading font-bold flex items-center gap-2 mb-4">
-                  🪙 Coin Toss
+                  <Coins className="w-6 h-6" />
+                  Coin Toss
                   <span className="text-xs bg-neo-accent-secondary text-white px-2 py-1 rounded ml-auto">NEW</span>
                 </h3>
                 <div className="space-y-4">
@@ -122,10 +129,11 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
                   </p>
                   <div className="flex flex-col gap-2">
                     <Button 
-                      className="bg-neo-accent hover:bg-gradient-hover text-neo-bg font-heading font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 w-full"
+                      className="bg-neo-accent hover:bg-gradient-hover text-neo-bg font-heading font-semibold py-3 px-6 rounded-xl transition-all duration-300 hover:scale-105 w-full flex items-center justify-center gap-2"
                       onClick={onNavigateToCoinToss}
                     >
-                      🎮 Play Coin Toss
+                      <Play className="w-5 h-5" />
+                      Play Coin Toss
                     </Button>
                     <div className="flex gap-2 flex-wrap">
                       <span className="text-xs text-neo-text bg-white/10 px-2 py-1 rounded-lg border border-neo-border">Quick Rounds</span>
@@ -146,10 +154,11 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
                 <p className="text-neo-text-secondary">Ready to play and build your game history!</p>
                 <Button 
                   variant="outline"
-                  className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+                  className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300 flex items-center gap-2"
                   onClick={() => setShowHistory(true)}
                 >
-                  📊 View History
+                  <BarChart className="w-4 h-4" />
+                  View History
                 </Button>
               </div>
             </div>
@@ -159,10 +168,11 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
                 <h2 className="text-2xl font-heading font-bold text-neo-accent">Betting History</h2>
                 <Button 
                   variant="outline"
-                  className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+                  className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300 flex items-center gap-2"
                   onClick={() => setShowHistory(false)}
                 >
-                  ← Back to Dashboard
+                  <ArrowLeft className="w-4 h-4" />
+                  Back to Dashboard
                 </Button>
               </div>
               <ComprehensiveBettingHistory />

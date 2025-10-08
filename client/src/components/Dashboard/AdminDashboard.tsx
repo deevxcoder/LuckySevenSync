@@ -5,6 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '.
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../ui/dialog';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
+import { Settings, CheckCircle, Users, BarChart, Ban, Coins, Gamepad2, RefreshCw, History, TrendingUp, Target, Dice1, Clock, AlertTriangle, Check, X, DollarSign, Cog } from 'lucide-react';
 
 interface AdminUser {
   id: number;
@@ -367,8 +368,9 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="neo-glass-card p-6 mb-6 flex justify-between items-center" style={{ borderRadius: 0 }}>
           <div>
-            <h1 className="text-3xl font-heading font-bold text-neo-accent">
-              🛠️ Admin Dashboard
+            <h1 className="text-3xl font-heading font-bold text-neo-accent flex items-center gap-3">
+              <Settings className="w-8 h-8" />
+              Admin Dashboard
             </h1>
             <p className="text-neo-text-secondary mt-1">
               Manage KingGames users and game oversight
@@ -403,8 +405,9 @@ export default function AdminDashboard() {
 
           <div className="neo-glass-card p-6">
             <h3 className="text-neo-accent text-lg font-heading font-semibold mb-2">System Status</h3>
-            <div className="text-3xl font-mono font-bold text-neo-success">
-              ✅ Online
+            <div className="text-3xl font-mono font-bold text-neo-success flex items-center gap-2">
+              <CheckCircle className="w-8 h-8" />
+              Online
             </div>
             <p className="text-neo-text-secondary text-sm">All systems operational</p>
           </div>
@@ -412,7 +415,10 @@ export default function AdminDashboard() {
 
         {/* Users Management */}
         <div className="neo-glass-card p-6">
-          <h2 className="text-neo-accent text-xl font-heading font-bold mb-6">👥 User Management</h2>
+          <h2 className="text-neo-accent text-xl font-heading font-bold mb-6 flex items-center gap-2">
+            <Users className="w-6 h-6" />
+            User Management
+          </h2>
           
           {isLoading ? (
             <div className="text-center text-neo-text py-8">
@@ -502,7 +508,7 @@ export default function AdminDashboard() {
                               className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
                               onClick={() => handleViewUserStats(user.id)}
                             >
-                              📊
+                              <BarChart className="w-4 h-4" />
                             </Button>
                             {user.role !== 'admin' && (
                               <>
@@ -514,7 +520,7 @@ export default function AdminDashboard() {
                                     : 'border-red-500 text-red-400 hover:bg-red-500'} hover:text-white`}
                                   onClick={() => handleToggleUserStatus(user.id, user.status === 'blocked' ? 'active' : 'blocked')}
                                 >
-                                  {user.status === 'blocked' ? '✅' : '🚫'}
+                                  {user.status === 'blocked' ? <Check className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
                                 </Button>
                                 <Button
                                   size="sm"
@@ -522,7 +528,7 @@ export default function AdminDashboard() {
                                   className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
                                   onClick={() => handleManageFunds(user.id, user.username)}
                                 >
-                                  💰
+                                  <DollarSign className="w-4 h-4" />
                                 </Button>
                               </>
                             )}
@@ -538,30 +544,37 @@ export default function AdminDashboard() {
 
         {/* Game Management */}
         <div className="neo-glass-card p-6 mt-6">
-          <h2 className="text-neo-accent text-xl font-heading font-bold mb-6">🎮 Game Management</h2>
+          <h2 className="text-neo-accent text-xl font-heading font-bold mb-6 flex items-center gap-2">
+            <Gamepad2 className="w-6 h-6" />
+            Game Management
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <Button 
               className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading font-semibold py-3 px-4 transition-all duration-300"
             >
-              🔄 Restart Games
+              <RefreshCw className="w-4 h-4 inline mr-2" />
+              Restart Games
             </Button>
             <Button 
               variant="outline"
               className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
             >
-              📊 Game History
+              <History className="w-4 h-4 inline mr-2" />
+              Game History
             </Button>
             <Button 
               variant="outline"
               className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
             >
-              ⚙️ Game Settings
+              <Cog className="w-4 h-4 inline mr-2" />
+              Game Settings
             </Button>
             <Button 
               variant="outline"
               className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
             >
-              📈 Analytics
+              <TrendingUp className="w-4 h-4 inline mr-2" />
+              Analytics
             </Button>
           </div>
         </div>
@@ -751,8 +764,8 @@ export default function AdminDashboard() {
           background: 'linear-gradient(135deg, rgba(234, 179, 8, 0.1) 0%, rgba(202, 138, 4, 0.1) 100%)',
           borderColor: 'rgba(234, 179, 8, 0.3)'
         }}>
-          <h2 className="text-2xl font-heading font-bold text-neo-accent flex items-center mb-6">
-            <span className="mr-2">🪙</span>
+          <h2 className="text-2xl font-heading font-bold text-neo-accent flex items-center gap-2 mb-6">
+            <Coins className="w-7 h-7" />
             Coin Toss Results Control
           </h2>
             {isLoadingCoinTossRound ? (
@@ -777,18 +790,27 @@ export default function AdminDashboard() {
                     </div>
                   </div>
 
-                  <h4 className="text-yellow-300 font-semibold mb-3">💰 Betting Statistics:</h4>
+                  <h4 className="text-yellow-300 font-semibold mb-3 flex items-center gap-2">
+                    <DollarSign className="w-5 h-5" />
+                    Betting Statistics:
+                  </h4>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-yellow-900/50 p-3 rounded border border-yellow-400">
                       <div className="text-center">
-                        <div className="text-yellow-300 font-semibold">🪙 Heads</div>
+                        <div className="text-yellow-300 font-semibold flex items-center justify-center gap-2">
+                          <Coins className="w-4 h-4" />
+                          Heads
+                        </div>
                         <div className="text-white text-lg">{coinTossRound.betsByType.heads}</div>
                         <div className="text-gray-300 text-sm">chips</div>
                       </div>
                     </div>
                     <div className="bg-yellow-900/50 p-3 rounded border border-blue-400">
                       <div className="text-center">
-                        <div className="text-blue-300 font-semibold">🎯 Tails</div>
+                        <div className="text-blue-300 font-semibold flex items-center justify-center gap-2">
+                          <Target className="w-4 h-4" />
+                          Tails
+                        </div>
                         <div className="text-white text-lg">{coinTossRound.betsByType.tails}</div>
                         <div className="text-gray-300 text-sm">chips</div>
                       </div>
@@ -798,10 +820,16 @@ export default function AdminDashboard() {
 
                 {coinTossRound.currentResult && (
                   <div className="border-t border-yellow-600 pt-6 mb-6">
-                    <h4 className="text-yellow-300 font-semibold mb-3">🎲 Current System Result:</h4>
+                    <h4 className="text-yellow-300 font-semibold mb-3 flex items-center gap-2">
+                      <Dice1 className="w-5 h-5" />
+                      Current System Result:
+                    </h4>
                     <div className="bg-blue-900/20 border border-blue-500 p-4 rounded">
                       <div className="text-center">
-                        <div className="text-blue-200 text-sm mb-2">🪙 Generated Result:</div>
+                        <div className="text-blue-200 text-sm mb-2 flex items-center justify-center gap-2">
+                          <Coins className="w-4 h-4" />
+                          Generated Result:
+                        </div>
                         <div className="text-3xl font-bold text-yellow-400">
                           {coinTossRound.currentResult.toUpperCase()}
                         </div>
@@ -811,13 +839,17 @@ export default function AdminDashboard() {
                 )}
 
                 <div className="border-t border-yellow-600 pt-4">
-                  <h4 className="text-yellow-300 font-semibold mb-3">⚠️ Admin Override Results:</h4>
+                  <h4 className="text-yellow-300 font-semibold mb-3 flex items-center gap-2">
+                    <AlertTriangle className="w-5 h-5" />
+                    Admin Override Results:
+                  </h4>
                   
                   {coinTossRound.status === 'countdown' && coinTossRound.timeRemaining && (
                     <div className="bg-yellow-900/20 border border-yellow-500 p-4 rounded mb-4">
                       <div className="flex items-center justify-center">
-                        <div className="text-yellow-300 font-bold text-lg">
-                          ⏰ Override Window: {Math.max(0, Math.ceil(coinTossRound.timeRemaining))}s remaining
+                        <div className="text-yellow-300 font-bold text-lg flex items-center gap-2">
+                          <Clock className="w-5 h-5" />
+                          Override Window: {Math.max(0, Math.ceil(coinTossRound.timeRemaining))}s remaining
                         </div>
                       </div>
                       <p className="text-yellow-200 text-sm text-center mt-2">
@@ -827,8 +859,9 @@ export default function AdminDashboard() {
                   )}
                   
                   <div className="bg-red-900/20 border border-red-500 p-4 rounded mb-4">
-                    <p className="text-red-300 text-sm font-medium">
-                      ⚠️ WARNING: This will override the natural coin toss result and manually set the outcome.
+                    <p className="text-red-300 text-sm font-medium flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                      <span>WARNING: This will override the natural coin toss result and manually set the outcome.</span>
                       Use only when necessary for game management or correction purposes.
                     </p>
                   </div>
@@ -839,14 +872,16 @@ export default function AdminDashboard() {
                       className="bg-yellow-600 hover:bg-yellow-700 text-white py-6 text-lg"
                       disabled={coinTossRound.status !== 'countdown'}
                     >
-                      🪙 Force Heads Win
+                      <Coins className="w-5 h-5 inline mr-2" />
+                      Force Heads Win
                     </Button>
                     <Button
                       onClick={() => handleCoinTossOverrideResult('tails')}
                       className="bg-blue-600 hover:bg-blue-700 text-white py-6 text-lg"
                       disabled={coinTossRound.status !== 'countdown'}
                     >
-                      🎯 Force Tails Win
+                      <Target className="w-5 h-5 inline mr-2" />
+                      Force Tails Win
                     </Button>
                   </div>
                   
@@ -868,7 +903,10 @@ export default function AdminDashboard() {
         <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
           <DialogContent className="neo-glass-card border-neo-accent/30">
             <DialogHeader>
-              <DialogTitle className="text-neo-accent font-heading font-bold">⚠️ Confirm Result Override</DialogTitle>
+              <DialogTitle className="text-neo-accent font-heading font-bold flex items-center gap-2">
+                <AlertTriangle className="w-6 h-6" />
+                Confirm Result Override
+              </DialogTitle>
             </DialogHeader>
             <div className="py-4">
               <p className="text-neo-text text-center">
@@ -941,8 +979,8 @@ export default function AdminDashboard() {
         {/* Success Message */}
         {showSuccessMessage && (
           <div className="fixed top-4 right-4 neo-glass-card border-2 border-neo-success text-neo-text px-6 py-3 rounded-xl shadow-lg z-50 neon-glow-success animate-fade-in">
-            <div className="flex items-center font-heading">
-              <span className="mr-2">✅</span>
+            <div className="flex items-center font-heading gap-2">
+              <Check className="w-5 h-5" />
               {showSuccessMessage}
             </div>
           </div>
@@ -951,8 +989,8 @@ export default function AdminDashboard() {
         {/* Error Message */}
         {showErrorMessage && (
           <div className="fixed top-4 right-4 neo-glass-card border-2 border-neo-danger text-neo-text px-6 py-3 rounded-xl shadow-lg z-50 animate-fade-in">
-            <div className="flex items-center font-heading">
-              <span className="mr-2">❌</span>
+            <div className="flex items-center font-heading gap-2">
+              <X className="w-5 h-5" />
               {showErrorMessage}
             </div>
           </div>

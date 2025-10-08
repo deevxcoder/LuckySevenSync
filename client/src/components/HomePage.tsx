@@ -1,5 +1,6 @@
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
+import { Crown, Sparkles, Lock, Rocket, Target, Clock, Spade, Users, CheckCircle, Coins, Zap, Shield, BarChart, Globe, Gamepad2, Music, Trophy } from 'lucide-react';
 
 interface HomePageProps {
   onLoginClick: () => void;
@@ -14,8 +15,9 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
         background: 'radial-gradient(circle at 50% 0%, rgba(0, 255, 198, 0.1) 0%, transparent 50%)',
       }}>
         <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-6xl font-heading font-extrabold text-neo-accent mb-4">
-            👑 King Games
+          <h1 className="text-6xl font-heading font-extrabold text-neo-accent mb-4 flex items-center justify-center gap-4">
+            <Crown className="w-16 h-16" />
+            King Games
           </h1>
           <p className="text-2xl text-neo-text mb-8 font-heading">
             The Premier Gaming Platform for Synchronized Card Games
@@ -23,16 +25,18 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               onClick={onSignupClick}
-              className="bg-neo-accent hover:bg-gradient-hover text-neo-bg font-heading font-semibold py-6 px-10 text-lg rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-neo-accent/50"
+              className="bg-neo-accent hover:bg-gradient-hover text-neo-bg font-heading font-semibold py-6 px-10 text-lg rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-neo-accent/50 flex items-center gap-2"
             >
-              🎰 Join the Action
+              <Sparkles className="w-5 h-5" />
+              Join the Action
             </Button>
             <Button 
               onClick={onLoginClick}
               variant="outline"
-              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading font-semibold py-6 px-10 text-lg rounded-xl transition-all duration-300 hover:scale-105"
+              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading font-semibold py-6 px-10 text-lg rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
             >
-              🔐 Sign In
+              <Lock className="w-5 h-5" />
+              Sign In
             </Button>
           </div>
         </div>
@@ -41,16 +45,18 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
       {/* Featured Game Section */}
       <div className="py-20 px-4">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-heading font-bold text-neo-accent text-center mb-12">
-            🎯 Featured Game: Lucky 7
+          <h2 className="text-4xl font-heading font-bold text-neo-accent text-center mb-12 flex items-center justify-center gap-3">
+            <Target className="w-10 h-10" />
+            Featured Game: Lucky 7
           </h2>
           
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             {/* Game Description */}
             <div className="neo-glass-card p-8">
               <div className="mb-6">
-                <h3 className="text-3xl font-heading font-bold text-neo-accent mb-2">
-                  🎰 Lucky 7 🎰
+                <h3 className="text-3xl font-heading font-bold text-neo-accent mb-2 flex items-center gap-3">
+                  <Sparkles className="w-8 h-8" />
+                  Lucky 7
                 </h3>
                 <p className="text-neo-text text-lg">
                   The Ultimate Synchronized Card Experience
@@ -64,23 +70,23 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
                 
                 <div className="space-y-3 text-neo-text">
                   <div className="flex items-center gap-3">
-                    <span className="text-neo-accent text-xl">🕐</span>
+                    <Clock className="text-neo-accent w-5 h-5" />
                     <span>Real-time synchronized gameplay</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-neo-accent text-xl">🃏</span>
+                    <Spade className="text-neo-accent w-5 h-5" />
                     <span>Cards numbered 1-13 in red and black</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-neo-accent text-xl">👥</span>
+                    <Users className="text-neo-accent w-5 h-5" />
                     <span>Play with up to 10 players simultaneously</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-neo-accent text-xl">🎯</span>
+                    <CheckCircle className="text-neo-accent w-5 h-5" />
                     <span>Everyone sees identical results - no cheating!</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-neo-accent text-xl">💰</span>
+                    <Coins className="text-neo-accent w-5 h-5" />
                     <span>Virtual chips betting system</span>
                   </div>
                 </div>
@@ -112,13 +118,16 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
         background: 'linear-gradient(180deg, transparent 0%, rgba(0, 255, 198, 0.05) 50%, transparent 100%)',
       }}>
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-4xl font-heading font-bold text-neo-accent text-center mb-12">
-            🏆 Platform Features
+          <h2 className="text-4xl font-heading font-bold text-neo-accent text-center mb-12 flex items-center justify-center gap-3">
+            <Trophy className="w-10 h-10" />
+            Platform Features
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="neo-glass-card p-6 text-center">
-              <div className="text-5xl mb-4">⚡</div>
+              <div className="flex justify-center mb-4">
+                <Zap className="w-12 h-12 text-neo-accent" />
+              </div>
               <h3 className="text-xl font-heading font-semibold text-neo-accent mb-3">Lightning Fast</h3>
               <p className="text-neo-text-secondary">
                 Real-time gameplay with sub-second synchronization across all players worldwide.
@@ -126,7 +135,9 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
             </div>
 
             <div className="neo-glass-card p-6 text-center">
-              <div className="text-5xl mb-4">🔒</div>
+              <div className="flex justify-center mb-4">
+                <Shield className="w-12 h-12 text-neo-accent" />
+              </div>
               <h3 className="text-xl font-heading font-semibold text-neo-accent mb-3">Secure & Fair</h3>
               <p className="text-neo-text-secondary">
                 Advanced security measures and transparent gameplay ensure everyone gets a fair shot.
@@ -134,7 +145,9 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
             </div>
 
             <div className="neo-glass-card p-6 text-center">
-              <div className="text-5xl mb-4">📊</div>
+              <div className="flex justify-center mb-4">
+                <BarChart className="w-12 h-12 text-neo-accent" />
+              </div>
               <h3 className="text-xl font-heading font-semibold text-neo-accent mb-3">Track Progress</h3>
               <p className="text-neo-text-secondary">
                 Comprehensive dashboard with game history, statistics, and performance analytics.
@@ -142,7 +155,9 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
             </div>
 
             <div className="neo-glass-card p-6 text-center">
-              <div className="text-5xl mb-4">🌍</div>
+              <div className="flex justify-center mb-4">
+                <Globe className="w-12 h-12 text-neo-accent" />
+              </div>
               <h3 className="text-xl font-heading font-semibold text-neo-accent mb-3">Global Community</h3>
               <p className="text-neo-text-secondary">
                 Connect with players from around the world in our thriving gaming community.
@@ -150,7 +165,9 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
             </div>
 
             <div className="neo-glass-card p-6 text-center">
-              <div className="text-5xl mb-4">🎮</div>
+              <div className="flex justify-center mb-4">
+                <Gamepad2 className="w-12 h-12 text-neo-accent" />
+              </div>
               <h3 className="text-xl font-heading font-semibold text-neo-accent mb-3">Easy to Play</h3>
               <p className="text-neo-text-secondary">
                 Simple, intuitive interface that gets you into the action within seconds.
@@ -158,7 +175,9 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
             </div>
 
             <div className="neo-glass-card p-6 text-center">
-              <div className="text-5xl mb-4">🎵</div>
+              <div className="flex justify-center mb-4">
+                <Music className="w-12 h-12 text-neo-accent" />
+              </div>
               <h3 className="text-xl font-heading font-semibold text-neo-accent mb-3">Immersive Audio</h3>
               <p className="text-neo-text-secondary">
                 Rich sound effects and background music enhance your gaming experience.
@@ -171,8 +190,9 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
       {/* About King Games */}
       <div className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="text-4xl font-heading font-bold text-neo-accent mb-8">
-            👑 About King Games
+          <h2 className="text-4xl font-heading font-bold text-neo-accent mb-8 flex items-center justify-center gap-3">
+            <Crown className="w-10 h-10" />
+            About King Games
           </h2>
           
           <div className="neo-glass-card p-10">
@@ -222,16 +242,18 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               onClick={onSignupClick}
-              className="bg-neo-accent hover:bg-gradient-hover text-neo-bg font-heading font-semibold py-6 px-10 text-lg rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-neo-accent/50"
+              className="bg-neo-accent hover:bg-gradient-hover text-neo-bg font-heading font-semibold py-6 px-10 text-lg rounded-xl transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-neo-accent/50 flex items-center gap-2"
             >
-              🚀 Start Playing Now
+              <Rocket className="w-5 h-5" />
+              Start Playing Now
             </Button>
             <Button 
               onClick={onLoginClick}
               variant="outline"
-              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading font-semibold py-6 px-10 text-lg rounded-xl transition-all duration-300 hover:scale-105"
+              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading font-semibold py-6 px-10 text-lg rounded-xl transition-all duration-300 hover:scale-105 flex items-center gap-2"
             >
-              👑 Already a Member?
+              <Crown className="w-5 h-5" />
+              Already a Member?
             </Button>
           </div>
         </div>
@@ -240,8 +262,9 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
       {/* Footer */}
       <div className="py-8 px-4 border-t border-neo-border">
         <div className="max-w-6xl mx-auto text-center">
-          <p className="text-neo-accent text-lg font-heading font-bold mb-2">
-            👑 King Games - Where Every Game is Royal
+          <p className="text-neo-accent text-lg font-heading font-bold mb-2 flex items-center justify-center gap-2">
+            <Crown className="w-6 h-6" />
+            King Games - Where Every Game is Royal
           </p>
           <p className="text-neo-text-secondary text-sm">
             © 2024 King Games. All rights reserved. Play responsibly.
