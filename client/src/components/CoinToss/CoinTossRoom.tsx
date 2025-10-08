@@ -15,7 +15,7 @@ interface Bet {
   amount: number;
 }
 
-const QUICK_AMOUNTS = [10, 20, 50, 100];
+const QUICK_AMOUNTS = [10, 20, 50, 100, 500, 1000, 5000];
 const MULTIPLIERS = [2, 5, 10];
 
 export default function CoinTossRoom() {
@@ -417,6 +417,9 @@ export default function CoinTossRoom() {
 
   const bettingWindowClosed = gameStatus !== 'countdown' || countdownTime <= 10;
   const remainingChips = (playerChips ?? 0) - totalBetAmount;
+  
+  const headsBetTotal = currentBets.filter(bet => bet.type === 'heads').reduce((sum, bet) => sum + bet.amount, 0);
+  const tailsBetTotal = currentBets.filter(bet => bet.type === 'tails').reduce((sum, bet) => sum + bet.amount, 0);
 
   return (
     <div 
@@ -516,6 +519,11 @@ export default function CoinTossRoom() {
             <div className="text-sm font-heading font-bold text-neo-accent">Heads</div>
             <div className="text-xs text-neo-text-secondary">Bet Heads</div>
             <div className="text-xs text-white font-mono font-semibold">Odds 1:1</div>
+            {headsBetTotal > 0 && (
+              <div className="text-xs font-mono font-bold text-neo-accent mt-1">
+                ${headsBetTotal}
+              </div>
+            )}
           </button>
 
           {/* Center - Timer */}
@@ -617,6 +625,11 @@ export default function CoinTossRoom() {
             <div className="text-sm font-heading font-bold text-neo-accent-secondary">Tails</div>
             <div className="text-xs text-neo-text-secondary">Bet Tails</div>
             <div className="text-xs text-white font-mono font-semibold">Odds 1:1</div>
+            {tailsBetTotal > 0 && (
+              <div className="text-xs font-mono font-bold text-neo-accent-secondary mt-1">
+                ${tailsBetTotal}
+              </div>
+            )}
           </button>
         </div>
 
