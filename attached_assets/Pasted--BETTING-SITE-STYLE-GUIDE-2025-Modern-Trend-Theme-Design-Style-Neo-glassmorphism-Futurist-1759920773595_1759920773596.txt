@@ -1,0 +1,98 @@
+🎨 BETTING SITE STYLE GUIDE (2025 Modern Trend)
+🧱 Theme
+
+Design Style: Neo-glassmorphism + Futuristic minimalism
+
+Mood: Premium, Trustworthy, Real-time excitement
+
+Layout: Card-based grid on dark background
+
+🌈 Color Palette
+Use	Color	Notes
+Background (Primary)	#0E0E0E	Deep black for contrast
+Card Background	rgba(26,26,26,0.85)	Slight transparency with blur
+Accent (Primary)	#00FFC6	Neon mint glow
+Accent (Secondary)	#FF005C	Energetic pink highlight
+Text Primary	#FFFFFF	White for readability
+Text Secondary	#A0A0A0	For odds, descriptions
+Button Hover Gradient	linear-gradient(90deg, #00FFC6 0%, #005BFF 100%)	Futuristic hover effect
+Success / Win	#4ADE80	Green glow
+Loss / Danger	#EF4444	Red tone for losing bets
+Border / Divider	rgba(255,255,255,0.1)	Subtle card borders
+🖋️ Typography
+Element	Font	Weight	Size
+Logo / Headings	Poppins / Inter	700–800	24–32px
+Body Text	Manrope / Roboto	400–500	14–16px
+Buttons / Tabs	Poppins	600	14–18px
+Numbers / Odds	JetBrains Mono / Inter	600	16–18px
+🧩 UI Components
+
+Cards
+
+Rounded corners: 16px
+
+Shadow: 0 4px 20px rgba(0,0,0,0.4)
+
+Hover: glow border #00FFC6 with inner light blur
+
+Buttons
+
+Border-radius: 12px
+
+Padding: 12px 24px
+
+Background: Gradient or neon border
+
+Hover: Soft glow / motion scale (1.05x)
+
+Tabs
+
+Underline animation (accent color)
+
+Active tab color: #00FFC6
+
+Input Fields
+
+Background: rgba(255,255,255,0.05)
+
+Border: 1px solid rgba(255,255,255,0.15)
+
+Focus: Glow outline #00FFC6
+
+💡 Effects & Animations
+
+Microinteractions: Odds update flashes in accent color
+
+Card Hover: Slight lift (translateY(-4px))
+
+CTA Buttons: Neon pulse or gradient slide
+
+Live Indicator: Blinking dot (animation: pulse 1.2s infinite)
+
+🧠 Layout Spacing
+
+Container width: 1200px max
+
+Section padding: 80px vertical
+
+Card gap: 24px
+
+Line height: 1.6
+
+🔰 Iconography & Assets
+
+Icon pack: Lucide / Feather / Phosphor
+
+Icon color: #00FFC6 (accent) or #FFFFFF
+
+Style: Outline with glow shadow
+
+Team logos & badges: Slight 3D emboss
+
+🌙 Dark Mode Enhancements
+
+Background blur for panels (backdrop-filter: blur(12px))
+
+Neon accent glows (box-shadow: 0 0 8px #00FFC6)
+
+Subtle motion gradients for hero section background
