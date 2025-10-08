@@ -23,10 +23,10 @@ export default function CoinTossRoom() {
   const [currentResult, setCurrentResult] = useState<'heads' | 'tails' | null>(null);
   const [countdownTime, setCountdownTime] = useState<number>(0);
   const [gameStatus, setGameStatus] = useState<string>('waiting');
-  const [playerChips, setPlayerChips] = useState<number>(1000);
+  const [playerChips, setPlayerChips] = useState<number | null>(null);
   const [recentResults, setRecentResults] = useState<any[]>([]);
   const [socketId, setSocketId] = useState<string>('');
-  const [totalGameCount, setTotalGameCount] = useState<number>(0);
+  const [totalGameCount, setTotalGameCount] = useState<number | null>(null);
   const [isFlipping, setIsFlipping] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -158,6 +158,7 @@ export default function CoinTossRoom() {
   };
 
   const canPlaceBet = () => {
+    if (playerChips === null) return false;
     const hasEnoughBalance = (playerChips - totalBetAmount) >= selectedAmount;
     return gameStatus === 'countdown' && 
            countdownTime > 10 && 
@@ -167,6 +168,7 @@ export default function CoinTossRoom() {
   };
 
   const getPlaceBetButtonText = () => {
+    if (playerChips === null) return 'LOADING...';
     const hasEnoughBalance = (playerChips - totalBetAmount) >= selectedAmount;
     if (!hasEnoughBalance && selectedBetType) {
       return 'INSUFFICIENT BALANCE';
@@ -252,10 +254,24 @@ export default function CoinTossRoom() {
       console.log('Disconnected from coin toss socket');
     });
 
-    socket.on('coin-toss-room-joined', (data: { room: CoinTossRoomData; player: any }) => {
+    socket.on('coin-toss-room-joined', (data: { room: CoinTossRoomData; player: any; activeBets?: any[]; countdownTime?: number }) => {
       console.log('Joined coin toss room:', data);
       setGameStatus(data.room.status);
       setCurrentResult(data.room.currentResult);
+      
+      if (data.countdownTime !== undefined) {
+        setCountdownTime(data.countdownTime);
+      }
+      
+      if (data.activeBets && data.activeBets.length > 0) {
+        console.log('Restoring active bets:', data.activeBets);
+        const restoredBets: Bet[] = data.activeBets.map(bet => ({
+          type: bet.type,
+          amount: bet.amount
+        }));
+        setCurrentBets(restoredBets);
+        lastValidBetsRef.current = restoredBets;
+      }
     });
 
     socket.on('coin-toss-game-starting', (data: { room: CoinTossRoomData; countdownTime: number }) => {
@@ -394,7 +410,7 @@ export default function CoinTossRoom() {
   }, []);
 
   const bettingWindowClosed = gameStatus !== 'countdown' || countdownTime <= 10;
-  const remainingChips = playerChips - totalBetAmount;
+  const remainingChips = (playerChips ?? 0) - totalBetAmount;
 
   return (
     <div 
@@ -418,7 +434,7 @@ export default function CoinTossRoom() {
             >
               <DollarSign className="w-6 h-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-neo-accent">{playerChips}</span>
+            <span className="text-xl font-bold text-neo-accent">{playerChips ?? '...'}</span>
           </div>
 
           {/* Center - Title & Round */}
@@ -430,7 +446,7 @@ export default function CoinTossRoom() {
               COIN TOSS
             </h1>
             <div className="text-xs text-neo-accent tracking-wider font-mono">
-              ROUND: #{totalGameCount + 1}
+              ROUND: #{totalGameCount !== null ? totalGameCount + 1 : '...'}
             </div>
           </div>
 
