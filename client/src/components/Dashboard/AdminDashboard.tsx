@@ -367,7 +367,7 @@ export default function AdminDashboard() {
         {/* Header */}
         <div className="neo-glass-card p-6 mb-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-neo-accent neon-glow-mint">
+            <h1 className="text-3xl font-heading font-bold text-neo-accent">
               🛠️ Admin Dashboard
             </h1>
             <p className="text-neo-text-secondary mt-1">

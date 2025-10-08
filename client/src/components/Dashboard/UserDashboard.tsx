@@ -53,7 +53,7 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center px-2 sm:px-4 py-3 gap-2 sm:gap-0">
           {/* Left side - Title and Welcome */}
           <div className="flex items-center gap-2 sm:gap-4 justify-center sm:justify-start">
-            <h2 className="text-neo-accent font-heading font-bold text-base sm:text-lg neon-glow-mint">👑 KingGames</h2>
+            <h2 className="text-neo-accent font-heading font-bold text-base sm:text-lg">👑 KingGames</h2>
             <span className="text-neo-text text-sm sm:text-base hidden sm:inline">
               Welcome, {user?.username}
             </span>
