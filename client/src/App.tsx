@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { socket } from './lib/socket';
 import GameLobby from './components/GameLobby';
 import GameRoom from './components/GameRoom';
@@ -7,7 +8,12 @@ import CoinTossRoom from './components/CoinToss/CoinTossRoom';
 import AuthContainer from './components/Auth/AuthContainer';
 import HomePage from './components/HomePage';
 import UserDashboard from './components/Dashboard/UserDashboard';
-import AdminDashboard from './components/Dashboard/AdminDashboard';
+import AdminLayout from './components/Admin/Layout/AdminLayout';
+import Overview from './components/Admin/Pages/Overview';
+import UsersPage from './components/Admin/Pages/Users';
+import GamesPage from './components/Admin/Pages/Games';
+import ResultsControl from './components/Admin/Pages/ResultsControl';
+import AnalyticsPage from './components/Admin/Pages/Analytics';
 import { HeaderWallet } from './components/HeaderWallet';
 import { useGameStore } from './lib/stores/useGameStore';
 import { useAudio } from './lib/stores/useAudio';
@@ -136,7 +142,18 @@ function App() {
   }
 
   if (currentView === 'adminDashboard') {
-    return <AdminDashboard />;
+    return (
+      <BrowserRouter>
+        <Routes>
+          <Route path="/admin" element={<AdminLayout><Overview /></AdminLayout>} />
+          <Route path="/admin/users" element={<AdminLayout><UsersPage /></AdminLayout>} />
+          <Route path="/admin/games" element={<AdminLayout><GamesPage /></AdminLayout>} />
+          <Route path="/admin/results" element={<AdminLayout><ResultsControl /></AdminLayout>} />
+          <Route path="/admin/analytics" element={<AdminLayout><AnalyticsPage /></AdminLayout>} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Routes>
+      </BrowserRouter>
+    );
   }
 
   // Show Andar Bahar game view
