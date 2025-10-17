@@ -4,8 +4,9 @@ import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../ui/dialog';
+import { Input } from '../ui/input';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
-import { Settings, CheckCircle, Users, BarChart, Ban, Coins, Gamepad2, RefreshCw, History, TrendingUp, Target, Dice1, Clock, AlertTriangle, Check, X, DollarSign, Cog } from 'lucide-react';
+import { Settings, CheckCircle, Users, BarChart, Ban, Coins, Gamepad2, RefreshCw, History, TrendingUp, Target, Dice1, Clock, AlertTriangle, Check, X, DollarSign, Cog, Info } from 'lucide-react';
 
 interface AdminUser {
   id: number;
@@ -76,6 +77,20 @@ export default function AdminDashboard() {
   const [pendingCoinTossOverride, setPendingCoinTossOverride] = useState<string | null>(null);
   const [showSuccessMessage, setShowSuccessMessage] = useState<string | null>(null);
   const [showErrorMessage, setShowErrorMessage] = useState<string | null>(null);
+  
+  // User Management Dialog state
+  const [showUserStatsDialog, setShowUserStatsDialog] = useState(false);
+  const [userStatsData, setUserStatsData] = useState<any>(null);
+  const [showStatusConfirmDialog, setShowStatusConfirmDialog] = useState(false);
+  const [statusConfirmData, setStatusConfirmData] = useState<{userId: number; status: string; action: string} | null>(null);
+  const [showFundsDialog, setShowFundsDialog] = useState(false);
+  const [fundsDialogData, setFundsDialogData] = useState<{userId: number; username: string} | null>(null);
+  const [fundsAmount, setFundsAmount] = useState('');
+  const [fundsReason, setFundsReason] = useState('');
+  const [showFundsConfirmDialog, setShowFundsConfirmDialog] = useState(false);
+  const [fundsConfirmData, setFundsConfirmData] = useState<{userId: number; username: string; amount: number; reason: string} | null>(null);
+  const [showAlertDialog, setShowAlertDialog] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -256,7 +271,8 @@ export default function AdminDashboard() {
       const response = await fetch(`/api/admin/users/${userId}/stats`);
       if (response.ok) {
         const data = await response.json();
-        alert(`User Stats for ${data.user.username}:\n\nChips: ${data.stats.chips}\nTotal Wins: ${data.stats.totalWins}\nTotal Losses: ${data.stats.totalLosses}\nWin Rate: ${data.stats.winRate}%\nTotal Bets Amount: ${data.stats.totalBetsAmount}`);
+        setUserStatsData(data);
+        setShowUserStatsDialog(true);
       } else {
         setShowErrorMessage('Failed to fetch user stats');
         setTimeout(() => setShowErrorMessage(null), 3000);
@@ -268,13 +284,17 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleToggleUserStatus = async (userId: number, newStatus: string) => {
+  const handleToggleUserStatus = (userId: number, newStatus: string) => {
     const action = newStatus === 'blocked' ? 'block' : 'unblock';
-    const confirmMessage = `Are you sure you want to ${action} this user?`;
+    setStatusConfirmData({ userId, status: newStatus, action });
+    setShowStatusConfirmDialog(true);
+  };
+
+  const confirmStatusChange = async () => {
+    if (!statusConfirmData) return;
     
-    if (!confirm(confirmMessage)) {
-      return;
-    }
+    const { userId, status: newStatus, action } = statusConfirmData;
+    setShowStatusConfirmDialog(false);
 
     try {
       const response = await fetch(`/api/admin/users/${userId}/status`, {
@@ -308,27 +328,39 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleManageFunds = async (userId: number, username: string) => {
-    const amountStr = prompt(`Enter amount to add/remove from ${username}'s account:\n(Use negative numbers to remove chips)\nExample: 500 to add, -200 to remove`);
-    
-    if (amountStr === null) {
-      return; // User cancelled
-    }
+  const handleManageFunds = (userId: number, username: string) => {
+    setFundsDialogData({ userId, username });
+    setFundsAmount('');
+    setFundsReason('Admin adjustment');
+    setShowFundsDialog(true);
+  };
 
-    const amount = parseFloat(amountStr);
+  const submitFundsDialog = () => {
+    const amount = parseFloat(fundsAmount);
     if (isNaN(amount) || amount === 0) {
-      alert('Please enter a valid number (not zero)');
+      setAlertMessage('Please enter a valid number (not zero)');
+      setShowAlertDialog(true);
       return;
     }
 
-    const reason = prompt('Enter reason for fund adjustment (optional):') || 'Admin adjustment';
+    if (!fundsDialogData) return;
     
     const action = amount > 0 ? 'add' : 'remove';
-    const confirmMessage = `Confirm ${action} ${Math.abs(amount)} chips ${amount > 0 ? 'to' : 'from'} ${username}?\nReason: ${reason}`;
+    setFundsConfirmData({
+      userId: fundsDialogData.userId,
+      username: fundsDialogData.username,
+      amount,
+      reason: fundsReason || 'Admin adjustment'
+    });
+    setShowFundsDialog(false);
+    setShowFundsConfirmDialog(true);
+  };
+
+  const confirmFundsChange = async () => {
+    if (!fundsConfirmData) return;
     
-    if (!confirm(confirmMessage)) {
-      return;
-    }
+    const { userId, username, amount, reason } = fundsConfirmData;
+    setShowFundsConfirmDialog(false);
 
     try {
       const response = await fetch(`/api/admin/users/${userId}/funds`, {
@@ -971,6 +1003,212 @@ export default function AdminDashboard() {
                 className="border-2 border-neo-danger bg-neo-danger/30 text-neo-text hover:bg-neo-danger hover:text-white font-heading transition-all duration-300"
               >
                 Yes, Override Result
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* User Stats Dialog */}
+        <Dialog open={showUserStatsDialog} onOpenChange={setShowUserStatsDialog}>
+          <DialogContent className="neo-glass-card border-neo-accent/30">
+            <DialogHeader>
+              <DialogTitle className="text-neo-accent font-heading font-bold flex items-center gap-2">
+                <BarChart className="w-6 h-6" />
+                User Statistics
+              </DialogTitle>
+            </DialogHeader>
+            {userStatsData && (
+              <div className="py-4 space-y-4">
+                <div className="text-center pb-4 border-b border-neo-border">
+                  <h3 className="text-2xl font-heading font-bold text-neo-accent">{userStatsData.user.username}</h3>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="neo-glass-card p-4">
+                    <p className="text-neo-text-secondary text-sm">Chips</p>
+                    <p className="text-2xl font-mono font-bold text-neo-accent">{userStatsData.stats.chips}</p>
+                  </div>
+                  <div className="neo-glass-card p-4">
+                    <p className="text-neo-text-secondary text-sm">Win Rate</p>
+                    <p className="text-2xl font-mono font-bold text-neo-success">{userStatsData.stats.winRate}%</p>
+                  </div>
+                  <div className="neo-glass-card p-4">
+                    <p className="text-neo-text-secondary text-sm">Total Wins</p>
+                    <p className="text-2xl font-mono font-bold text-neo-text">{userStatsData.stats.totalWins}</p>
+                  </div>
+                  <div className="neo-glass-card p-4">
+                    <p className="text-neo-text-secondary text-sm">Total Losses</p>
+                    <p className="text-2xl font-mono font-bold text-neo-text">{userStatsData.stats.totalLosses}</p>
+                  </div>
+                  <div className="neo-glass-card p-4 col-span-2">
+                    <p className="text-neo-text-secondary text-sm">Total Bets Amount</p>
+                    <p className="text-2xl font-mono font-bold text-neo-accent">{userStatsData.stats.totalBetsAmount}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button
+                onClick={() => setShowUserStatsDialog(false)}
+                className="border-2 border-neo-accent bg-neo-accent/20 text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+              >
+                Close
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Status Confirmation Dialog */}
+        <Dialog open={showStatusConfirmDialog} onOpenChange={setShowStatusConfirmDialog}>
+          <DialogContent className="neo-glass-card border-neo-accent/30">
+            <DialogHeader>
+              <DialogTitle className="text-neo-accent font-heading font-bold flex items-center gap-2">
+                <AlertTriangle className="w-6 h-6" />
+                Confirm User Status Change
+              </DialogTitle>
+            </DialogHeader>
+            {statusConfirmData && (
+              <div className="py-4">
+                <p className="text-neo-text text-center">
+                  Are you sure you want to <span className="text-neo-accent font-bold">{statusConfirmData.action}</span> this user?
+                </p>
+                <p className="text-neo-text-secondary text-sm text-center mt-4">
+                  This action will change the user's account status and may affect their access to the platform.
+                </p>
+              </div>
+            )}
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowStatusConfirmDialog(false)}
+                className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmStatusChange}
+                className="border-2 border-neo-accent bg-neo-accent/30 text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+              >
+                Yes, {statusConfirmData?.action} User
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Manage Funds Dialog */}
+        <Dialog open={showFundsDialog} onOpenChange={setShowFundsDialog}>
+          <DialogContent className="neo-glass-card border-neo-accent/30">
+            <DialogHeader>
+              <DialogTitle className="text-neo-accent font-heading font-bold flex items-center gap-2">
+                <DollarSign className="w-6 h-6" />
+                Manage User Funds
+              </DialogTitle>
+            </DialogHeader>
+            {fundsDialogData && (
+              <div className="py-4 space-y-4">
+                <p className="text-neo-text text-center">
+                  Managing funds for: <span className="text-neo-accent font-bold">{fundsDialogData.username}</span>
+                </p>
+                <div className="space-y-2">
+                  <label className="text-neo-text text-sm">Amount (use negative to remove chips)</label>
+                  <Input
+                    type="number"
+                    placeholder="e.g. 500 to add, -200 to remove"
+                    value={fundsAmount}
+                    onChange={(e) => setFundsAmount(e.target.value)}
+                    className="bg-neo-bg border-neo-accent/50 text-neo-text"
+                  />
+                  <p className="text-neo-text-secondary text-xs">Example: 500 to add 500 chips, -200 to remove 200 chips</p>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-neo-text text-sm">Reason (optional)</label>
+                  <Input
+                    type="text"
+                    placeholder="Enter reason for adjustment"
+                    value={fundsReason}
+                    onChange={(e) => setFundsReason(e.target.value)}
+                    className="bg-neo-bg border-neo-accent/50 text-neo-text"
+                  />
+                </div>
+              </div>
+            )}
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowFundsDialog(false)}
+                className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={submitFundsDialog}
+                className="border-2 border-neo-accent bg-neo-accent/30 text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+              >
+                Continue
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Funds Confirmation Dialog */}
+        <Dialog open={showFundsConfirmDialog} onOpenChange={setShowFundsConfirmDialog}>
+          <DialogContent className="neo-glass-card border-neo-accent/30">
+            <DialogHeader>
+              <DialogTitle className="text-neo-accent font-heading font-bold flex items-center gap-2">
+                <AlertTriangle className="w-6 h-6" />
+                Confirm Funds Adjustment
+              </DialogTitle>
+            </DialogHeader>
+            {fundsConfirmData && (
+              <div className="py-4">
+                <p className="text-neo-text text-center">
+                  Confirm {fundsConfirmData.amount > 0 ? 'adding' : 'removing'} <span className="text-neo-accent font-bold">{Math.abs(fundsConfirmData.amount)} chips</span> {fundsConfirmData.amount > 0 ? 'to' : 'from'} <span className="text-neo-accent font-bold">{fundsConfirmData.username}</span>?
+                </p>
+                <div className="mt-4 neo-glass-card p-3">
+                  <p className="text-neo-text-secondary text-sm">
+                    <span className="font-bold">Reason:</span> {fundsConfirmData.reason}
+                  </p>
+                </div>
+                <p className="text-neo-text-secondary text-xs text-center mt-4">
+                  This action will be logged and cannot be undone automatically.
+                </p>
+              </div>
+            )}
+            <DialogFooter className="gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowFundsConfirmDialog(false)}
+                className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmFundsChange}
+                className="border-2 border-neo-accent bg-neo-accent/30 text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+              >
+                Yes, Adjust Funds
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Alert Dialog */}
+        <Dialog open={showAlertDialog} onOpenChange={setShowAlertDialog}>
+          <DialogContent className="neo-glass-card border-neo-accent/30">
+            <DialogHeader>
+              <DialogTitle className="text-neo-accent font-heading font-bold flex items-center gap-2">
+                <Info className="w-6 h-6" />
+                Alert
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-neo-text text-center">{alertMessage}</p>
+            </div>
+            <DialogFooter>
+              <Button
+                onClick={() => setShowAlertDialog(false)}
+                className="border-2 border-neo-accent bg-neo-accent/20 text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+              >
+                OK
               </Button>
             </DialogFooter>
           </DialogContent>
