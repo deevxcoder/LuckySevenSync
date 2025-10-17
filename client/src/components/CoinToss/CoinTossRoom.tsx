@@ -404,8 +404,11 @@ export default function CoinTossRoom() {
         amount: data.bet.betAmount
       };
       
-      setCurrentBets(prev => [...prev, newBet]);
-      lastValidBetsRef.current = [...currentBets, newBet];
+      setCurrentBets(prev => {
+        const updatedBets = [...prev, newBet];
+        lastValidBetsRef.current = updatedBets;
+        return updatedBets;
+      });
     });
 
     socket.on('coin-toss-bet-error', (data: { message: string }) => {
@@ -425,8 +428,11 @@ export default function CoinTossRoom() {
         type: data.bet.betType,
         amount: data.bet.betAmount
       };
-      setCurrentBets(prev => [...prev, newBet]);
-      lastValidBetsRef.current = [...currentBets, newBet];
+      setCurrentBets(prev => {
+        const updatedBets = [...prev, newBet];
+        lastValidBetsRef.current = updatedBets;
+        return updatedBets;
+      });
     });
 
     if (user && socket.connected && socket.id) {
