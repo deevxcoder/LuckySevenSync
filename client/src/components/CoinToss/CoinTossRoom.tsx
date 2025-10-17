@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { socket } from '../../lib/socket';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
-import { Volume2, VolumeX, X, DollarSign, Coins, Target } from 'lucide-react';
+import { Volume2, VolumeX, X, DollarSign, Coins, Target, RotateCcw, Lock, LockOpen } from 'lucide-react';
 
 interface CoinTossRoomData {
   id: string;
@@ -758,22 +758,22 @@ export default function CoinTossRoom() {
             <button
               onClick={handleRepeatBet}
               disabled={previousRoundBets.length === 0 || bettingWindowClosed || (playerChips !== null && (playerChips - totalBetAmount) < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0))}
-              className={`px-5 py-2 rounded-full text-sm font-heading font-bold transition-all ${
+              className={`p-3 rounded-full text-sm font-heading font-bold transition-all ${
                 previousRoundBets.length > 0 && !bettingWindowClosed && playerChips !== null && (playerChips - totalBetAmount) >= previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)
                   ? 'bg-blue-500/20 text-blue-400 border-2 border-blue-400 hover:bg-blue-500/30 hover:scale-105'
                   : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
               }`}
               style={{
-                minWidth: '100px',
                 boxShadow: previousRoundBets.length > 0 && !bettingWindowClosed ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
               }}
+              title="Repeat Bet"
             >
-              REPEAT BET
+              <RotateCcw className="w-5 h-5" />
             </button>
             <button
               onClick={handleLockBet}
               disabled={!selectedBetType || selectedAmount <= 0 || bettingWindowClosed || playerChips === null || (playerChips - totalBetAmount) < selectedAmount || lockedBet !== null}
-              className={`px-5 py-2 rounded-full text-sm font-heading font-bold transition-all ${
+              className={`p-3 rounded-full text-sm font-heading font-bold transition-all ${
                 selectedBetType && selectedAmount > 0 && !bettingWindowClosed && playerChips !== null && (playerChips - totalBetAmount) >= selectedAmount && lockedBet === null
                   ? 'bg-yellow-500/20 text-yellow-400 border-2 border-yellow-400 hover:bg-yellow-500/30 hover:scale-105'
                   : lockedBet !== null
@@ -781,11 +781,11 @@ export default function CoinTossRoom() {
                   : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
               }`}
               style={{
-                minWidth: '100px',
                 boxShadow: lockedBet ? '0 0 20px rgba(234, 179, 8, 0.6)' : selectedBetType && !bettingWindowClosed ? '0 0 20px rgba(234, 179, 8, 0.4)' : 'none'
               }}
+              title={lockedBet ? 'Bet Locked' : 'Lock Bet'}
             >
-              {lockedBet ? '🔒 LOCKED' : 'LOCK BET'}
+              {lockedBet ? <Lock className="w-5 h-5" /> : <LockOpen className="w-5 h-5" />}
             </button>
           </div>
 
