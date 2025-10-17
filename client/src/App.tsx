@@ -14,6 +14,8 @@ import UsersPage from './components/Admin/Pages/Users';
 import GamesPage from './components/Admin/Pages/Games';
 import ResultsControl from './components/Admin/Pages/ResultsControl';
 import AnalyticsPage from './components/Admin/Pages/Analytics';
+import Lucky7Control from './components/Admin/Pages/GameControls/Lucky7Control';
+import CoinTossControl from './components/Admin/Pages/GameControls/CoinTossControl';
 import { HeaderWallet } from './components/HeaderWallet';
 import { useGameStore } from './lib/stores/useGameStore';
 import { useAudio } from './lib/stores/useAudio';
@@ -149,6 +151,8 @@ function App() {
           <Route path="/admin/users" element={<AdminLayout><UsersPage /></AdminLayout>} />
           <Route path="/admin/games" element={<AdminLayout><GamesPage /></AdminLayout>} />
           <Route path="/admin/results" element={<AdminLayout><ResultsControl /></AdminLayout>} />
+          <Route path="/admin/results/lucky7" element={<AdminLayout><Lucky7Control /></AdminLayout>} />
+          <Route path="/admin/results/cointoss" element={<AdminLayout><CoinTossControl /></AdminLayout>} />
           <Route path="/admin/analytics" element={<AdminLayout><AnalyticsPage /></AdminLayout>} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
