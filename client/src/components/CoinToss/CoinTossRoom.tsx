@@ -610,7 +610,7 @@ export default function CoinTossRoom() {
                 boxShadow: '0 4px 20px rgba(0, 255, 198, 0.4)'
               }}
             >
-              <Coins className="w-9 h-9 text-white" />
+              <span className="text-4xl font-bold text-white">H</span>
             </div>
             <div className="text-base font-heading font-bold text-neo-accent mb-1">Heads</div>
             <div className="text-xs text-neo-text-secondary mb-1">Bet Heads</div>
@@ -722,7 +722,7 @@ export default function CoinTossRoom() {
                 boxShadow: '0 4px 20px rgba(255, 0, 92, 0.4)'
               }}
             >
-              <Target className="w-9 h-9 text-white" />
+              <span className="text-4xl font-bold text-white">T</span>
             </div>
             <div className="text-base font-heading font-bold text-neo-accent-secondary mb-1">Tails</div>
             <div className="text-xs text-neo-text-secondary mb-1">Bet Tails</div>
