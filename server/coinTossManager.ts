@@ -85,6 +85,14 @@ export class CoinTossManager {
 
     for (const [playerId, lockedBet] of Array.from(this.lockedBets.entries())) {
       try {
+        const dbPlayer = await storage.getPlayerByUserId(playerId);
+        if (!dbPlayer) {
+          console.error(`Player ${playerId} not found for locked bet`);
+          continue;
+        }
+
+        await storage.updatePlayerChips(playerId, dbPlayer.chips + lockedBet.amount);
+
         const result = await storage.placeCoinTossBet(
           playerId,
           lockedBet.amount,
@@ -263,7 +271,7 @@ export class CoinTossManager {
             remainingChips: player.chips
           });
 
-          console.log(`Coin toss bet locked: ${player.name} locked ${data.amount} on ${data.betType}`);
+          console.log(`Coin toss bet locked: ${player.name} locked ${data.amount} on ${data.betType} (chips reserved)`);
         } catch (error: any) {
           console.error('Error locking coin toss bet:', error);
           socket.emit('coin-toss-bet-error', { message: error.message });

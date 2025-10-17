@@ -192,7 +192,8 @@ export default function CoinTossRoom() {
 
   const handleRepeatBet = () => {
     if (!lastBet) return;
-    if (!canPlaceBet()) return;
+    if (gameStatus !== 'countdown' || countdownTime <= 10) return;
+    if (playerChips === null || (playerChips - totalBetAmount) < lastBet.amount) return;
     
     setSelectedBetType(lastBet.type);
     setSelectedAmount(lastBet.amount);
