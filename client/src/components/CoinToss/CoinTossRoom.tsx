@@ -590,7 +590,7 @@ export default function CoinTossRoom() {
                 background: 'rgba(0, 255, 198, 0.2)',
                 border: '1px solid #00FFC6'
               }}>
-                ${headsBetTotal}
+                {headsBetTotal}
               </div>
             )}
           </button>
@@ -702,7 +702,7 @@ export default function CoinTossRoom() {
                 background: 'rgba(255, 0, 92, 0.2)',
                 border: '1px solid #FF005C'
               }}>
-                ${tailsBetTotal}
+                {tailsBetTotal}
               </div>
             )}
           </button>
