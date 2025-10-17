@@ -154,8 +154,34 @@ export default function CoinTossRoom() {
     window.dispatchEvent(new CustomEvent('exitCoinToss'));
   };
 
+  const isMobileOrTablet = () => {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const isMobile = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini|mobile/i.test(userAgent);
+    const isTablet = /ipad|android(?!.*mobile)|tablet/i.test(userAgent);
+    const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    return (isMobile || isTablet || isTouchDevice) && window.innerWidth <= 1024;
+  };
+
   const handleFullscreenChange = () => {
-    setIsFullscreen(!!document.fullscreenElement);
+    const isNowFullscreen = !!document.fullscreenElement;
+    setIsFullscreen(isNowFullscreen);
+    
+    // On mobile/tablet, close game if fullscreen is exited
+    if (!isNowFullscreen && isMobileOrTablet()) {
+      console.log('Fullscreen exited on mobile/tablet - closing game');
+      exitFullscreen();
+    }
+  };
+
+  const handleOrientationChange = () => {
+    if (isMobileOrTablet()) {
+      const isLandscape = window.matchMedia('(orientation: landscape)').matches;
+      
+      if (!isLandscape) {
+        console.log('Orientation changed to portrait on mobile/tablet - closing game');
+        exitFullscreen();
+      }
+    }
   };
 
   const canPlaceBet = () => {
@@ -463,6 +489,8 @@ export default function CoinTossRoom() {
 
   useEffect(() => {
     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    window.addEventListener('orientationchange', handleOrientationChange);
+    window.matchMedia('(orientation: landscape)').addEventListener('change', handleOrientationChange);
     
     const timer = setTimeout(() => {
       enterFullscreen();
@@ -470,6 +498,8 @@ export default function CoinTossRoom() {
 
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
+      window.removeEventListener('orientationchange', handleOrientationChange);
+      window.matchMedia('(orientation: landscape)').removeEventListener('change', handleOrientationChange);
       clearTimeout(timer);
       if (document.fullscreenElement) {
         document.exitFullscreen().catch(err => console.error('Error exiting fullscreen on unmount:', err));
