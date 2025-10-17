@@ -10,7 +10,7 @@ export default function ResultsControl() {
       name: 'Lucky 7',
       icon: '🎯',
       description: 'Control and override Lucky 7 card game results during countdown phase',
-      color: 'from-purple-600/20 to-purple-900/20',
+      bgGradient: 'bg-gradient-to-br from-purple-600/20 to-purple-900/20',
       borderColor: 'border-purple-500/30',
       hoverColor: 'hover:border-purple-500',
       route: '/admin/results/lucky7',
@@ -21,7 +21,7 @@ export default function ResultsControl() {
       name: 'Coin Toss',
       icon: '🪙',
       description: 'Control and override Coin Toss game results during countdown phase',
-      color: 'from-yellow-600/20 to-yellow-900/20',
+      bgGradient: 'bg-gradient-to-br from-yellow-600/20 to-yellow-900/20',
       borderColor: 'border-yellow-500/30',
       hoverColor: 'hover:border-yellow-500',
       route: '/admin/results/cointoss',
@@ -47,10 +47,7 @@ export default function ResultsControl() {
             <button
               key={game.id}
               onClick={() => navigate(game.route)}
-              className={`neo-glass-card p-6 text-left transition-all duration-300 cursor-pointer ${game.hoverColor} border-2 ${game.borderColor}`}
-              style={{
-                background: `linear-gradient(135deg, ${game.color.split(' ')[0].replace('from-', 'rgba(')} 0%, ${game.color.split(' ')[1].replace('to-', 'rgba(')} 100%)`
-              }}
+              className={`neo-glass-card p-6 text-left transition-all duration-300 cursor-pointer ${game.bgGradient} ${game.hoverColor} border-2 ${game.borderColor}`}
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
