@@ -16,7 +16,6 @@ interface Bet {
 }
 
 const QUICK_AMOUNTS = [10, 20, 50, 100, 500, 1000, 5000];
-const MULTIPLIERS = [2, 5, 10];
 
 export default function CoinTossRoom() {
   const { user } = useAuthStore();
@@ -47,6 +46,8 @@ export default function CoinTossRoom() {
   const [betResults, setBetResults] = useState<any[]>([]);
   const [totalWinAmount, setTotalWinAmount] = useState<number>(0);
   const lastValidBetsRef = useRef<any[]>([]);
+  const [lastBet, setLastBet] = useState<{ type: 'heads' | 'tails'; amount: number } | null>(null);
+  const [lockedBet, setLockedBet] = useState<{ type: 'heads' | 'tails'; amount: number } | null>(null);
 
   useEffect(() => {
     const total = currentBets.reduce((sum, bet) => sum + bet.amount, 0);
@@ -185,7 +186,39 @@ export default function CoinTossRoom() {
       amount: selectedAmount
     });
 
+    setLastBet({ type: selectedBetType as 'heads' | 'tails', amount: selectedAmount });
     console.log(`Placing coin toss bet: ${selectedAmount} on ${selectedBetType}`);
+  };
+
+  const handleRepeatBet = () => {
+    if (!lastBet) return;
+    if (!canPlaceBet()) return;
+    
+    setSelectedBetType(lastBet.type);
+    setSelectedAmount(lastBet.amount);
+    
+    socket.emit('coin-toss-place-bet', {
+      roomId: 'COIN_TOSS_GLOBAL',
+      betType: lastBet.type,
+      amount: lastBet.amount
+    });
+
+    console.log(`Repeating last bet: ${lastBet.amount} on ${lastBet.type}`);
+  };
+
+  const handleLockBet = () => {
+    if (!selectedBetType || selectedAmount <= 0) return;
+    if (playerChips === null || (playerChips - totalBetAmount) < selectedAmount) return;
+
+    setLockedBet({ type: selectedBetType as 'heads' | 'tails', amount: selectedAmount });
+    
+    socket.emit('coin-toss-lock-bet', {
+      roomId: 'COIN_TOSS_GLOBAL',
+      betType: selectedBetType,
+      amount: selectedAmount
+    });
+
+    console.log(`Locking bet: ${selectedAmount} on ${selectedBetType}`);
   };
 
   useEffect(() => {
@@ -280,6 +313,7 @@ export default function CoinTossRoom() {
       setCurrentBets([]);
       setShowResultPopup(false);
       setIsFlipping(false);
+      setLockedBet(null);
     });
 
     socket.on('coin-toss-countdown-tick', (data: { time: number; room: CoinTossRoomData }) => {
@@ -378,6 +412,22 @@ export default function CoinTossRoom() {
       alert(`Bet Error: ${data.message}`);
     });
 
+    socket.on('coin-toss-bet-locked', (data: { bet: any; remainingChips: number }) => {
+      console.log('Coin toss bet locked:', data);
+      setPlayerChips(data.remainingChips);
+      setLockedBet({ type: data.bet.betType, amount: data.bet.betAmount });
+    });
+
+    socket.on('coin-toss-locked-bet-placed', (data: { bet: any }) => {
+      console.log('Locked bet automatically placed:', data);
+      const newBet: Bet = {
+        type: data.bet.betType,
+        amount: data.bet.betAmount
+      };
+      setCurrentBets(prev => [...prev, newBet]);
+      lastValidBetsRef.current = [...currentBets, newBet];
+    });
+
     if (user && socket.connected && socket.id) {
       socket.emit('coin-toss-join', {
         roomId: 'COIN_TOSS_GLOBAL',
@@ -396,6 +446,8 @@ export default function CoinTossRoom() {
       socket.off('coin-toss-round-ended');
       socket.off('coin-toss-bet-placed');
       socket.off('coin-toss-bet-error');
+      socket.off('coin-toss-bet-locked');
+      socket.off('coin-toss-locked-bet-placed');
     };
   }, [user, socketId]);
 
@@ -665,23 +717,38 @@ export default function CoinTossRoom() {
                 {amount}
               </button>
             ))}
-            {MULTIPLIERS.map((multiplier, index) => (
-              <button
-                key={`mult-${index}`}
-                onClick={() => setSelectedAmount(prev => prev * multiplier)}
-                disabled={bettingWindowClosed || selectedAmount * multiplier > remainingChips}
-                className={`px-3 py-1.5 rounded-full text-xs font-mono font-bold transition-all bg-neo-accent-secondary/20 text-neo-accent-secondary border border-neo-accent-secondary ${
-                  bettingWindowClosed || selectedAmount * multiplier > remainingChips
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:bg-neo-accent-secondary/30'
-                }`}
-                style={{
-                  minWidth: '45px'
-                }}
-              >
-                {multiplier}x
-              </button>
-            ))}
+            <button
+              onClick={handleRepeatBet}
+              disabled={!lastBet || bettingWindowClosed || !lastBet || (playerChips !== null && (playerChips - totalBetAmount) < lastBet.amount)}
+              className={`px-4 py-1.5 rounded-full text-xs font-heading font-bold transition-all ${
+                lastBet && !bettingWindowClosed && playerChips !== null && (playerChips - totalBetAmount) >= lastBet.amount
+                  ? 'bg-blue-500/20 text-blue-400 border border-blue-400 hover:bg-blue-500/30'
+                  : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
+              }`}
+              style={{
+                minWidth: '80px',
+                boxShadow: lastBet && !bettingWindowClosed ? '0 0 15px rgba(59, 130, 246, 0.4)' : 'none'
+              }}
+            >
+              REPEAT BET
+            </button>
+            <button
+              onClick={handleLockBet}
+              disabled={!selectedBetType || selectedAmount <= 0 || bettingWindowClosed || playerChips === null || (playerChips - totalBetAmount) < selectedAmount || lockedBet !== null}
+              className={`px-4 py-1.5 rounded-full text-xs font-heading font-bold transition-all ${
+                selectedBetType && selectedAmount > 0 && !bettingWindowClosed && playerChips !== null && (playerChips - totalBetAmount) >= selectedAmount && lockedBet === null
+                  ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-400 hover:bg-yellow-500/30'
+                  : lockedBet !== null
+                  ? 'bg-yellow-500/40 text-yellow-300 border-2 border-yellow-300'
+                  : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
+              }`}
+              style={{
+                minWidth: '80px',
+                boxShadow: lockedBet ? '0 0 20px rgba(234, 179, 8, 0.6)' : selectedBetType && !bettingWindowClosed ? '0 0 15px rgba(234, 179, 8, 0.4)' : 'none'
+              }}
+            >
+              {lockedBet ? '🔒 LOCKED' : 'LOCK BET'}
+            </button>
             <button
               onClick={handlePlaceBet}
               disabled={!canPlaceBet()}
