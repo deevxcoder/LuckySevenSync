@@ -46,7 +46,7 @@ export default function CoinTossRoom() {
   const [betResults, setBetResults] = useState<any[]>([]);
   const [totalWinAmount, setTotalWinAmount] = useState<number>(0);
   const lastValidBetsRef = useRef<any[]>([]);
-  const [lastBet, setLastBet] = useState<{ type: 'heads' | 'tails'; amount: number } | null>(null);
+  const [previousRoundBets, setPreviousRoundBets] = useState<Bet[]>([]);
   const [lockedBet, setLockedBet] = useState<{ type: 'heads' | 'tails'; amount: number } | null>(null);
 
   useEffect(() => {
@@ -186,25 +186,25 @@ export default function CoinTossRoom() {
       amount: selectedAmount
     });
 
-    setLastBet({ type: selectedBetType as 'heads' | 'tails', amount: selectedAmount });
     console.log(`Placing coin toss bet: ${selectedAmount} on ${selectedBetType}`);
   };
 
   const handleRepeatBet = () => {
-    if (!lastBet) return;
+    if (previousRoundBets.length === 0) return;
     if (gameStatus !== 'countdown' || countdownTime <= 10) return;
-    if (playerChips === null || (playerChips - totalBetAmount) < lastBet.amount) return;
     
-    setSelectedBetType(lastBet.type);
-    setSelectedAmount(lastBet.amount);
+    const totalRepeatAmount = previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0);
+    if (playerChips === null || (playerChips - totalBetAmount) < totalRepeatAmount) return;
     
-    socket.emit('coin-toss-place-bet', {
-      roomId: 'COIN_TOSS_GLOBAL',
-      betType: lastBet.type,
-      amount: lastBet.amount
+    previousRoundBets.forEach(bet => {
+      socket.emit('coin-toss-place-bet', {
+        roomId: 'COIN_TOSS_GLOBAL',
+        betType: bet.type,
+        amount: bet.amount
+      });
     });
 
-    console.log(`Repeating last bet: ${lastBet.amount} on ${lastBet.type}`);
+    console.log(`Repeating ${previousRoundBets.length} bets from previous round`);
   };
 
   const handleLockBet = () => {
@@ -372,6 +372,9 @@ export default function CoinTossRoom() {
       console.log('Coin toss round ended:', data);
       setGameStatus('waiting');
       setCurrentResult(null);
+      
+      setPreviousRoundBets(lastValidBetsRef.current);
+      
       setCurrentBets([]);
       lastValidBetsRef.current = [];
 
@@ -738,16 +741,31 @@ export default function CoinTossRoom() {
               </button>
             ))}
             <button
+              onClick={handlePlaceBet}
+              disabled={!canPlaceBet()}
+              className={`px-8 py-2.5 rounded-full text-sm font-heading font-bold tracking-wide transition-all ${
+                canPlaceBet()
+                  ? 'bg-neo-accent text-neo-bg border-2 border-neo-accent hover:scale-105'
+                  : 'bg-gray-700 text-gray-400 border border-gray-600 cursor-not-allowed'
+              }`}
+              style={{
+                boxShadow: canPlaceBet() ? '0 0 30px rgba(0, 255, 198, 0.8)' : 'none',
+                minWidth: '180px'
+              }}
+            >
+              {getPlaceBetButtonText()}
+            </button>
+            <button
               onClick={handleRepeatBet}
-              disabled={!lastBet || bettingWindowClosed || !lastBet || (playerChips !== null && (playerChips - totalBetAmount) < lastBet.amount)}
+              disabled={previousRoundBets.length === 0 || bettingWindowClosed || (playerChips !== null && (playerChips - totalBetAmount) < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0))}
               className={`px-5 py-2 rounded-full text-sm font-heading font-bold transition-all ${
-                lastBet && !bettingWindowClosed && playerChips !== null && (playerChips - totalBetAmount) >= lastBet.amount
+                previousRoundBets.length > 0 && !bettingWindowClosed && playerChips !== null && (playerChips - totalBetAmount) >= previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)
                   ? 'bg-blue-500/20 text-blue-400 border-2 border-blue-400 hover:bg-blue-500/30 hover:scale-105'
                   : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
               }`}
               style={{
                 minWidth: '100px',
-                boxShadow: lastBet && !bettingWindowClosed ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
+                boxShadow: previousRoundBets.length > 0 && !bettingWindowClosed ? '0 0 20px rgba(59, 130, 246, 0.4)' : 'none'
               }}
             >
               REPEAT BET
@@ -768,21 +786,6 @@ export default function CoinTossRoom() {
               }}
             >
               {lockedBet ? '🔒 LOCKED' : 'LOCK BET'}
-            </button>
-            <button
-              onClick={handlePlaceBet}
-              disabled={!canPlaceBet()}
-              className={`px-8 py-2.5 rounded-full text-sm font-heading font-bold tracking-wide transition-all ${
-                canPlaceBet()
-                  ? 'bg-neo-accent text-neo-bg border-2 border-neo-accent hover:scale-105'
-                  : 'bg-gray-700 text-gray-400 border border-gray-600 cursor-not-allowed'
-              }`}
-              style={{
-                boxShadow: canPlaceBet() ? '0 0 30px rgba(0, 255, 198, 0.8)' : 'none',
-                minWidth: '180px'
-              }}
-            >
-              {getPlaceBetButtonText()}
             </button>
           </div>
 
