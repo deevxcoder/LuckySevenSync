@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../ui/table';
 import { Badge } from '../ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from '../ui/dialog';
 import { Input } from '../ui/input';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
 import { Settings, CheckCircle, Users, BarChart, Ban, Coins, Gamepad2, RefreshCw, History, TrendingUp, Target, Dice1, Clock, AlertTriangle, Check, X, DollarSign, Cog, Info } from 'lucide-react';
@@ -1016,6 +1016,9 @@ export default function AdminDashboard() {
                 <BarChart className="w-6 h-6" />
                 User Statistics
               </DialogTitle>
+              <DialogDescription className="text-neo-text-secondary">
+                View detailed statistics and performance metrics for the selected user.
+              </DialogDescription>
             </DialogHeader>
             {userStatsData && (
               <div className="py-4 space-y-4">
@@ -1065,6 +1068,9 @@ export default function AdminDashboard() {
                 <AlertTriangle className="w-6 h-6" />
                 Confirm User Status Change
               </DialogTitle>
+              <DialogDescription className="text-neo-text-secondary">
+                Confirm the user account status modification before proceeding.
+              </DialogDescription>
             </DialogHeader>
             {statusConfirmData && (
               <div className="py-4">
@@ -1102,6 +1108,9 @@ export default function AdminDashboard() {
                 <DollarSign className="w-6 h-6" />
                 Manage User Funds
               </DialogTitle>
+              <DialogDescription className="text-neo-text-secondary">
+                Add or remove chips from the user's account balance.
+              </DialogDescription>
             </DialogHeader>
             {fundsDialogData && (
               <div className="py-4 space-y-4">
@@ -1157,6 +1166,9 @@ export default function AdminDashboard() {
                 <AlertTriangle className="w-6 h-6" />
                 Confirm Funds Adjustment
               </DialogTitle>
+              <DialogDescription className="text-neo-text-secondary">
+                Review and confirm the chip adjustment before applying changes.
+              </DialogDescription>
             </DialogHeader>
             {fundsConfirmData && (
               <div className="py-4">
@@ -1199,6 +1211,9 @@ export default function AdminDashboard() {
                 <Info className="w-6 h-6" />
                 Alert
               </DialogTitle>
+              <DialogDescription className="text-neo-text-secondary">
+                Important information or validation message.
+              </DialogDescription>
             </DialogHeader>
             <div className="py-4">
               <p className="text-neo-text text-center">{alertMessage}</p>
