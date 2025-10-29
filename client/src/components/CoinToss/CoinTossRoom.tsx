@@ -554,26 +554,26 @@ export default function CoinTossRoom() {
         background: '#0E0E0E'
       }}
     >
-      <div className="h-full flex flex-col p-4 gap-4">
+      <div className="h-full flex flex-col p-2 sm:p-4 gap-2 sm:gap-4">
         {/* Header */}
-        <div className="flex items-center justify-between px-4">
+        <div className="flex items-center justify-between px-2 sm:px-4">
           {/* Left - Coin Balance */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <div 
-              className="w-10 h-10 rounded-full flex items-center justify-center"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center"
               style={{
                 background: 'linear-gradient(145deg, #00FFC6, #00d4a8)',
                 boxShadow: '0 0 20px rgba(0, 255, 198, 0.6)'
               }}
             >
-              <DollarSign className="w-6 h-6 text-white" />
+              <DollarSign className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
-            <span className="text-xl font-bold text-neo-accent">{playerChips ?? '...'}</span>
+            <span className="text-base sm:text-xl font-bold text-neo-accent">{playerChips ?? '...'}</span>
           </div>
 
           {/* Center - Title & Round */}
           <div className="flex flex-col items-center">
-            <h1 className="text-3xl font-heading font-bold tracking-widest" style={{
+            <h1 className="text-xl sm:text-3xl font-heading font-bold tracking-widest" style={{
               color: '#00FFC6',
               textShadow: '0 0 30px rgba(0, 255, 198, 0.8)'
             }}>
@@ -585,20 +585,20 @@ export default function CoinTossRoom() {
           </div>
 
           {/* Right - Speaker & Close Button */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <button
               onClick={() => setIsSoundEnabled(!isSoundEnabled)}
-              className="w-10 h-10 rounded-full bg-neo-accent/20 hover:bg-neo-accent/30 border border-neo-accent text-neo-accent font-bold flex items-center justify-center shadow-lg transition-all"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-neo-accent/20 hover:bg-neo-accent/30 border border-neo-accent text-neo-accent font-bold flex items-center justify-center shadow-lg transition-all"
               aria-label="Toggle Sound"
             >
-              {isSoundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5" />}
+              {isSoundEnabled ? <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
             <button
               onClick={exitFullscreen}
-              className="w-10 h-10 rounded-full bg-neo-accent-secondary/20 hover:bg-neo-accent-secondary/30 border border-neo-accent-secondary text-neo-accent-secondary font-bold flex items-center justify-center shadow-lg transition-all"
+              className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-neo-accent-secondary/20 hover:bg-neo-accent-secondary/30 border border-neo-accent-secondary text-neo-accent-secondary font-bold flex items-center justify-center shadow-lg transition-all"
               aria-label="Exit Game"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4 sm:w-5 sm:h-5" />
             </button>
           </div>
         </div>
@@ -606,7 +606,7 @@ export default function CoinTossRoom() {
         {/* Status */}
         <div className="text-center">
           <div 
-            className="inline-block px-6 py-2 rounded-lg text-sm font-heading font-bold tracking-widest"
+            className="inline-block px-3 sm:px-6 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold tracking-widest"
             style={{
               border: bettingWindowClosed ? '2px solid #FF005C' : '2px solid #00FFC6',
               color: bettingWindowClosed ? '#FF005C' : '#00FFC6',
@@ -619,37 +619,37 @@ export default function CoinTossRoom() {
         </div>
 
         {/* Main Game Area */}
-        <div className="flex-1 flex items-center gap-6 min-h-0 px-8">
+        <div className="flex-1 flex items-center gap-2 sm:gap-6 min-h-0 px-2 sm:px-8">
           {/* Left Panel - Heads Selection */}
           <button
             onClick={() => setSelectedBetType('heads')}
             disabled={bettingWindowClosed}
-            className="flex flex-col items-center justify-center p-4 rounded-2xl transition-all hover:scale-105"
+            className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl transition-all hover:scale-105"
             style={{
               border: selectedBetType === 'heads' ? '3px solid #00FFC6' : '2px solid #00FFC6',
               background: selectedBetType === 'heads' ? 'rgba(0, 255, 198, 0.2)' : 'rgba(20, 20, 30, 0.6)',
               backdropFilter: 'blur(10px)',
-              width: '140px',
-              minHeight: '180px',
+              width: '80px',
+              minHeight: '120px',
               boxShadow: selectedBetType === 'heads' ? '0 0 30px rgba(0, 255, 198, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.3)',
               opacity: bettingWindowClosed ? 0.5 : 1,
               cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
             }}
           >
             <div 
-              className="w-16 h-16 rounded-full flex items-center justify-center mb-2"
+              className="w-10 h-10 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-1 sm:mb-2"
               style={{
                 background: 'linear-gradient(145deg, #00FFC6, #00d4a8)',
                 boxShadow: '0 4px 20px rgba(0, 255, 198, 0.4)'
               }}
             >
-              <span className="text-4xl font-bold text-white">H</span>
+              <span className="text-2xl sm:text-4xl font-bold text-white">H</span>
             </div>
-            <div className="text-base font-heading font-bold text-neo-accent mb-1">Heads</div>
-            <div className="text-xs text-neo-text-secondary mb-1">Bet Heads</div>
-            <div className="text-sm text-white font-mono font-bold">Odds 1:1</div>
+            <div className="text-xs sm:text-base font-heading font-bold text-neo-accent mb-0.5 sm:mb-1">Heads</div>
+            <div className="hidden sm:block text-xs text-neo-text-secondary mb-1">Bet Heads</div>
+            <div className="text-xs sm:text-sm text-white font-mono font-bold">1:1</div>
             {headsBetTotal > 0 && (
-              <div className="text-sm font-mono font-bold text-neo-accent mt-2 px-3 py-1 rounded-full" style={{
+              <div className="text-xs sm:text-sm font-mono font-bold text-neo-accent mt-1 sm:mt-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full" style={{
                 background: 'rgba(0, 255, 198, 0.2)',
                 border: '1px solid #00FFC6'
               }}>
@@ -661,13 +661,13 @@ export default function CoinTossRoom() {
           {/* Center - Timer */}
           <div className="flex-1 flex flex-col items-center justify-center">
             <div 
-              className={`w-32 h-32 rounded-full flex flex-col items-center justify-center mb-1 ${
+              className={`w-20 h-20 sm:w-32 sm:h-32 rounded-full flex flex-col items-center justify-center mb-1 ${
                 countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? 'animate-pulse' : ''
               }`}
               style={{
                 border: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult 
-                  ? '4px solid #FF005C' 
-                  : '3px solid #00FFC6',
+                  ? '3px solid #FF005C' 
+                  : '2px solid #00FFC6',
                 boxShadow: countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult
                   ? '0 0 40px rgba(255, 0, 92, 0.8), 0 0 80px rgba(255, 0, 92, 0.6)'
                   : '0 0 30px rgba(0, 255, 198, 0.6)',
@@ -682,7 +682,7 @@ export default function CoinTossRoom() {
             >
               {isFlipping ? (
                 <div 
-                  className="w-20 h-20 rounded-full flex items-center justify-center"
+                  className="w-12 h-12 sm:w-20 sm:h-20 rounded-full flex items-center justify-center"
                   style={{
                     background: flipDisplay === 'H' 
                       ? 'linear-gradient(145deg, #00FFC6, #00d4a8)' 
@@ -691,23 +691,23 @@ export default function CoinTossRoom() {
                     animation: 'flipCoin 0.15s linear'
                   }}
                 >
-                  <span className="text-4xl font-bold text-white">{flipDisplay}</span>
+                  <span className="text-2xl sm:text-4xl font-bold text-white">{flipDisplay}</span>
                 </div>
               ) : currentResult ? (
                 <div className="text-center">
                   <div 
-                    className="w-20 h-20 rounded-full flex items-center justify-center animate-bounce"
+                    className="w-12 h-12 sm:w-20 sm:h-20 rounded-full flex items-center justify-center animate-bounce"
                     style={{
                       background: currentResult === 'heads' 
                         ? 'linear-gradient(145deg, #00FFC6, #00d4a8)' 
                         : 'linear-gradient(145deg, #FF005C, #d40049)'
                     }}
                   >
-                    <span className="text-5xl font-bold text-white">
+                    <span className="text-3xl sm:text-5xl font-bold text-white">
                       {currentResult === 'heads' ? 'H' : 'T'}
                     </span>
                   </div>
-                  <div className="text-sm font-heading font-bold mt-1" style={{
+                  <div className="text-xs sm:text-sm font-heading font-bold mt-1" style={{
                     color: currentResult === 'heads' ? '#00FFC6' : '#FF005C'
                   }}>
                     {currentResult.toUpperCase()}
@@ -715,7 +715,7 @@ export default function CoinTossRoom() {
                 </div>
               ) : (
                 <div 
-                  className="text-4xl font-mono font-bold"
+                  className="text-2xl sm:text-4xl font-mono font-bold"
                   style={{
                     color: countdownTime <= 5 && countdownTime > 0 ? '#FF005C' : '#00FFC6',
                     textShadow: countdownTime <= 5 && countdownTime > 0 
@@ -736,32 +736,32 @@ export default function CoinTossRoom() {
           <button
             onClick={() => setSelectedBetType('tails')}
             disabled={bettingWindowClosed}
-            className="flex flex-col items-center justify-center p-4 rounded-2xl transition-all hover:scale-105"
+            className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl transition-all hover:scale-105"
             style={{
               border: selectedBetType === 'tails' ? '3px solid #FF005C' : '2px solid #FF005C',
               background: selectedBetType === 'tails' ? 'rgba(255, 0, 92, 0.2)' : 'rgba(20, 20, 30, 0.6)',
               backdropFilter: 'blur(10px)',
-              width: '140px',
-              minHeight: '180px',
+              width: '80px',
+              minHeight: '120px',
               boxShadow: selectedBetType === 'tails' ? '0 0 30px rgba(255, 0, 92, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.3)',
               opacity: bettingWindowClosed ? 0.5 : 1,
               cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
             }}
           >
             <div 
-              className="w-16 h-16 rounded-full flex items-center justify-center mb-2"
+              className="w-10 h-10 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-1 sm:mb-2"
               style={{
                 background: 'linear-gradient(145deg, #FF005C, #d40049)',
                 boxShadow: '0 4px 20px rgba(255, 0, 92, 0.4)'
               }}
             >
-              <span className="text-4xl font-bold text-white">T</span>
+              <span className="text-2xl sm:text-4xl font-bold text-white">T</span>
             </div>
-            <div className="text-base font-heading font-bold text-neo-accent-secondary mb-1">Tails</div>
-            <div className="text-xs text-neo-text-secondary mb-1">Bet Tails</div>
-            <div className="text-sm text-white font-mono font-bold">Odds 1:1</div>
+            <div className="text-xs sm:text-base font-heading font-bold text-neo-accent-secondary mb-0.5 sm:mb-1">Tails</div>
+            <div className="hidden sm:block text-xs text-neo-text-secondary mb-1">Bet Tails</div>
+            <div className="text-xs sm:text-sm text-white font-mono font-bold">1:1</div>
             {tailsBetTotal > 0 && (
-              <div className="text-sm font-mono font-bold text-neo-accent-secondary mt-2 px-3 py-1 rounded-full" style={{
+              <div className="text-xs sm:text-sm font-mono font-bold text-neo-accent-secondary mt-1 sm:mt-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full" style={{
                 background: 'rgba(255, 0, 92, 0.2)',
                 border: '1px solid #FF005C'
               }}>
@@ -772,12 +772,12 @@ export default function CoinTossRoom() {
         </div>
 
         {/* Bottom Controls */}
-        <div className="space-y-3 px-4">
+        <div className="space-y-1.5 sm:space-y-3 px-2 sm:px-4">
           {/* Bet Status Display */}
           {(unlockedBet || lockedBet) && (
             <div className="text-center">
               <div 
-                className="inline-block px-4 py-2 rounded-lg text-sm font-heading font-bold"
+                className="inline-block px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold"
                 style={{
                   border: lockedBet ? '2px solid #EAB308' : '2px solid #FF9500',
                   color: lockedBet ? '#EAB308' : '#FF9500',
@@ -787,12 +787,12 @@ export default function CoinTossRoom() {
               >
                 {lockedBet ? (
                   <>
-                    <Lock className="w-4 h-4 inline mr-2" />
+                    <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
                     LOCKED: {lockedBet.amount} on {lockedBet.type.toUpperCase()}
                   </>
                 ) : (
                   <>
-                    <LockOpen className="w-4 h-4 inline mr-2" />
+                    <LockOpen className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
                     UNLOCKED: {unlockedBet!.amount} on {unlockedBet!.type.toUpperCase()}
                   </>
                 )}
@@ -802,46 +802,49 @@ export default function CoinTossRoom() {
           
           {/* Total Bet Display */}
           <div className="text-center">
-            <span className="text-sm text-neo-text-secondary font-mono">Balance: </span>
-            <span className="text-lg font-mono font-bold text-neo-accent">{remainingChips}</span>
+            <span className="text-xs sm:text-sm text-neo-text-secondary font-mono">Balance: </span>
+            <span className="text-base sm:text-lg font-mono font-bold text-neo-accent">{remainingChips}</span>
           </div>
 
           {/* Bet Amount & Place Bet */}
-          <div className="flex items-center justify-center gap-2">
-            {QUICK_AMOUNTS.map((amount, index) => (
-              <button
-                key={index}
-                onClick={() => setSelectedAmount(amount)}
-                disabled={bettingWindowClosed || amount > remainingChips}
-                className={`px-4 py-2 rounded-full text-sm font-mono font-bold transition-all ${
-                  selectedAmount === amount
-                    ? 'bg-neo-accent text-neo-bg border-2 border-neo-accent'
-                    : 'bg-gray-800/60 text-neo-accent border border-neo-accent/50'
-                } ${
-                  bettingWindowClosed || amount > remainingChips
-                    ? 'opacity-50 cursor-not-allowed'
-                    : 'hover:opacity-90 hover:scale-105'
-                }`}
-                style={{
-                  minWidth: '60px',
-                  boxShadow: selectedAmount === amount ? '0 0 20px rgba(0, 255, 198, 0.6)' : 'none'
-                }}
-              >
-                {amount}
-              </button>
-            ))}
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2">
+            {/* Bet Amount Buttons - Wrapped on Mobile */}
+            <div className="flex flex-wrap items-center justify-center gap-1 sm:gap-2">
+              {QUICK_AMOUNTS.map((amount, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedAmount(amount)}
+                  disabled={bettingWindowClosed || amount > remainingChips}
+                  className={`px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-mono font-bold transition-all ${
+                    selectedAmount === amount
+                      ? 'bg-neo-accent text-neo-bg border-2 border-neo-accent'
+                      : 'bg-gray-800/60 text-neo-accent border border-neo-accent/50'
+                  } ${
+                    bettingWindowClosed || amount > remainingChips
+                      ? 'opacity-50 cursor-not-allowed'
+                      : 'hover:opacity-90 hover:scale-105'
+                  }`}
+                  style={{
+                    minWidth: '45px',
+                    boxShadow: selectedAmount === amount ? '0 0 20px rgba(0, 255, 198, 0.6)' : 'none'
+                  }}
+                >
+                  {amount}
+                </button>
+              ))}
+            </div>
             {!unlockedBet && !lockedBet && (
               <button
                 onClick={handlePlaceBet}
                 disabled={!canPlaceBet()}
-                className={`px-8 py-2.5 rounded-full text-sm font-heading font-bold tracking-wide transition-all ${
+                className={`px-4 sm:px-8 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-heading font-bold tracking-wide transition-all ${
                   canPlaceBet()
                     ? 'bg-neo-accent text-neo-bg border-2 border-neo-accent hover:scale-105'
                     : 'bg-gray-700 text-gray-400 border border-gray-600 cursor-not-allowed'
                 }`}
                 style={{
                   boxShadow: canPlaceBet() ? '0 0 30px rgba(0, 255, 198, 0.8)' : 'none',
-                  minWidth: '180px'
+                  minWidth: '140px'
                 }}
               >
                 {getPlaceBetButtonText()}
@@ -852,42 +855,42 @@ export default function CoinTossRoom() {
                 <button
                   onClick={handleLockBet}
                   disabled={bettingWindowClosed}
-                  className={`px-8 py-2.5 rounded-full text-sm font-heading font-bold tracking-wide transition-all ${
+                  className={`px-4 sm:px-8 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-heading font-bold tracking-wide transition-all ${
                     !bettingWindowClosed
                       ? 'bg-yellow-500/20 text-yellow-400 border-2 border-yellow-400 hover:bg-yellow-500/30 hover:scale-105'
                       : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
                   }`}
                   style={{
                     boxShadow: !bettingWindowClosed ? '0 0 30px rgba(234, 179, 8, 0.8)' : 'none',
-                    minWidth: '120px'
+                    minWidth: '100px'
                   }}
                 >
-                  <Lock className="w-4 h-4 inline mr-2" />
-                  LOCK BET
+                  <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                  LOCK
                 </button>
                 <button
                   onClick={handleCancelBet}
                   disabled={bettingWindowClosed}
-                  className={`px-8 py-2.5 rounded-full text-sm font-heading font-bold tracking-wide transition-all ${
+                  className={`px-4 sm:px-8 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-heading font-bold tracking-wide transition-all ${
                     !bettingWindowClosed
                       ? 'bg-red-500/20 text-red-400 border-2 border-red-400 hover:bg-red-500/30 hover:scale-105'
                       : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
                   }`}
                   style={{
                     boxShadow: !bettingWindowClosed ? '0 0 30px rgba(239, 68, 68, 0.8)' : 'none',
-                    minWidth: '120px'
+                    minWidth: '100px'
                   }}
                 >
-                  <X className="w-4 h-4 inline mr-2" />
+                  <X className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
                   CANCEL
                 </button>
               </>
             )}
             {lockedBet && (
-              <div className="px-8 py-2.5 text-center">
-                <span className="text-sm font-heading font-bold text-yellow-400">
-                  <Lock className="w-4 h-4 inline mr-2" />
-                  BET LOCKED - WAITING FOR RESULT
+              <div className="px-4 sm:px-8 py-1.5 sm:py-2.5 text-center">
+                <span className="text-xs sm:text-sm font-heading font-bold text-yellow-400">
+                  <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                  BET LOCKED
                 </span>
               </div>
             )}
@@ -895,12 +898,12 @@ export default function CoinTossRoom() {
 
           {/* Recent Results */}
           <div className="text-center">
-            <div className="text-xs text-neo-accent tracking-wider font-mono mb-2">RECENT RESULTS</div>
-            <div className="flex gap-2 justify-center">
+            <div className="text-xs text-neo-accent tracking-wider font-mono mb-1 sm:mb-2">RECENT RESULTS</div>
+            <div className="flex gap-1 sm:gap-2 justify-center">
               {recentResults.slice(0, 6).map((game, index) => (
                 <div
                   key={index}
-                  className="w-6 h-6 rounded-full flex items-center justify-center"
+                  className="w-5 h-5 sm:w-6 sm:h-6 rounded-full flex items-center justify-center"
                   style={{
                     background: game.result === 'heads' 
                       ? 'linear-gradient(145deg, #00FFC6, #00d4a8)' 
@@ -921,7 +924,7 @@ export default function CoinTossRoom() {
       {/* Result Popup */}
       {showResultPopup && betResults.length > 0 && (
         <div 
-          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-4 rounded-xl text-center"
+          className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 p-3 sm:p-4 rounded-xl text-center"
           style={{
             background: totalWinAmount > 0 
               ? 'linear-gradient(145deg, #00FFC6, #00d4a8)' 
@@ -931,10 +934,10 @@ export default function CoinTossRoom() {
             backdropFilter: 'blur(10px)'
           }}
         >
-          <div className="text-2xl font-heading font-bold text-white mb-2">
+          <div className="text-xl sm:text-2xl font-heading font-bold text-white mb-2">
             {totalWinAmount > 0 ? 'YOU WON!' : 'YOU LOST'}
           </div>
-          <div className="text-4xl font-mono font-bold text-white">
+          <div className="text-3xl sm:text-4xl font-mono font-bold text-white">
             {totalWinAmount > 0 ? `+${totalWinAmount}` : `-${betResults.reduce((sum, r) => sum + r.betAmount, 0)}`}
           </div>
         </div>
