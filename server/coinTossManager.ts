@@ -85,13 +85,13 @@ export class CoinTossManager {
 
     for (const [playerId, lockedBet] of Array.from(this.lockedBets.entries())) {
       try {
-        const dbPlayer = await storage.getPlayerByUserId(playerId);
+        const dbPlayer = await storage.getPlayer(playerId);
         if (!dbPlayer) {
           console.error(`Player ${playerId} not found for locked bet`);
           continue;
         }
 
-        await storage.updatePlayerChips(playerId, dbPlayer.chips + lockedBet.amount);
+        await storage.updatePlayerChips(dbPlayer.userId, dbPlayer.chips + lockedBet.amount);
 
         const result = await storage.placeCoinTossBet(
           playerId,
@@ -200,7 +200,7 @@ export class CoinTossManager {
     }
 
     try {
-      const dbPlayer = await storage.getPlayerByUserId(player.dbId);
+      const dbPlayer = await storage.getPlayer(player.dbId);
       console.log(`Coin toss bet attempt: Player ${player.name} (ID: ${player.dbId}), Chips: ${dbPlayer?.chips}, Bet Amount: ${data.amount}`);
       if (!dbPlayer || dbPlayer.chips < data.amount) {
         console.log(`Bet rejected - Insufficient balance: ${dbPlayer?.chips} < ${data.amount}`);
@@ -263,7 +263,7 @@ export class CoinTossManager {
         return;
       }
 
-      const dbPlayer = await storage.getPlayerByUserId(player.dbId);
+      const dbPlayer = await storage.getPlayer(player.dbId);
       if (!dbPlayer || dbPlayer.chips < betToLock.amount) {
         socket.emit('coin-toss-bet-error', { message: 'Insufficient balance' });
         return;
@@ -277,7 +277,7 @@ export class CoinTossManager {
 
       this.unlockedBets.delete(socket.id);
 
-      await storage.updatePlayerChips(player.dbId, dbPlayer.chips - betToLock.amount);
+      await storage.updatePlayerChips(dbPlayer.userId, dbPlayer.chips - betToLock.amount);
       player.chips = dbPlayer.chips - betToLock.amount;
 
       socket.emit('coin-toss-bet-locked', {
