@@ -359,6 +359,7 @@ export default function CoinTossRoom() {
       setShowResultPopup(false);
       setIsFlipping(false);
       setUnlockedBet(null);
+      setLockedBet(null);
     });
 
     socket.on('coin-toss-countdown-tick', (data: { time: number; room: CoinTossRoomData }) => {
@@ -421,6 +422,8 @@ export default function CoinTossRoom() {
       
       setCurrentBets([]);
       lastValidBetsRef.current = [];
+      setLockedBet(null);
+      setUnlockedBet(null);
 
       if (user && socket.id) {
         try {
