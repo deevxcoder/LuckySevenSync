@@ -624,32 +624,32 @@ export default function CoinTossRoom() {
           <button
             onClick={() => setSelectedBetType('heads')}
             disabled={bettingWindowClosed}
-            className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl transition-all hover:scale-105"
+            className="flex flex-col items-center justify-center p-1.5 sm:p-4 rounded-xl sm:rounded-2xl transition-all hover:scale-105"
             style={{
               border: selectedBetType === 'heads' ? '3px solid #00FFC6' : '2px solid #00FFC6',
               background: selectedBetType === 'heads' ? 'rgba(0, 255, 198, 0.2)' : 'rgba(20, 20, 30, 0.6)',
               backdropFilter: 'blur(10px)',
-              width: '80px',
-              minHeight: '120px',
+              width: '60px',
+              minHeight: '85px',
               boxShadow: selectedBetType === 'heads' ? '0 0 30px rgba(0, 255, 198, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.3)',
               opacity: bettingWindowClosed ? 0.5 : 1,
               cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
             }}
           >
             <div 
-              className="w-10 h-10 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-1 sm:mb-2"
+              className="w-8 h-8 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-0.5 sm:mb-2"
               style={{
                 background: 'linear-gradient(145deg, #00FFC6, #00d4a8)',
                 boxShadow: '0 4px 20px rgba(0, 255, 198, 0.4)'
               }}
             >
-              <span className="text-2xl sm:text-4xl font-bold text-white">H</span>
+              <span className="text-xl sm:text-4xl font-bold text-white">H</span>
             </div>
             <div className="text-xs sm:text-base font-heading font-bold text-neo-accent mb-0.5 sm:mb-1">Heads</div>
             <div className="hidden sm:block text-xs text-neo-text-secondary mb-1">Bet Heads</div>
-            <div className="text-xs sm:text-sm text-white font-mono font-bold">1:1</div>
+            <div className="text-[11px] sm:text-sm text-white font-mono font-bold">1:1</div>
             {headsBetTotal > 0 && (
-              <div className="text-xs sm:text-sm font-mono font-bold text-neo-accent mt-1 sm:mt-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full" style={{
+              <div className="text-[11px] sm:text-sm font-mono font-bold text-neo-accent mt-0.5 sm:mt-2 px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full" style={{
                 background: 'rgba(0, 255, 198, 0.2)',
                 border: '1px solid #00FFC6'
               }}>
@@ -736,32 +736,32 @@ export default function CoinTossRoom() {
           <button
             onClick={() => setSelectedBetType('tails')}
             disabled={bettingWindowClosed}
-            className="flex flex-col items-center justify-center p-2 sm:p-4 rounded-2xl transition-all hover:scale-105"
+            className="flex flex-col items-center justify-center p-1.5 sm:p-4 rounded-xl sm:rounded-2xl transition-all hover:scale-105"
             style={{
               border: selectedBetType === 'tails' ? '3px solid #FF005C' : '2px solid #FF005C',
               background: selectedBetType === 'tails' ? 'rgba(255, 0, 92, 0.2)' : 'rgba(20, 20, 30, 0.6)',
               backdropFilter: 'blur(10px)',
-              width: '80px',
-              minHeight: '120px',
+              width: '60px',
+              minHeight: '85px',
               boxShadow: selectedBetType === 'tails' ? '0 0 30px rgba(255, 0, 92, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.3)',
               opacity: bettingWindowClosed ? 0.5 : 1,
               cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
             }}
           >
             <div 
-              className="w-10 h-10 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-1 sm:mb-2"
+              className="w-8 h-8 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-0.5 sm:mb-2"
               style={{
                 background: 'linear-gradient(145deg, #FF005C, #d40049)',
                 boxShadow: '0 4px 20px rgba(255, 0, 92, 0.4)'
               }}
             >
-              <span className="text-2xl sm:text-4xl font-bold text-white">T</span>
+              <span className="text-xl sm:text-4xl font-bold text-white">T</span>
             </div>
             <div className="text-xs sm:text-base font-heading font-bold text-neo-accent-secondary mb-0.5 sm:mb-1">Tails</div>
             <div className="hidden sm:block text-xs text-neo-text-secondary mb-1">Bet Tails</div>
-            <div className="text-xs sm:text-sm text-white font-mono font-bold">1:1</div>
+            <div className="text-[11px] sm:text-sm text-white font-mono font-bold">1:1</div>
             {tailsBetTotal > 0 && (
-              <div className="text-xs sm:text-sm font-mono font-bold text-neo-accent-secondary mt-1 sm:mt-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full" style={{
+              <div className="text-[11px] sm:text-sm font-mono font-bold text-neo-accent-secondary mt-0.5 sm:mt-2 px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full" style={{
                 background: 'rgba(255, 0, 92, 0.2)',
                 border: '1px solid #FF005C'
               }}>
