@@ -49,6 +49,12 @@ export default function CoinTossRoom() {
   const [previousRoundBets, setPreviousRoundBets] = useState<Bet[]>([]);
   const [lockedBet, setLockedBet] = useState<{ type: 'heads' | 'tails'; amount: number } | null>(null);
   const [unlockedBet, setUnlockedBet] = useState<{ type: 'heads' | 'tails'; amount: number } | null>(null);
+  const unlockedBetRef = useRef<{ type: 'heads' | 'tails'; amount: number } | null>(null);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    unlockedBetRef.current = unlockedBet;
+  }, [unlockedBet]);
 
   useEffect(() => {
     const total = currentBets.reduce((sum, bet) => sum + bet.amount, 0);
@@ -449,19 +455,21 @@ export default function CoinTossRoom() {
       console.log('Coin toss bet placed:', data);
       setPlayerChips(data.remainingChips);
       
+      // Bet is immediately placed, so add to current bets
+      const newBet: Bet = {
+        type: data.bet.betType,
+        amount: data.bet.betAmount || data.bet.amount
+      };
+      
+      setCurrentBets(prev => {
+        const updatedBets = [...prev, newBet];
+        lastValidBetsRef.current = updatedBets;
+        return updatedBets;
+      });
+      
+      // Track as unlocked bet for UI controls (lock/cancel buttons)
       if (data.bet.locked === false) {
         setUnlockedBet({ type: data.bet.betType, amount: data.bet.amount });
-      } else {
-        const newBet: Bet = {
-          type: data.bet.betType,
-          amount: data.bet.betAmount || data.bet.amount
-        };
-        
-        setCurrentBets(prev => {
-          const updatedBets = [...prev, newBet];
-          lastValidBetsRef.current = updatedBets;
-          return updatedBets;
-        });
       }
     });
 
@@ -478,8 +486,22 @@ export default function CoinTossRoom() {
       setUnlockedBet(null);
     });
 
-    socket.on('coin-toss-bet-cancelled', (data: { message: string }) => {
-      console.log('Coin toss bet cancelled:', data.message);
+    socket.on('coin-toss-bet-cancelled', (data: { message: string; remainingChips?: number }) => {
+      console.log('Coin toss bet cancelled and refunded:', data.message);
+      if (data.remainingChips !== undefined) {
+        setPlayerChips(data.remainingChips);
+      }
+      
+      // Remove cancelled bet from current bets using ref to get current value
+      const currentUnlockedBet = unlockedBetRef.current;
+      if (currentUnlockedBet) {
+        setCurrentBets(prev => {
+          const filtered = prev.filter(bet => !(bet.type === currentUnlockedBet.type && bet.amount === currentUnlockedBet.amount));
+          lastValidBetsRef.current = filtered;
+          return filtered;
+        });
+      }
+      
       setUnlockedBet(null);
     });
 
@@ -791,7 +813,7 @@ export default function CoinTossRoom() {
                 ) : (
                   <>
                     <LockOpen className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                    UNLOCKED: {unlockedBet!.amount} on {unlockedBet!.type.toUpperCase()}
+                    ACTIVE BET: {unlockedBet!.amount} on {unlockedBet!.type.toUpperCase()}
                   </>
                 )}
               </div>
@@ -853,7 +875,7 @@ export default function CoinTossRoom() {
                 <button
                   onClick={handleLockBet}
                   disabled={bettingWindowClosed}
-                  className={`px-4 sm:px-8 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-heading font-bold tracking-wide transition-all ${
+                  className={`px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-heading font-bold tracking-wide transition-all ${
                     !bettingWindowClosed
                       ? 'bg-yellow-500/20 text-yellow-400 border-2 border-yellow-400 hover:bg-yellow-500/30 hover:scale-105'
                       : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
@@ -862,14 +884,15 @@ export default function CoinTossRoom() {
                     boxShadow: !bettingWindowClosed ? '0 0 30px rgba(234, 179, 8, 0.8)' : 'none',
                     minWidth: '100px'
                   }}
+                  title="Lock bet to keep it active even if you exit the game"
                 >
                   <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                  LOCK
+                  LOCK & SAVE
                 </button>
                 <button
                   onClick={handleCancelBet}
                   disabled={bettingWindowClosed}
-                  className={`px-4 sm:px-8 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-heading font-bold tracking-wide transition-all ${
+                  className={`px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-heading font-bold tracking-wide transition-all ${
                     !bettingWindowClosed
                       ? 'bg-red-500/20 text-red-400 border-2 border-red-400 hover:bg-red-500/30 hover:scale-105'
                       : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
@@ -878,6 +901,7 @@ export default function CoinTossRoom() {
                     boxShadow: !bettingWindowClosed ? '0 0 30px rgba(239, 68, 68, 0.8)' : 'none',
                     minWidth: '100px'
                   }}
+                  title="Cancel bet and get refund"
                 >
                   <X className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
                   CANCEL

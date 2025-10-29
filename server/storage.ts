@@ -848,6 +848,11 @@ export class DatabaseStorage implements IStorage {
       return { bet: bet[0], updatedPlayer: updatedPlayer?.[0] };
     });
   }
+
+  async deleteCoinTossBet(betId: number): Promise<void> {
+    await db.delete(coinTossBets)
+      .where(eq(coinTossBets.id, betId));
+  }
 }
 
 export const storage = new DatabaseStorage();
