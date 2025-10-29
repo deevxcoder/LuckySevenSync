@@ -624,7 +624,7 @@ export default function CoinTossRoom() {
           <button
             onClick={() => setSelectedBetType('heads')}
             disabled={bettingWindowClosed}
-            className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all hover:scale-105"
+            className="flex flex-col items-center justify-center py-3 px-4 sm:p-4 rounded-xl sm:rounded-2xl transition-all hover:scale-105"
             style={{
               border: selectedBetType === 'heads' ? '3px solid #00FFC6' : '2px solid #00FFC6',
               background: selectedBetType === 'heads' ? 'rgba(0, 255, 198, 0.2)' : 'rgba(20, 20, 30, 0.6)',
@@ -637,13 +637,13 @@ export default function CoinTossRoom() {
             }}
           >
             <div 
-              className="w-8 h-8 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-1 sm:mb-2"
+              className="w-6 h-6 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-1 sm:mb-2"
               style={{
                 background: 'linear-gradient(145deg, #00FFC6, #00d4a8)',
                 boxShadow: '0 4px 20px rgba(0, 255, 198, 0.4)'
               }}
             >
-              <span className="text-xl sm:text-4xl font-bold text-white">H</span>
+              <span className="text-base sm:text-3xl font-bold text-white">H</span>
             </div>
             <div className="text-xs sm:text-base font-heading font-bold text-neo-accent mb-1 sm:mb-1">Heads</div>
             <div className="text-[11px] sm:text-sm text-white font-mono font-bold">1:1</div>
@@ -735,7 +735,7 @@ export default function CoinTossRoom() {
           <button
             onClick={() => setSelectedBetType('tails')}
             disabled={bettingWindowClosed}
-            className="flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl transition-all hover:scale-105"
+            className="flex flex-col items-center justify-center py-3 px-4 sm:p-4 rounded-xl sm:rounded-2xl transition-all hover:scale-105"
             style={{
               border: selectedBetType === 'tails' ? '3px solid #FF005C' : '2px solid #FF005C',
               background: selectedBetType === 'tails' ? 'rgba(255, 0, 92, 0.2)' : 'rgba(20, 20, 30, 0.6)',
@@ -748,13 +748,13 @@ export default function CoinTossRoom() {
             }}
           >
             <div 
-              className="w-8 h-8 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mb-1 sm:mb-2"
+              className="w-6 h-6 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-1 sm:mb-2"
               style={{
                 background: 'linear-gradient(145deg, #FF005C, #d40049)',
                 boxShadow: '0 4px 20px rgba(255, 0, 92, 0.4)'
               }}
             >
-              <span className="text-xl sm:text-4xl font-bold text-white">T</span>
+              <span className="text-base sm:text-3xl font-bold text-white">T</span>
             </div>
             <div className="text-xs sm:text-base font-heading font-bold text-neo-accent-secondary mb-1 sm:mb-1">Tails</div>
             <div className="text-[11px] sm:text-sm text-white font-mono font-bold">1:1</div>
