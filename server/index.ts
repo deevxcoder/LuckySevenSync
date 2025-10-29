@@ -186,6 +186,31 @@ app.use((req, res, next) => {
       }
     });
 
+    // Coin Toss betting handlers
+    socket.on('coin-toss-place-bet', async (data: { roomId: string; betType: string; amount: number }) => {
+      try {
+        await coinTossManager.handlePlaceBet(socket, data);
+      } catch (error) {
+        console.error('Error placing coin toss bet:', error);
+      }
+    });
+
+    socket.on('coin-toss-lock-bet', async (data: { roomId: string; betType?: string; amount?: number }) => {
+      try {
+        await coinTossManager.handleLockBet(socket, data);
+      } catch (error) {
+        console.error('Error locking coin toss bet:', error);
+      }
+    });
+
+    socket.on('coin-toss-cancel-bet', async (data: { roomId: string }) => {
+      try {
+        await coinTossManager.handleCancelBet(socket, data);
+      } catch (error) {
+        console.error('Error cancelling coin toss bet:', error);
+      }
+    });
+
     socket.on('disconnect', () => {
       log(`Player disconnected: ${socket.id}`);
       gameManager.handleDisconnect(socket);

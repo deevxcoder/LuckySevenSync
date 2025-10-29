@@ -70,8 +70,6 @@ export class CoinTossManager {
         houseEdgePercent: 0
       }
     };
-    
-    this.setupBettingHandlers();
   }
 
   private async placeLockedBets(): Promise<void> {
@@ -174,153 +172,151 @@ export class CoinTossManager {
     return result;
   }
 
-  private setupBettingHandlers() {
-    this.io.on('connection', (socket: Socket) => {
-      socket.on('coin-toss-place-bet', async (data: { roomId: string; betType: string; amount: number }) => {
-        const player = this.globalRoom.players.find(p => p.socketId === socket.id);
-        if (!player || !player.dbId) {
-          socket.emit('coin-toss-bet-error', { message: 'Player not found' });
-          return;
-        }
+  async handlePlaceBet(socket: Socket, data: { roomId: string; betType: string; amount: number }) {
+    const player = this.globalRoom.players.find(p => p.socketId === socket.id);
+    if (!player || !player.dbId) {
+      socket.emit('coin-toss-bet-error', { message: 'Player not found' });
+      return;
+    }
 
-        if (this.globalRoom.status !== 'countdown' || this.globalRoom.countdownTime <= 10) {
-          socket.emit('coin-toss-bet-error', { message: 'Betting window closed' });
-          return;
-        }
+    if (this.globalRoom.status !== 'countdown' || this.globalRoom.countdownTime <= 10) {
+      socket.emit('coin-toss-bet-error', { message: 'Betting window closed' });
+      return;
+    }
 
-        if (!['heads', 'tails'].includes(data.betType)) {
-          socket.emit('coin-toss-bet-error', { message: 'Invalid bet type' });
-          return;
-        }
+    if (!['heads', 'tails'].includes(data.betType)) {
+      socket.emit('coin-toss-bet-error', { message: 'Invalid bet type' });
+      return;
+    }
 
-        if (this.unlockedBets.has(socket.id)) {
-          socket.emit('coin-toss-bet-error', { message: 'You already have an unlocked bet. Please lock or cancel it first.' });
-          return;
-        }
+    if (this.unlockedBets.has(socket.id)) {
+      socket.emit('coin-toss-bet-error', { message: 'You already have an unlocked bet. Please lock or cancel it first.' });
+      return;
+    }
 
-        if (this.lockedBets.has(player.dbId)) {
-          socket.emit('coin-toss-bet-error', { message: 'You already have a locked bet. Locked bets cannot be changed.' });
-          return;
-        }
+    if (this.lockedBets.has(player.dbId)) {
+      socket.emit('coin-toss-bet-error', { message: 'You already have a locked bet. Locked bets cannot be changed.' });
+      return;
+    }
 
-        try {
-          const dbPlayer = await storage.getPlayerByUserId(player.dbId);
-          if (!dbPlayer || dbPlayer.chips < data.amount) {
-            socket.emit('coin-toss-bet-error', { message: 'Insufficient balance' });
-            return;
-          }
+    try {
+      const dbPlayer = await storage.getPlayerByUserId(player.dbId);
+      console.log(`Coin toss bet attempt: Player ${player.name} (ID: ${player.dbId}), Chips: ${dbPlayer?.chips}, Bet Amount: ${data.amount}`);
+      if (!dbPlayer || dbPlayer.chips < data.amount) {
+        console.log(`Bet rejected - Insufficient balance: ${dbPlayer?.chips} < ${data.amount}`);
+        socket.emit('coin-toss-bet-error', { message: 'Insufficient balance' });
+        return;
+      }
 
-          this.unlockedBets.set(socket.id, {
-            betType: data.betType as 'heads' | 'tails',
-            amount: data.amount,
-            playerId: player.dbId
-          });
-
-          socket.emit('coin-toss-bet-placed', {
-            bet: { betType: data.betType, amount: data.amount, locked: false },
-            remainingChips: dbPlayer.chips
-          });
-
-          console.log(`Coin toss unlocked bet placed: ${player.name} placed ${data.amount} on ${data.betType} (not yet locked)`);
-        } catch (error: any) {
-          console.error('Error placing coin toss bet:', error);
-          socket.emit('coin-toss-bet-error', { message: error.message });
-        }
+      this.unlockedBets.set(socket.id, {
+        betType: data.betType as 'heads' | 'tails',
+        amount: data.amount,
+        playerId: player.dbId
       });
 
-      socket.on('coin-toss-lock-bet', async (data: { roomId: string; betType?: string; amount?: number }) => {
-        const player = this.globalRoom.players.find(p => p.socketId === socket.id);
-        if (!player || !player.dbId) {
-          socket.emit('coin-toss-bet-error', { message: 'Player not found' });
-          return;
-        }
-
-        if (this.globalRoom.status !== 'countdown' || this.globalRoom.countdownTime <= 10) {
-          socket.emit('coin-toss-bet-error', { message: 'Betting window closed' });
-          return;
-        }
-
-        if (this.lockedBets.has(player.dbId)) {
-          socket.emit('coin-toss-bet-error', { message: 'You already have a locked bet. Locked bets cannot be changed.' });
-          return;
-        }
-
-        try {
-          let betToLock = this.unlockedBets.get(socket.id);
-          
-          if (!betToLock) {
-            if (!data.betType || !data.amount) {
-              socket.emit('coin-toss-bet-error', { message: 'No bet to lock. Please place a bet first.' });
-              return;
-            }
-            betToLock = {
-              betType: data.betType as 'heads' | 'tails',
-              amount: data.amount,
-              playerId: player.dbId
-            };
-          }
-
-          if (!['heads', 'tails'].includes(betToLock.betType)) {
-            socket.emit('coin-toss-bet-error', { message: 'Invalid bet type' });
-            return;
-          }
-
-          const dbPlayer = await storage.getPlayerByUserId(player.dbId);
-          if (!dbPlayer || dbPlayer.chips < betToLock.amount) {
-            socket.emit('coin-toss-bet-error', { message: 'Insufficient balance' });
-            return;
-          }
-
-          this.lockedBets.set(player.dbId, {
-            betType: betToLock.betType,
-            amount: betToLock.amount,
-            socketId: socket.id
-          });
-
-          this.unlockedBets.delete(socket.id);
-
-          await storage.updatePlayerChips(player.dbId, dbPlayer.chips - betToLock.amount);
-          player.chips = dbPlayer.chips - betToLock.amount;
-
-          socket.emit('coin-toss-bet-locked', {
-            bet: { betType: betToLock.betType, betAmount: betToLock.amount, locked: true },
-            remainingChips: player.chips
-          });
-
-          console.log(`Coin toss bet locked: ${player.name} locked ${betToLock.amount} on ${betToLock.betType} (chips reserved)`);
-        } catch (error: any) {
-          console.error('Error locking coin toss bet:', error);
-          socket.emit('coin-toss-bet-error', { message: error.message });
-        }
+      socket.emit('coin-toss-bet-placed', {
+        bet: { betType: data.betType, amount: data.amount, locked: false },
+        remainingChips: dbPlayer.chips
       });
 
-      socket.on('coin-toss-cancel-bet', async (data: { roomId: string }) => {
-        const player = this.globalRoom.players.find(p => p.socketId === socket.id);
-        if (!player || !player.dbId) {
-          socket.emit('coin-toss-bet-error', { message: 'Player not found' });
+      console.log(`Coin toss unlocked bet placed: ${player.name} placed ${data.amount} on ${data.betType} (not yet locked)`);
+    } catch (error: any) {
+      console.error('Error placing coin toss bet:', error);
+      socket.emit('coin-toss-bet-error', { message: error.message });
+    }
+  }
+
+  async handleLockBet(socket: Socket, data: { roomId: string; betType?: string; amount?: number }) {
+    const player = this.globalRoom.players.find(p => p.socketId === socket.id);
+    if (!player || !player.dbId) {
+      socket.emit('coin-toss-bet-error', { message: 'Player not found' });
+      return;
+    }
+
+    if (this.globalRoom.status !== 'countdown' || this.globalRoom.countdownTime <= 10) {
+      socket.emit('coin-toss-bet-error', { message: 'Betting window closed' });
+      return;
+    }
+
+    if (this.lockedBets.has(player.dbId)) {
+      socket.emit('coin-toss-bet-error', { message: 'You already have a locked bet. Locked bets cannot be changed.' });
+      return;
+    }
+
+    try {
+      let betToLock = this.unlockedBets.get(socket.id);
+      
+      if (!betToLock) {
+        if (!data.betType || !data.amount) {
+          socket.emit('coin-toss-bet-error', { message: 'No bet to lock. Please place a bet first.' });
           return;
         }
+        betToLock = {
+          betType: data.betType as 'heads' | 'tails',
+          amount: data.amount,
+          playerId: player.dbId
+        };
+      }
 
-        if (this.lockedBets.has(player.dbId)) {
-          socket.emit('coin-toss-bet-error', { message: 'Cannot cancel a locked bet' });
-          return;
-        }
+      if (!['heads', 'tails'].includes(betToLock.betType)) {
+        socket.emit('coin-toss-bet-error', { message: 'Invalid bet type' });
+        return;
+      }
 
-        const unlockedBet = this.unlockedBets.get(socket.id);
-        if (!unlockedBet) {
-          socket.emit('coin-toss-bet-error', { message: 'No bet to cancel' });
-          return;
-        }
+      const dbPlayer = await storage.getPlayerByUserId(player.dbId);
+      if (!dbPlayer || dbPlayer.chips < betToLock.amount) {
+        socket.emit('coin-toss-bet-error', { message: 'Insufficient balance' });
+        return;
+      }
 
-        this.unlockedBets.delete(socket.id);
-
-        socket.emit('coin-toss-bet-cancelled', {
-          message: 'Bet cancelled successfully'
-        });
-
-        console.log(`Coin toss bet cancelled: ${player.name} cancelled their unlocked bet`);
+      this.lockedBets.set(player.dbId, {
+        betType: betToLock.betType,
+        amount: betToLock.amount,
+        socketId: socket.id
       });
+
+      this.unlockedBets.delete(socket.id);
+
+      await storage.updatePlayerChips(player.dbId, dbPlayer.chips - betToLock.amount);
+      player.chips = dbPlayer.chips - betToLock.amount;
+
+      socket.emit('coin-toss-bet-locked', {
+        bet: { betType: betToLock.betType, betAmount: betToLock.amount, locked: true },
+        remainingChips: player.chips
+      });
+
+      console.log(`Coin toss bet locked: ${player.name} locked ${betToLock.amount} on ${betToLock.betType} (chips reserved)`);
+    } catch (error: any) {
+      console.error('Error locking coin toss bet:', error);
+      socket.emit('coin-toss-bet-error', { message: error.message });
+    }
+  }
+
+  async handleCancelBet(socket: Socket, data: { roomId: string }) {
+    const player = this.globalRoom.players.find(p => p.socketId === socket.id);
+    if (!player || !player.dbId) {
+      socket.emit('coin-toss-bet-error', { message: 'Player not found' });
+      return;
+    }
+
+    if (this.lockedBets.has(player.dbId)) {
+      socket.emit('coin-toss-bet-error', { message: 'Cannot cancel a locked bet' });
+      return;
+    }
+
+    const unlockedBet = this.unlockedBets.get(socket.id);
+    if (!unlockedBet) {
+      socket.emit('coin-toss-bet-error', { message: 'No bet to cancel' });
+      return;
+    }
+
+    this.unlockedBets.delete(socket.id);
+
+    socket.emit('coin-toss-bet-cancelled', {
+      message: 'Bet cancelled successfully'
     });
+
+    console.log(`Coin toss bet cancelled: ${player.name} cancelled their unlocked bet`);
   }
 
   async joinRoom(socket: Socket, player: CoinTossPlayer) {
