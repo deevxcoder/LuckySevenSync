@@ -646,7 +646,6 @@ export default function CoinTossRoom() {
               <span className="text-xl sm:text-4xl font-bold text-white">H</span>
             </div>
             <div className="text-xs sm:text-base font-heading font-bold text-neo-accent mb-0.5 sm:mb-1">Heads</div>
-            <div className="hidden sm:block text-xs text-neo-text-secondary mb-1">Bet Heads</div>
             <div className="text-[11px] sm:text-sm text-white font-mono font-bold">1:1</div>
             {headsBetTotal > 0 && (
               <div className="text-[11px] sm:text-sm font-mono font-bold text-neo-accent mt-0.5 sm:mt-2 px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full" style={{
@@ -758,7 +757,6 @@ export default function CoinTossRoom() {
               <span className="text-xl sm:text-4xl font-bold text-white">T</span>
             </div>
             <div className="text-xs sm:text-base font-heading font-bold text-neo-accent-secondary mb-0.5 sm:mb-1">Tails</div>
-            <div className="hidden sm:block text-xs text-neo-text-secondary mb-1">Bet Tails</div>
             <div className="text-[11px] sm:text-sm text-white font-mono font-bold">1:1</div>
             {tailsBetTotal > 0 && (
               <div className="text-[11px] sm:text-sm font-mono font-bold text-neo-accent-secondary mt-0.5 sm:mt-2 px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full" style={{
