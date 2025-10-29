@@ -10,6 +10,7 @@ import {
   Settings,
   LogOut,
   TrendingUp,
+  Activity,
   Menu,
   X
 } from 'lucide-react';
@@ -29,6 +30,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Games', href: '/admin/games', icon: Gamepad2 },
     { name: 'Results Control', href: '/admin/results', icon: Target },
     { name: 'Analytics', href: '/admin/analytics', icon: TrendingUp },
+    { name: 'Activity Logs', href: '/admin/logs', icon: Activity },
   ];
 
   const isActive = (href: string) => {
