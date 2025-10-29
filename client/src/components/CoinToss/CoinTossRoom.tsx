@@ -630,7 +630,7 @@ export default function CoinTossRoom() {
               background: selectedBetType === 'heads' ? 'rgba(0, 255, 198, 0.2)' : 'rgba(20, 20, 30, 0.6)',
               backdropFilter: 'blur(10px)',
               width: '70px',
-              minHeight: '95px',
+              minHeight: '70px',
               boxShadow: selectedBetType === 'heads' ? '0 0 30px rgba(0, 255, 198, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.3)',
               opacity: bettingWindowClosed ? 0.5 : 1,
               cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
@@ -741,7 +741,7 @@ export default function CoinTossRoom() {
               background: selectedBetType === 'tails' ? 'rgba(255, 0, 92, 0.2)' : 'rgba(20, 20, 30, 0.6)',
               backdropFilter: 'blur(10px)',
               width: '70px',
-              minHeight: '95px',
+              minHeight: '70px',
               boxShadow: selectedBetType === 'tails' ? '0 0 30px rgba(255, 0, 92, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.3)',
               opacity: bettingWindowClosed ? 0.5 : 1,
               cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
