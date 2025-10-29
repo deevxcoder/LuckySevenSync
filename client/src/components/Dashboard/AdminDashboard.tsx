@@ -395,60 +395,53 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-neo-bg p-4">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-neo-bg p-2 sm:p-4 md:p-6">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="neo-glass-card p-6 mb-6 flex justify-between items-center" style={{ borderRadius: 0 }}>
+        <div className="neo-glass-card p-4 sm:p-6 mb-4 sm:mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4" style={{ borderRadius: 0 }}>
           <div>
-            <h1 className="text-3xl font-heading font-bold text-neo-accent flex items-center gap-3">
-              <Settings className="w-8 h-8" />
+            <h1 className="text-2xl sm:text-3xl font-heading font-bold text-neo-accent flex items-center gap-2 sm:gap-3">
+              <Settings className="w-6 h-6 sm:w-8 sm:h-8" />
               Admin Dashboard
             </h1>
-            <p className="text-neo-text-secondary mt-1">
+            <p className="text-neo-text-secondary mt-1 text-sm sm:text-base">
               Manage KingGames users and game oversight
             </p>
           </div>
-          <Button
-            onClick={handleLogout}
-            variant="outline"
-            className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
-          >
-            Sign Out
-          </Button>
         </div>
 
         {/* Stats Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="neo-glass-card p-6">
-            <h3 className="text-neo-accent text-lg font-heading font-semibold mb-2">Total Users</h3>
-            <div className="text-3xl font-mono font-bold text-neo-text">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 mb-4 sm:mb-6">
+          <div className="neo-glass-card p-4 sm:p-6">
+            <h3 className="text-neo-accent text-base sm:text-lg font-heading font-semibold mb-2">Total Users</h3>
+            <div className="text-2xl sm:text-3xl font-mono font-bold text-neo-text">
               {users.length}
             </div>
-            <p className="text-neo-text-secondary text-sm">Registered players</p>
+            <p className="text-neo-text-secondary text-xs sm:text-sm">Registered players</p>
           </div>
 
-          <div className="neo-glass-card p-6">
-            <h3 className="text-neo-accent text-lg font-heading font-semibold mb-2">Active Games</h3>
-            <div className="text-3xl font-mono font-bold text-neo-success flex items-center gap-2">
+          <div className="neo-glass-card p-4 sm:p-6">
+            <h3 className="text-neo-accent text-base sm:text-lg font-heading font-semibold mb-2">Active Games</h3>
+            <div className="text-2xl sm:text-3xl font-mono font-bold text-neo-success flex items-center gap-2">
               1 <span className="live-indicator"></span>
             </div>
-            <p className="text-neo-text-secondary text-sm">Current running games</p>
+            <p className="text-neo-text-secondary text-xs sm:text-sm">Current running games</p>
           </div>
 
-          <div className="neo-glass-card p-6">
-            <h3 className="text-neo-accent text-lg font-heading font-semibold mb-2">System Status</h3>
-            <div className="text-3xl font-mono font-bold text-neo-success flex items-center gap-2">
-              <CheckCircle className="w-8 h-8" />
+          <div className="neo-glass-card p-4 sm:p-6 sm:col-span-2 lg:col-span-1">
+            <h3 className="text-neo-accent text-base sm:text-lg font-heading font-semibold mb-2">System Status</h3>
+            <div className="text-2xl sm:text-3xl font-mono font-bold text-neo-success flex items-center gap-2">
+              <CheckCircle className="w-6 h-6 sm:w-8 sm:h-8" />
               Online
             </div>
-            <p className="text-neo-text-secondary text-sm">All systems operational</p>
+            <p className="text-neo-text-secondary text-xs sm:text-sm">All systems operational</p>
           </div>
         </div>
 
         {/* Users Management */}
-        <div className="neo-glass-card p-6">
-          <h2 className="text-neo-accent text-xl font-heading font-bold mb-6 flex items-center gap-2">
-            <Users className="w-6 h-6" />
+        <div className="neo-glass-card p-4 sm:p-6">
+          <h2 className="text-neo-accent text-lg sm:text-xl font-heading font-bold mb-4 sm:mb-6 flex items-center gap-2">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6" />
             User Management
           </h2>
           
@@ -465,131 +458,149 @@ export default function AdminDashboard() {
               No users registered yet.
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="border-neo-border hover:bg-white/5">
-                    <TableHead className="text-neo-accent font-heading">ID</TableHead>
-                    <TableHead className="text-neo-accent font-heading">Username</TableHead>
-                    <TableHead className="text-neo-accent font-heading">Status</TableHead>
-                    <TableHead className="text-neo-accent font-heading">Online</TableHead>
-                    <TableHead className="text-neo-accent font-heading">Chips</TableHead>
-                    <TableHead className="text-neo-accent font-heading">Stats</TableHead>
-                    <TableHead className="text-neo-accent font-heading">Last Activity</TableHead>
-                    <TableHead className="text-neo-accent font-heading">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow 
-                        key={user.id}
-                        className="border-purple-accent/20 hover:bg-white/10"
-                      >
-                        <TableCell className="text-white font-medium">
-                          {user.id}
-                        </TableCell>
-                        <TableCell className="text-white font-semibold">
-                          {user.username}
-                          {user.role === 'admin' && (
-                            <span className="ml-2 text-xs bg-gradient-purple-light text-white px-2 py-1 rounded">
-                              ADMIN
+            <div className="overflow-x-auto -mx-4 sm:mx-0">
+              <div className="inline-block min-w-full align-middle">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-neo-border hover:bg-white/5">
+                      <TableHead className="text-neo-accent font-heading text-xs sm:text-sm">ID</TableHead>
+                      <TableHead className="text-neo-accent font-heading text-xs sm:text-sm">Username</TableHead>
+                      <TableHead className="text-neo-accent font-heading text-xs sm:text-sm hidden md:table-cell">Status</TableHead>
+                      <TableHead className="text-neo-accent font-heading text-xs sm:text-sm hidden lg:table-cell">Online</TableHead>
+                      <TableHead className="text-neo-accent font-heading text-xs sm:text-sm">Chips</TableHead>
+                      <TableHead className="text-neo-accent font-heading text-xs sm:text-sm hidden xl:table-cell">Stats</TableHead>
+                      <TableHead className="text-neo-accent font-heading text-xs sm:text-sm hidden xl:table-cell">Last Activity</TableHead>
+                      <TableHead className="text-neo-accent font-heading text-xs sm:text-sm">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                    <TableBody>
+                      {users.map((user) => (
+                        <TableRow 
+                          key={user.id}
+                          className="border-purple-accent/20 hover:bg-white/10"
+                        >
+                          <TableCell className="text-white font-medium text-xs sm:text-sm">
+                            {user.id}
+                          </TableCell>
+                          <TableCell className="text-white font-semibold text-xs sm:text-sm">
+                            <div className="flex flex-col gap-1">
+                              <span>{user.username}</span>
+                              {user.role === 'admin' && (
+                                <span className="text-xs bg-gradient-purple-light text-white px-2 py-0.5 rounded w-fit">
+                                  ADMIN
+                                </span>
+                              )}
+                              <div className="md:hidden flex items-center gap-2 mt-1">
+                                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                  user.status === 'active' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : user.status === 'blocked'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-yellow-100 text-yellow-800'
+                                }`}>
+                                  {user.status?.toUpperCase() || 'ACTIVE'}
+                                </span>
+                                <span className={`w-2 h-2 rounded-full ${
+                                  user.isOnline ? 'bg-green-400' : 'bg-gray-400'
+                                }`}></span>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              user.status === 'active' 
+                                ? 'bg-green-100 text-green-800' 
+                                : user.status === 'blocked'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {user.status?.toUpperCase() || 'ACTIVE'}
                             </span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            user.status === 'active' 
-                              ? 'bg-green-100 text-green-800' 
-                              : user.status === 'blocked'
-                              ? 'bg-red-100 text-red-800'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}>
-                            {user.status?.toUpperCase() || 'ACTIVE'}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <span className={`w-2 h-2 rounded-full ${
-                              user.isOnline ? 'bg-green-400' : 'bg-gray-400'
-                            }`}></span>
-                            <span className="text-white text-sm">
-                              {user.isOnline ? 'Online' : 'Offline'}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-white font-medium">
-                          💰 {user.chips || 0}
-                        </TableCell>
-                        <TableCell className="text-white text-sm">
-                          <div>W: {user.totalWins || 0} / L: {user.totalLosses || 0}</div>
-                          <div className="text-gray-400">Rate: {user.winRate || 0}%</div>
-                        </TableCell>
-                        <TableCell className="text-white text-sm">
-                          {user.lastActivity 
-                            ? new Date(user.lastActivity).toLocaleString()
-                            : user.lastLogin
-                            ? new Date(user.lastLogin).toLocaleString()
-                            : 'Never'
-                          }
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap gap-1">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black"
-                              onClick={() => handleViewUserStats(user.id)}
-                            >
-                              <BarChart className="w-4 h-4" />
-                            </Button>
-                            {user.role !== 'admin' && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="outline" 
-                                  className={`${user.status === 'blocked' 
-                                    ? 'border-green-500 text-green-400 hover:bg-green-500' 
-                                    : 'border-red-500 text-red-400 hover:bg-red-500'} hover:text-white`}
-                                  onClick={() => handleToggleUserStatus(user.id, user.status === 'blocked' ? 'active' : 'blocked')}
-                                >
-                                  {user.status === 'blocked' ? <Check className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white"
-                                  onClick={() => handleManageFunds(user.id, user.username)}
-                                >
-                                  <DollarSign className="w-4 h-4" />
-                                </Button>
-                              </>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                          </TableCell>
+                          <TableCell className="hidden lg:table-cell">
+                            <div className="flex items-center gap-1">
+                              <span className={`w-2 h-2 rounded-full ${
+                                user.isOnline ? 'bg-green-400' : 'bg-gray-400'
+                              }`}></span>
+                              <span className="text-white text-sm">
+                                {user.isOnline ? 'Online' : 'Offline'}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-white font-medium text-xs sm:text-sm">
+                            💰 {user.chips || 0}
+                          </TableCell>
+                          <TableCell className="text-white text-xs hidden xl:table-cell">
+                            <div>W: {user.totalWins || 0} / L: {user.totalLosses || 0}</div>
+                            <div className="text-gray-400">Rate: {user.winRate || 0}%</div>
+                          </TableCell>
+                          <TableCell className="text-white text-xs hidden xl:table-cell">
+                            {user.lastActivity 
+                              ? new Date(user.lastActivity).toLocaleString()
+                              : user.lastLogin
+                              ? new Date(user.lastLogin).toLocaleString()
+                              : 'Never'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-wrap gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black p-1 sm:p-2"
+                                onClick={() => handleViewUserStats(user.id)}
+                              >
+                                <BarChart className="w-3 h-3 sm:w-4 sm:h-4" />
+                              </Button>
+                              {user.role !== 'admin' && (
+                                <>
+                                  <Button
+                                    size="sm"
+                                    variant="outline" 
+                                    className={`${user.status === 'blocked' 
+                                      ? 'border-green-500 text-green-400 hover:bg-green-500' 
+                                      : 'border-red-500 text-red-400 hover:bg-red-500'} hover:text-white p-1 sm:p-2`}
+                                    onClick={() => handleToggleUserStatus(user.id, user.status === 'blocked' ? 'active' : 'blocked')}
+                                  >
+                                    {user.status === 'blocked' ? <Check className="w-3 h-3 sm:w-4 sm:h-4" /> : <Ban className="w-3 h-3 sm:w-4 sm:h-4" />}
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="border-blue-500 text-blue-400 hover:bg-blue-500 hover:text-white p-1 sm:p-2"
+                                    onClick={() => handleManageFunds(user.id, user.username)}
+                                  >
+                                    <DollarSign className="w-3 h-3 sm:w-4 sm:h-4" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             )}
         </div>
 
         {/* Game Management */}
-        <div className="neo-glass-card p-6 mt-6">
-          <h2 className="text-neo-accent text-xl font-heading font-bold mb-6 flex items-center gap-2">
-            <Gamepad2 className="w-6 h-6" />
+        <div className="neo-glass-card p-4 sm:p-6 mt-4 sm:mt-6">
+          <h2 className="text-neo-accent text-lg sm:text-xl font-heading font-bold mb-4 sm:mb-6 flex items-center gap-2">
+            <Gamepad2 className="w-5 h-5 sm:w-6 sm:h-6" />
             Game Management
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <Button 
-              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading font-semibold py-3 px-4 transition-all duration-300"
+              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading font-semibold py-2 sm:py-3 px-3 sm:px-4 transition-all duration-300 text-sm sm:text-base"
             >
-              <RefreshCw className="w-4 h-4 inline mr-2" />
+              <RefreshCw className="w-3 h-3 sm:w-4 sm:h-4 inline mr-2" />
               Restart Games
             </Button>
             <Button 
               variant="outline"
-              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300"
+              className="border-2 border-neo-accent text-neo-accent hover:bg-neo-accent hover:text-neo-bg font-heading transition-all duration-300 text-sm sm:text-base"
             >
               <History className="w-4 h-4 inline mr-2" />
               Game History
