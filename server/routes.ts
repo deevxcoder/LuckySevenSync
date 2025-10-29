@@ -10,6 +10,41 @@ export async function registerRoutes(app: Express): Promise<void> {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
+  // Development endpoint to create users with specific roles
+  app.post("/api/dev/create-user", async (req, res) => {
+    try {
+      const { username, password, role } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      // Create user with specified role
+      let user;
+      if (role === 'admin') {
+        user = await storage.createAdminUser({ username, password });
+      } else {
+        user = await storage.createUser({ username, password });
+      }
+
+      res.status(201).json({
+        id: user.id,
+        username: user.username,
+        role: user.role,
+        message: "User created successfully"
+      });
+    } catch (error) {
+      console.error('Dev create user error:', error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
   // Get active rooms
   app.get("/api/rooms", (req, res) => {
     // This will be populated by the game manager
