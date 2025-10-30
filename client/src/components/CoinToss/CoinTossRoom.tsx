@@ -194,7 +194,7 @@ export default function CoinTossRoom() {
 
   const canPlaceBet = () => {
     if (playerChips === null) return false;
-    const hasEnoughBalance = (playerChips - totalBetAmount) >= selectedAmount;
+    const hasEnoughBalance = playerChips >= selectedAmount;
     return gameStatus === 'countdown' && 
            countdownTime > 10 && 
            selectedBetType && 
@@ -204,7 +204,7 @@ export default function CoinTossRoom() {
 
   const getPlaceBetButtonText = () => {
     if (playerChips === null) return 'LOADING...';
-    const hasEnoughBalance = (playerChips - totalBetAmount) >= selectedAmount;
+    const hasEnoughBalance = playerChips >= selectedAmount;
     if (!hasEnoughBalance && selectedBetType) {
       return 'INSUFFICIENT BALANCE';
     }
@@ -585,7 +585,6 @@ export default function CoinTossRoom() {
   }, []);
 
   const bettingWindowClosed = gameStatus !== 'countdown' || countdownTime <= 10;
-  const remainingChips = (playerChips ?? 0) - totalBetAmount;
   
   const headsBetTotal = currentBets.filter(bet => bet.type === 'heads').reduce((sum, bet) => sum + bet.amount, 0);
   const tailsBetTotal = currentBets.filter(bet => bet.type === 'tails').reduce((sum, bet) => sum + bet.amount, 0);
@@ -814,51 +813,95 @@ export default function CoinTossRoom() {
         </div>
 
         {/* Bottom Controls */}
-        <div className="space-y-1.5 sm:space-y-3 px-2 sm:px-4">
-          {/* Bet Status Display */}
-          {unlockedBets.length > 0 && (
-            <div className="text-center space-y-1">
-              {unlockedBets.map((bet, index) => (
-                <div 
-                  key={index}
-                  className="inline-block px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold mr-1 mb-1"
-                  style={{
-                    border: '2px solid #FF9500',
-                    color: '#FF9500',
-                    background: 'rgba(255, 149, 0, 0.15)',
-                    boxShadow: '0 0 20px rgba(255, 149, 0, 0.3)'
-                  }}
-                >
-                  <LockOpen className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                  ACTIVE: {bet.amount} on {bet.type.toUpperCase()}
-                </div>
-              ))}
-            </div>
-          )}
-          {lockedBets.length > 0 && (
-            <div className="text-center space-y-1">
-              {lockedBets.map((bet, index) => (
-                <div 
-                  key={index}
-                  className="inline-block px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold mr-1 mb-1"
-                  style={{
-                    border: '2px solid #EAB308',
-                    color: '#EAB308',
-                    background: 'rgba(234, 179, 8, 0.15)',
-                    boxShadow: '0 0 20px rgba(234, 179, 8, 0.3)'
-                  }}
-                >
-                  <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                  LOCKED: {bet.amount} on {bet.type.toUpperCase()}
-                </div>
-              ))}
-            </div>
-          )}
+        <div className="space-y-2 sm:space-y-3 px-2 sm:px-4">
+          {/* Active Bet Status Display - Consolidated by Type */}
+          {unlockedBets.length > 0 && (() => {
+            const headsBets = unlockedBets.filter(b => b.type === 'heads');
+            const tailsBets = unlockedBets.filter(b => b.type === 'tails');
+            const headsTotal = headsBets.reduce((sum, bet) => sum + bet.amount, 0);
+            const tailsTotal = tailsBets.reduce((sum, bet) => sum + bet.amount, 0);
+            
+            return (
+              <div className="text-center flex flex-wrap gap-2 justify-center">
+                {headsTotal > 0 && (
+                  <div 
+                    className="inline-block px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold"
+                    style={{
+                      border: '2px solid #FF9500',
+                      color: '#FF9500',
+                      background: 'rgba(255, 149, 0, 0.2)',
+                      boxShadow: '0 0 20px rgba(255, 149, 0, 0.4)'
+                    }}
+                  >
+                    <Coins className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                    ACTIVE: {headsTotal} on HEADS
+                  </div>
+                )}
+                {tailsTotal > 0 && (
+                  <div 
+                    className="inline-block px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold"
+                    style={{
+                      border: '2px solid #FF9500',
+                      color: '#FF9500',
+                      background: 'rgba(255, 149, 0, 0.2)',
+                      boxShadow: '0 0 20px rgba(255, 149, 0, 0.4)'
+                    }}
+                  >
+                    <Coins className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                    ACTIVE: {tailsTotal} on TAILS
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           
-          {/* Total Bet Display */}
+          {/* Locked Bet Status Display - Consolidated by Type */}
+          {lockedBets.length > 0 && (() => {
+            const headsBets = lockedBets.filter(b => b.type === 'heads');
+            const tailsBets = lockedBets.filter(b => b.type === 'tails');
+            const headsTotal = headsBets.reduce((sum, bet) => sum + bet.amount, 0);
+            const tailsTotal = tailsBets.reduce((sum, bet) => sum + bet.amount, 0);
+            
+            return (
+              <div className="text-center flex flex-wrap gap-2 justify-center">
+                {headsTotal > 0 && (
+                  <div 
+                    className="inline-block px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold"
+                    style={{
+                      border: '2px solid #EAB308',
+                      color: '#EAB308',
+                      background: 'rgba(234, 179, 8, 0.2)',
+                      boxShadow: '0 0 20px rgba(234, 179, 8, 0.4)'
+                    }}
+                  >
+                    <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                    LOCKED: {headsTotal} on HEADS
+                  </div>
+                )}
+                {tailsTotal > 0 && (
+                  <div 
+                    className="inline-block px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold"
+                    style={{
+                      border: '2px solid #EAB308',
+                      color: '#EAB308',
+                      background: 'rgba(234, 179, 8, 0.2)',
+                      boxShadow: '0 0 20px rgba(234, 179, 8, 0.4)'
+                    }}
+                  >
+                    <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                    LOCKED: {tailsTotal} on TAILS
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+          
+          {/* Balance Display - Always show current player chips */}
           <div className="text-center">
-            <span className="text-xs sm:text-sm text-neo-text-secondary font-mono">Balance: </span>
-            <span className="text-base sm:text-lg font-mono font-bold text-neo-accent">{remainingChips}</span>
+            <span className="text-xs sm:text-sm text-gray-400 font-mono">Balance: </span>
+            <span className="text-base sm:text-lg font-mono font-bold text-neo-accent">
+              {playerChips ?? 0}
+            </span>
           </div>
 
           {/* Bet Amount & Place Bet */}
@@ -869,13 +912,13 @@ export default function CoinTossRoom() {
                 <button
                   key={index}
                   onClick={() => setSelectedAmount(amount)}
-                  disabled={bettingWindowClosed || amount > remainingChips}
+                  disabled={bettingWindowClosed || amount > (playerChips ?? 0)}
                   className={`px-2 sm:px-4 py-1 sm:py-2 rounded-full text-xs sm:text-sm font-mono font-bold transition-all ${
                     selectedAmount === amount
                       ? 'bg-neo-accent text-neo-bg border-2 border-neo-accent'
                       : 'bg-gray-800/60 text-neo-accent border border-neo-accent/50'
                   } ${
-                    bettingWindowClosed || amount > remainingChips
+                    bettingWindowClosed || amount > (playerChips ?? 0)
                       ? 'opacity-50 cursor-not-allowed'
                       : 'hover:opacity-90 hover:scale-105'
                   }`}
