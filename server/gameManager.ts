@@ -47,12 +47,16 @@ export class GameManager {
   private playerRooms: Map<string, string>; // socketId -> roomId (kept for compatibility)
   private countdownIntervals: Map<string, NodeJS.Timeout>;
   private adminOverrides: Map<number, string>; // gameId -> override result
+  private lockedBets: Map<number, Array<{ betType: string; amount: number; betId: number }>>; // dbId -> locked bets
+  private unlockedBets: Map<string, Array<{ betType: string; amount: number; betId: number }>>; // socketId -> unlocked bets
 
   constructor(io: Server) {
     this.io = io;
     this.playerRooms = new Map();
     this.countdownIntervals = new Map();
     this.adminOverrides = new Map();
+    this.lockedBets = new Map();
+    this.unlockedBets = new Map();
     
     // Create one global room for everyone
     this.globalRoom = {
@@ -408,6 +412,10 @@ export class GameManager {
     room.currentGameId = undefined; // Reset game ID for next round
     room.activeBets?.clear(); // Ensure bets are cleared
     room.roundNumber = (room.roundNumber || 1) + 1; // Increment round number
+    
+    // Clear locked and unlocked bets for new round
+    this.lockedBets.clear();
+    this.unlockedBets.clear();
 
     // Send sanitized room (card should be null at this point)
     const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
@@ -426,6 +434,14 @@ export class GameManager {
     this.io.on('connection', (socket) => {
       socket.on('place-bet', async (data: { roomId: string; betType: string; betValue: string; amount: number }) => {
         await this.handlePlaceBet(socket, data);
+      });
+      
+      socket.on('lock-bet', async (data: { roomId: string }) => {
+        await this.handleLockBet(socket, data);
+      });
+      
+      socket.on('cancel-bet', async (data: { roomId: string }) => {
+        await this.handleCancelBet(socket, data);
       });
       
       // Handle authentication updates
@@ -532,16 +548,134 @@ export class GameManager {
       playerBets.push(betResult.bet);
       room.activeBets.set(socket.id, playerBets);
 
+      // Track unlocked bet for lock/cancel functionality
+      const unlockedBetsList = this.unlockedBets.get(socket.id) || [];
+      unlockedBetsList.push({
+        betType: data.betType,
+        amount: data.amount,
+        betId: betResult.bet.id
+      });
+      this.unlockedBets.set(socket.id, unlockedBetsList);
+
       // Notify room of updated player chips (sanitized to prevent card leaks)
       const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
       this.io.to('GLOBAL').emit('room-updated', sanitizedRoom);
-      socket.emit('bet-placed', { bet: betResult.bet, chips: betResult.updatedPlayer.chips });
+      socket.emit('bet-placed', { bet: betResult.bet, chips: betResult.updatedPlayer.chips, locked: false });
       
       console.log(`Bet placed: ${data.amount} chips on ${data.betType} by ${socket.id}`);
       
     } catch (error) {
       console.error('Error placing bet:', error);
       socket.emit('bet-error', 'Failed to place bet');
+    }
+  }
+
+  private async handleLockBet(socket: Socket, data: { roomId: string }) {
+    const player = this.globalRoom.players.find(p => p.socketId === socket.id);
+    if (!player || !player.dbId) {
+      socket.emit('bet-error', { message: 'Player not found' });
+      return;
+    }
+
+    if (this.globalRoom.status !== 'countdown' || this.globalRoom.countdownTime <= 10) {
+      socket.emit('bet-error', { message: 'Betting window closed' });
+      return;
+    }
+
+    if (this.lockedBets.has(player.dbId)) {
+      socket.emit('bet-error', { message: 'You already have locked bets. Locked bets cannot be changed.' });
+      return;
+    }
+
+    try {
+      const betsToLock = this.unlockedBets.get(socket.id);
+      
+      if (!betsToLock || betsToLock.length === 0) {
+        socket.emit('bet-error', { message: 'No bets to lock. Please place a bet first.' });
+        return;
+      }
+
+      // Mark all bets as locked for persistence (bets are already placed in DB)
+      this.lockedBets.set(player.dbId, betsToLock.map(bet => ({
+        betType: bet.betType,
+        amount: bet.amount,
+        betId: bet.betId
+      })));
+
+      // Remove from unlocked bets
+      this.unlockedBets.delete(socket.id);
+
+      socket.emit('bets-locked', {
+        bets: betsToLock.map(bet => ({ betType: bet.betType, betAmount: bet.amount, betId: bet.betId, locked: true })),
+        chips: player.chips || 0
+      });
+
+      console.log(`Bets locked for persistence: ${player.name} locked ${betsToLock.length} bet(s)`);
+    } catch (error: any) {
+      console.error('Error locking bets:', error);
+      socket.emit('bet-error', { message: error.message });
+    }
+  }
+
+  private async handleCancelBet(socket: Socket, data: { roomId: string }) {
+    const player = this.globalRoom.players.find(p => p.socketId === socket.id);
+    if (!player || !player.dbId) {
+      socket.emit('bet-error', { message: 'Player not found' });
+      return;
+    }
+
+    if (this.lockedBets.has(player.dbId)) {
+      socket.emit('bet-error', { message: 'Cannot cancel locked bets' });
+      return;
+    }
+
+    const unlockedBets = this.unlockedBets.get(socket.id);
+    if (!unlockedBets || unlockedBets.length === 0) {
+      socket.emit('bet-error', { message: 'No bets to cancel' });
+      return;
+    }
+
+    try {
+      let totalRefund = 0;
+
+      // Delete all unlocked bets from the database and calculate total refund
+      for (const bet of unlockedBets) {
+        await storage.deleteBet(bet.betId);
+        totalRefund += bet.amount;
+        
+        // Remove from active bets
+        const playerBets = this.globalRoom.activeBets?.get(socket.id);
+        if (playerBets) {
+          const betIndex = playerBets.findIndex(b => b.id === bet.betId);
+          if (betIndex !== -1) {
+            playerBets.splice(betIndex, 1);
+          }
+        }
+      }
+
+      // Remove active bets entry if empty
+      if (this.globalRoom.activeBets?.get(socket.id)?.length === 0) {
+        this.globalRoom.activeBets.delete(socket.id);
+      }
+
+      // Refund the player
+      const dbPlayer = await storage.getPlayer(player.dbId);
+      if (dbPlayer) {
+        await storage.updatePlayerChips(player.dbId, dbPlayer.chips + totalRefund);
+        player.chips = dbPlayer.chips + totalRefund;
+      }
+
+      this.unlockedBets.delete(socket.id);
+
+      socket.emit('bets-cancelled', {
+        message: `${unlockedBets.length} bet(s) cancelled and refunded successfully`,
+        chips: player.chips
+      });
+
+      console.log(`Bets cancelled and refunded: ${player.name} cancelled ${unlockedBets.length} bet(s), total refund: ${totalRefund}`);
+    } catch (error: any) {
+      console.error('Error cancelling bets:', error);
+      socket.emit('bet-error', { message: error.message });
     }
   }
 
