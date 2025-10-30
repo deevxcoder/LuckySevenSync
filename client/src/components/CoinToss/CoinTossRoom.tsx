@@ -799,47 +799,6 @@ export default function CoinTossRoom() {
 
         {/* Bottom Controls */}
         <div className="space-y-2 sm:space-y-3 px-2 sm:px-4">
-          {/* Active Bet Status Display - Consolidated by Type */}
-          {unlockedBets.length > 0 && (() => {
-            const headsBets = unlockedBets.filter(b => b.type === 'heads');
-            const tailsBets = unlockedBets.filter(b => b.type === 'tails');
-            const headsTotal = headsBets.reduce((sum, bet) => sum + bet.amount, 0);
-            const tailsTotal = tailsBets.reduce((sum, bet) => sum + bet.amount, 0);
-            
-            return (
-              <div className="text-center flex flex-wrap gap-2 justify-center">
-                {headsTotal > 0 && (
-                  <div 
-                    className="inline-block px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold"
-                    style={{
-                      border: '2px solid #FF9500',
-                      color: '#FF9500',
-                      background: 'rgba(255, 149, 0, 0.2)',
-                      boxShadow: '0 0 20px rgba(255, 149, 0, 0.4)'
-                    }}
-                  >
-                    <Coins className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                    ACTIVE: {headsTotal} on HEADS
-                  </div>
-                )}
-                {tailsTotal > 0 && (
-                  <div 
-                    className="inline-block px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold"
-                    style={{
-                      border: '2px solid #FF9500',
-                      color: '#FF9500',
-                      background: 'rgba(255, 149, 0, 0.2)',
-                      boxShadow: '0 0 20px rgba(255, 149, 0, 0.4)'
-                    }}
-                  >
-                    <Coins className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                    ACTIVE: {tailsTotal} on TAILS
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-          
           {/* Locked Bet Status Display - Consolidated by Type */}
           {lockedBets.length > 0 && (() => {
             const headsBets = lockedBets.filter(b => b.type === 'heads');
