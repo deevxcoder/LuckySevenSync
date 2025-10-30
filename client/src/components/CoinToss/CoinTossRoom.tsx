@@ -47,7 +47,6 @@ export default function CoinTossRoom() {
   const [totalWinAmount, setTotalWinAmount] = useState<number>(0);
   const lastValidBetsRef = useRef<any[]>([]);
   const [previousRoundBets, setPreviousRoundBets] = useState<Bet[]>([]);
-  const [lastBetSelection, setLastBetSelection] = useState<{ type: 'heads' | 'tails'; amount: number } | null>(null);
   const [lockedBets, setLockedBets] = useState<Array<{ type: 'heads' | 'tails'; amount: number; betId?: number }>>([]);
   const [unlockedBets, setUnlockedBets] = useState<Array<{ type: 'heads' | 'tails'; amount: number; betId?: number }>>([]);
   const unlockedBetsRef = useRef<Array<{ type: 'heads' | 'tails'; amount: number; betId?: number }>>([]);
@@ -225,9 +224,6 @@ export default function CoinTossRoom() {
       amount: selectedAmount
     });
 
-    // Store last bet selection for repeat functionality
-    setLastBetSelection({ type: selectedBetType, amount: selectedAmount });
-
     console.log(`Placing coin toss bet: ${selectedAmount} on ${selectedBetType}`);
   };
 
@@ -242,23 +238,29 @@ export default function CoinTossRoom() {
   };
 
   const handleRepeatBet = () => {
-    if (!lastBetSelection) return;
+    if (previousRoundBets.length === 0) return;
     if (gameStatus !== 'countdown' || countdownTime <= 10) return;
     if (lockedBets.length > 0) return;
     
-    const hasEnoughBalance = playerChips !== null && (playerChips - totalBetAmount) >= lastBetSelection.amount;
+    // Calculate total amount needed for all previous round bets
+    const totalPreviousBetsAmount = previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0);
+    const hasEnoughBalance = playerChips !== null && (playerChips - totalBetAmount) >= totalPreviousBetsAmount;
+    
     if (!hasEnoughBalance) {
-      alert('Insufficient balance to repeat last bet');
+      alert('Insufficient balance to repeat previous round bets');
       return;
     }
     
-    socket.emit('coin-toss-place-bet', {
-      roomId: 'COIN_TOSS_GLOBAL',
-      betType: lastBetSelection.type,
-      amount: lastBetSelection.amount
+    // Place all bets from the previous round
+    previousRoundBets.forEach(bet => {
+      socket.emit('coin-toss-place-bet', {
+        roomId: 'COIN_TOSS_GLOBAL',
+        betType: bet.type,
+        amount: bet.amount
+      });
     });
 
-    console.log(`Repeating last bet: ${lastBetSelection.amount} on ${lastBetSelection.type}`);
+    console.log(`Repeating ${previousRoundBets.length} bet(s) from previous round (Total: ${totalPreviousBetsAmount})`);
   };
 
   const handleLockBet = () => {
@@ -953,20 +955,20 @@ export default function CoinTossRoom() {
                   </button>
                 )}
                 
-                {/* Repeat Last Bet Button (Icon Only) */}
-                {lastBetSelection && unlockedBets.length === 0 && lockedBets.length === 0 && (
+                {/* Repeat Last Round Button (Icon Only) */}
+                {previousRoundBets.length > 0 && unlockedBets.length === 0 && lockedBets.length === 0 && (
                   <button
                     onClick={handleRepeatBet}
-                    disabled={!lastBetSelection || bettingWindowClosed || (playerChips !== null && (playerChips - totalBetAmount) < lastBetSelection.amount)}
+                    disabled={previousRoundBets.length === 0 || bettingWindowClosed || (playerChips !== null && (playerChips - totalBetAmount) < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0))}
                     className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
-                      lastBetSelection && !bettingWindowClosed && playerChips !== null && (playerChips - totalBetAmount) >= lastBetSelection.amount
+                      previousRoundBets.length > 0 && !bettingWindowClosed && playerChips !== null && (playerChips - totalBetAmount) >= previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)
                         ? 'bg-blue-500/20 text-blue-400 border-2 border-blue-400 hover:bg-blue-500/30 hover:scale-110'
                         : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
                     }`}
                     style={{
-                      boxShadow: lastBetSelection && !bettingWindowClosed ? '0 0 30px rgba(59, 130, 246, 0.8)' : 'none'
+                      boxShadow: previousRoundBets.length > 0 && !bettingWindowClosed ? '0 0 30px rgba(59, 130, 246, 0.8)' : 'none'
                     }}
-                    title={lastBetSelection ? `Repeat: ${lastBetSelection.amount} on ${lastBetSelection.type}` : 'No previous bet'}
+                    title={previousRoundBets.length > 0 ? `Repeat ${previousRoundBets.length} bet(s) - Total: ${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}` : 'No previous round'}
                   >
                     <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
