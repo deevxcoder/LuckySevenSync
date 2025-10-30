@@ -6,6 +6,7 @@ import Card from './Card';
 import CardBack from './CardBack';
 import BetResultPopup from './BetResultPopup';
 import { Button } from './ui/button';
+import { Lock, X, RotateCcw } from 'lucide-react';
 import type { Card as CardType, GameRoom } from '../types/game';
 
 export default function GameRoom() {
@@ -32,6 +33,9 @@ export default function GameRoom() {
   const [selectedAmount, setSelectedAmount] = useState<number>(10);
   const [currentBets, setCurrentBets] = useState<any[]>([]);
   const [totalBetAmount, setTotalBetAmount] = useState<number>(0);
+  const [lockedBets, setLockedBets] = useState<any[]>([]);
+  const [unlockedBets, setUnlockedBets] = useState<any[]>([]);
+  const [previousRoundBets, setPreviousRoundBets] = useState<any[]>([]);
 
   // Bet type mappings for display
   const BET_TYPE_LABELS = {
@@ -142,13 +146,19 @@ export default function GameRoom() {
   // Reset bets only when waiting for next round (after results are shown)
   useEffect(() => {
     if (gameStatus === 'waiting') {
+      // Save current bets as previous round bets before resetting
+      if (currentBets.length > 0) {
+        setPreviousRoundBets([...currentBets]);
+      }
       // Delay reset to allow popup to show first
       setTimeout(() => {
         setCurrentBets([]);
+        setLockedBets([]);
+        setUnlockedBets([]);
         setSelectedBetType('');
       }, 100);
     }
-  }, [gameStatus]);
+  }, [gameStatus, currentBets]);
 
   const canPlaceBet = () => {
     return gameStatus === 'countdown' && 
@@ -160,6 +170,10 @@ export default function GameRoom() {
 
   const handlePlaceBet = () => {
     if (!canPlaceBet()) return;
+    if (lockedBets.length > 0) {
+      alert('You have locked bets. Locked bets cannot be changed.');
+      return;
+    }
 
     const newBet = {
       type: selectedBetType,
@@ -167,7 +181,14 @@ export default function GameRoom() {
       amount: selectedAmount
     };
 
-    setCurrentBets(prev => [...prev, newBet]);
+    setCurrentBets(prev => {
+      const updated = [...prev, newBet];
+      lastValidBetsRef.current = updated;
+      return updated;
+    });
+    
+    setUnlockedBets(prev => [...prev, newBet]);
+    playHit();
 
     socket.emit('place-bet', {
       roomId: currentRoom?.id,
@@ -176,6 +197,57 @@ export default function GameRoom() {
     });
 
     console.log(`Placed bet: ${selectedAmount} on ${selectedBetType}`);
+  };
+
+  const handleLockBet = () => {
+    if (unlockedBets.length === 0) return;
+    
+    socket.emit('lock-bets', { roomId: currentRoom?.id });
+    console.log('Locking bets:', unlockedBets);
+  };
+
+  const handleCancelBet = () => {
+    if (unlockedBets.length === 0) return;
+    
+    socket.emit('cancel-bets', { roomId: currentRoom?.id });
+    console.log('Cancelling bets:', unlockedBets);
+  };
+
+  const handleRepeatBet = () => {
+    if (previousRoundBets.length === 0) return;
+    if (lockedBets.length > 0 || unlockedBets.length > 0) return;
+    
+    const totalPreviousBet = previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0);
+    if (playerChips < totalPreviousBet) {
+      alert('Insufficient chips to repeat previous bets');
+      return;
+    }
+
+    // Place all previous bets again
+    previousRoundBets.forEach(bet => {
+      const newBet = {
+        type: bet.type,
+        value: bet.value,
+        amount: bet.amount
+      };
+
+      setCurrentBets(prev => {
+        const updated = [...prev, newBet];
+        lastValidBetsRef.current = updated;
+        return updated;
+      });
+      
+      setUnlockedBets(prev => [...prev, newBet]);
+
+      socket.emit('place-bet', {
+        roomId: currentRoom?.id,
+        betType: bet.type,
+        amount: bet.amount
+      });
+    });
+
+    playHit();
+    console.log('Repeating previous round bets:', previousRoundBets);
   };
 
   // Function to calculate bet results and show popup
@@ -307,6 +379,53 @@ export default function GameRoom() {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
+
+  // Socket listeners for bet management
+  useEffect(() => {
+    const handleBetPlaced = (data: { bet: any; chips: number }) => {
+      setCurrentBets(prev => {
+        const updated = [...prev];
+        const lastBet = updated[updated.length - 1];
+        if (lastBet && !lastBet.betId) {
+          lastBet.betId = data.bet.id;
+        }
+        lastValidBetsRef.current = updated;
+        return updated;
+      });
+    };
+
+    const handleBetsLocked = (data: { bets: any[]; chips: number }) => {
+      const locked = data.bets.map(bet => ({
+        type: bet.betType,
+        value: bet.betType === 'lucky7' ? '7' : bet.betType,
+        amount: bet.betAmount,
+        betId: bet.betId
+      }));
+      setLockedBets(locked);
+      setUnlockedBets([]);
+    };
+
+    const handleBetsCancelled = (data: { message: string; chips: number }) => {
+      setCurrentBets(prev => {
+        const updated = prev.filter(bet => 
+          !unlockedBets.some(ub => ub.betId === bet.betId)
+        );
+        lastValidBetsRef.current = updated;
+        return updated;
+      });
+      setUnlockedBets([]);
+    };
+
+    socket.on('bet-placed', handleBetPlaced);
+    socket.on('bets-locked', handleBetsLocked);
+    socket.on('bets-cancelled', handleBetsCancelled);
+
+    return () => {
+      socket.off('bet-placed', handleBetPlaced);
+      socket.off('bets-locked', handleBetsLocked);
+      socket.off('bets-cancelled', handleBetsCancelled);
+    };
+  }, [unlockedBets]);
 
   useEffect(() => {
     function onRoomUpdated(room: GameRoom) {
@@ -563,19 +682,71 @@ export default function GameRoom() {
               ))}
             </div>
 
-            {/* Place Bet Button */}
-            <Button
-              onClick={handlePlaceBet}
-              disabled={!canPlaceBet()}
-              className="w-full py-3 text-lg font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50"
-            >
-              PLACE BET
-            </Button>
+            {/* Action Buttons */}
+            <div className="flex gap-2">
+              {/* Place Bet Button - Only show when no unlocked bets */}
+              {unlockedBets.length === 0 && (
+                <Button
+                  onClick={handlePlaceBet}
+                  disabled={!canPlaceBet()}
+                  className="flex-1 py-3 text-lg font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50"
+                >
+                  PLACE BET
+                </Button>
+              )}
+
+              {/* Lock & Cancel Buttons - Show when there are unlocked bets */}
+              {unlockedBets.length > 0 && (
+                <>
+                  <Button
+                    onClick={handleLockBet}
+                    disabled={gameStatus !== 'countdown' || countdownTime <= 10}
+                    className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    title={`Lock ${unlockedBets.length} bet(s)`}
+                  >
+                    <Lock className="w-4 h-4 mr-1" />
+                    Lock ({unlockedBets.length})
+                  </Button>
+                  <Button
+                    onClick={handleCancelBet}
+                    disabled={gameStatus !== 'countdown' || countdownTime <= 10}
+                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                    title={`Cancel ${unlockedBets.length} bet(s)`}
+                  >
+                    <X className="w-4 h-4 mr-1" />
+                    Cancel ({unlockedBets.length})
+                  </Button>
+                </>
+              )}
+
+              {/* Repeat Button - Show when there are previous round bets and no current bets */}
+              {previousRoundBets.length > 0 && unlockedBets.length === 0 && lockedBets.length === 0 && (
+                <Button
+                  onClick={handleRepeatBet}
+                  disabled={gameStatus !== 'countdown' || countdownTime <= 10 || playerChips < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}
+                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  title={`Repeat ${previousRoundBets.length} bet(s) - Total: ${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}`}
+                >
+                  <RotateCcw className="w-4 h-4 mr-1" />
+                  Repeat ({previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)})
+                </Button>
+              )}
+            </div>
 
             {/* Current Bets Display */}
             {currentBets.length > 0 && (
               <div className="text-cyan-300 text-xs text-center">
                 Total Bet: {totalBetAmount} chips ({currentBets.length} bet{currentBets.length > 1 ? 's' : ''})
+              </div>
+            )}
+
+            {/* Locked Status */}
+            {lockedBets.length > 0 && (
+              <div className="bg-yellow-600/20 border border-yellow-600 rounded p-2 text-center">
+                <span className="text-yellow-400 font-bold text-xs">
+                  <Lock className="w-4 h-4 inline mr-1" />
+                  {lockedBets.length} BET(S) LOCKED FOR NEXT ROUND
+                </span>
               </div>
             )}
           </div>
