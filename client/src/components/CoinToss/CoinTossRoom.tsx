@@ -614,7 +614,7 @@ export default function CoinTossRoom() {
             <span className="text-base sm:text-xl font-bold text-neo-accent">{playerChips ?? '...'}</span>
           </div>
 
-          {/* Center - Title & Round */}
+          {/* Center - Title */}
           <div className="flex flex-col items-center">
             <h1 className="text-xl sm:text-3xl font-heading font-bold tracking-widest" style={{
               color: '#00FFC6',
@@ -622,9 +622,6 @@ export default function CoinTossRoom() {
             }}>
               COIN TOSS
             </h1>
-            <div className="text-xs text-neo-accent tracking-wider font-mono">
-              ROUND: #{totalGameCount !== null ? totalGameCount + 1 : '...'}
-            </div>
           </div>
 
           {/* Right - Speaker & Close Button */}
@@ -652,41 +649,51 @@ export default function CoinTossRoom() {
           <button
             onClick={() => setSelectedBetType('heads')}
             disabled={bettingWindowClosed}
-            className="flex flex-col items-center justify-center py-3 px-4 sm:p-4 rounded-xl sm:rounded-2xl transition-all hover:scale-105"
+            className="flex items-center gap-2 sm:gap-3 py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all hover:scale-105"
             style={{
               border: selectedBetType === 'heads' ? '3px solid #00FFC6' : '2px solid #00FFC6',
               background: selectedBetType === 'heads' ? 'rgba(0, 255, 198, 0.2)' : 'rgba(20, 20, 30, 0.6)',
               backdropFilter: 'blur(10px)',
-              width: '70px',
-              minHeight: '70px',
               boxShadow: selectedBetType === 'heads' ? '0 0 30px rgba(0, 255, 198, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.3)',
               opacity: bettingWindowClosed ? 0.5 : 1,
               cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
             }}
           >
-            <div 
-              className="w-6 h-6 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-1 sm:mb-2"
-              style={{
-                background: 'linear-gradient(145deg, #00FFC6, #00d4a8)',
-                boxShadow: '0 4px 20px rgba(0, 255, 198, 0.4)'
-              }}
-            >
-              <span className="text-base sm:text-3xl font-bold text-white">H</span>
-            </div>
-            <div className="text-xs sm:text-base font-heading font-bold text-neo-accent mb-1 sm:mb-1">Heads</div>
-            <div className="text-[11px] sm:text-sm text-white font-mono font-bold">1:1</div>
-            {headsBetTotal > 0 && (
-              <div className="text-[11px] sm:text-sm font-mono font-bold text-neo-accent mt-0.5 sm:mt-2 px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full" style={{
-                background: 'rgba(0, 255, 198, 0.2)',
-                border: '1px solid #00FFC6'
-              }}>
-                {headsBetTotal}
+            {/* Heads Logo */}
+            <div className="flex flex-col items-center">
+              <div 
+                className="w-10 h-10 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(145deg, #00FFC6, #00d4a8)',
+                  boxShadow: '0 4px 20px rgba(0, 255, 198, 0.4)'
+                }}
+              >
+                <span className="text-xl sm:text-4xl font-bold text-white">H</span>
               </div>
-            )}
+              {headsBetTotal > 0 && (
+                <div className="text-[10px] sm:text-xs font-mono font-bold text-neo-accent mt-1 px-1.5 sm:px-2 py-0.5 rounded-full" style={{
+                  background: 'rgba(0, 255, 198, 0.2)',
+                  border: '1px solid #00FFC6'
+                }}>
+                  {headsBetTotal}
+                </div>
+              )}
+            </div>
+            
+            {/* Label and Ratio on Right */}
+            <div className="flex flex-col items-start">
+              <div className="text-xs sm:text-lg font-heading font-bold text-neo-accent">Heads</div>
+              <div className="text-[10px] sm:text-sm text-white font-mono font-bold">Win: 1:1</div>
+            </div>
           </button>
 
           {/* Center - Timer */}
           <div className="flex-1 flex flex-col items-center justify-center">
+            {/* Round Number */}
+            <div className="text-[10px] sm:text-xs text-neo-accent tracking-wider font-mono mb-1 sm:mb-2">
+              ROUND #{totalGameCount !== null ? totalGameCount + 1 : '...'}
+            </div>
+            
             <div 
               className={`w-20 h-20 sm:w-32 sm:h-32 rounded-full flex flex-col items-center justify-center mb-1 ${
                 countdownTime <= 5 && countdownTime > 0 && !isFlipping && !currentResult ? 'animate-pulse' : ''
@@ -754,8 +761,10 @@ export default function CoinTossRoom() {
                 </div>
               )}
             </div>
-            <div className="text-xs text-neo-accent tracking-wider font-mono">
-              TIME: {Math.max(0, countdownTime - 10)}s
+            
+            {/* Betting Time Left */}
+            <div className="text-[10px] sm:text-xs text-neo-accent tracking-wider font-mono mt-1">
+              BET TIME: {Math.max(0, countdownTime - 10)}s
             </div>
           </div>
 
@@ -763,37 +772,42 @@ export default function CoinTossRoom() {
           <button
             onClick={() => setSelectedBetType('tails')}
             disabled={bettingWindowClosed}
-            className="flex flex-col items-center justify-center py-3 px-4 sm:p-4 rounded-xl sm:rounded-2xl transition-all hover:scale-105"
+            className="flex items-center gap-2 sm:gap-3 py-3 px-3 sm:px-4 rounded-xl sm:rounded-2xl transition-all hover:scale-105"
             style={{
               border: selectedBetType === 'tails' ? '3px solid #FF005C' : '2px solid #FF005C',
               background: selectedBetType === 'tails' ? 'rgba(255, 0, 92, 0.2)' : 'rgba(20, 20, 30, 0.6)',
               backdropFilter: 'blur(10px)',
-              width: '70px',
-              minHeight: '70px',
               boxShadow: selectedBetType === 'tails' ? '0 0 30px rgba(255, 0, 92, 0.5)' : '0 4px 15px rgba(0, 0, 0, 0.3)',
               opacity: bettingWindowClosed ? 0.5 : 1,
               cursor: bettingWindowClosed ? 'not-allowed' : 'pointer'
             }}
           >
-            <div 
-              className="w-6 h-6 sm:w-12 sm:h-12 rounded-full flex items-center justify-center mb-1 sm:mb-2"
-              style={{
-                background: 'linear-gradient(145deg, #FF005C, #d40049)',
-                boxShadow: '0 4px 20px rgba(255, 0, 92, 0.4)'
-              }}
-            >
-              <span className="text-base sm:text-3xl font-bold text-white">T</span>
+            {/* Label and Ratio on Left */}
+            <div className="flex flex-col items-end">
+              <div className="text-xs sm:text-lg font-heading font-bold text-neo-accent-secondary">Tails</div>
+              <div className="text-[10px] sm:text-sm text-white font-mono font-bold">Win: 1:1</div>
             </div>
-            <div className="text-xs sm:text-base font-heading font-bold text-neo-accent-secondary mb-1 sm:mb-1">Tails</div>
-            <div className="text-[11px] sm:text-sm text-white font-mono font-bold">1:1</div>
-            {tailsBetTotal > 0 && (
-              <div className="text-[11px] sm:text-sm font-mono font-bold text-neo-accent-secondary mt-0.5 sm:mt-2 px-1.5 sm:px-3 py-0.5 sm:py-1 rounded-full" style={{
-                background: 'rgba(255, 0, 92, 0.2)',
-                border: '1px solid #FF005C'
-              }}>
-                {tailsBetTotal}
+            
+            {/* Tails Logo */}
+            <div className="flex flex-col items-center">
+              <div 
+                className="w-10 h-10 sm:w-16 sm:h-16 rounded-full flex items-center justify-center"
+                style={{
+                  background: 'linear-gradient(145deg, #FF005C, #d40049)',
+                  boxShadow: '0 4px 20px rgba(255, 0, 92, 0.4)'
+                }}
+              >
+                <span className="text-xl sm:text-4xl font-bold text-white">T</span>
               </div>
-            )}
+              {tailsBetTotal > 0 && (
+                <div className="text-[10px] sm:text-xs font-mono font-bold text-neo-accent-secondary mt-1 px-1.5 sm:px-2 py-0.5 rounded-full" style={{
+                  background: 'rgba(255, 0, 92, 0.2)',
+                  border: '1px solid #FF005C'
+                }}>
+                  {tailsBetTotal}
+                </div>
+              )}
+            </div>
           </button>
         </div>
 
