@@ -69,22 +69,27 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
   // Socket event listeners
   useEffect(() => {
     const handleBetPlaced = (data: { bet: any; chips: number; locked: boolean }) => {
-      const newBet: Bet = {
-        type: data.bet.betType,
-        value: data.bet.betValue,
-        amount: data.bet.betAmount,
-        betId: data.bet.id
-      };
+      // Update the betId of the most recent unlocked bet (the one we just placed)
+      setUnlockedBets(prev => {
+        if (prev.length === 0) return prev;
+        const updated = [...prev];
+        const lastBet = updated[updated.length - 1];
+        if (!lastBet.betId) {
+          lastBet.betId = data.bet.id;
+        }
+        return updated;
+      });
       
+      // Update currentBets with betId
       setCurrentBets(prev => {
-        const updated = [...prev, newBet];
+        const updated = [...prev];
+        const lastBet = updated[updated.length - 1];
+        if (lastBet && !lastBet.betId) {
+          lastBet.betId = data.bet.id;
+        }
         lastValidBetsRef.current = updated;
         return updated;
       });
-
-      if (!data.locked) {
-        setUnlockedBets(prev => [...prev, newBet]);
-      }
     };
 
     const handleBetsLocked = (data: { bets: any[]; chips: number }) => {
@@ -139,15 +144,32 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
     const betType = BET_TYPES.find(type => type.id === selectedBetType);
     if (!betType) return;
 
-    // Emit bet to server (server will add to currentBets via socket event)
+    // Create the bet locally for immediate UI feedback
+    const newBet: Bet = {
+      type: selectedBetType,
+      value: selectedBetType === 'lucky7' ? '7' : selectedBetType,
+      amount: selectedAmount
+    };
+
+    // Add to currentBets immediately
+    setCurrentBets(prev => {
+      const updated = [...prev, newBet];
+      lastValidBetsRef.current = updated;
+      return updated;
+    });
+
+    // Track as unlocked bet (server will send betId via socket)
+    setUnlockedBets(prev => [...prev, newBet]);
+
+    playHit();
+
+    // Emit bet to server
     socket.emit('place-bet', {
       roomId,
       betType: selectedBetType,
       betValue: selectedBetType === 'lucky7' ? '7' : selectedBetType,
       amount: selectedAmount
     });
-
-    playHit();
 
     // Reset selection
     setSelectedBetType('');
