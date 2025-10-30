@@ -646,21 +646,6 @@ export default function CoinTossRoom() {
           </div>
         </div>
 
-        {/* Status */}
-        <div className="text-center">
-          <div 
-            className="inline-block px-3 sm:px-6 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold tracking-widest"
-            style={{
-              border: bettingWindowClosed ? '2px solid #FF005C' : '2px solid #00FFC6',
-              color: bettingWindowClosed ? '#FF005C' : '#00FFC6',
-              background: bettingWindowClosed ? 'rgba(255, 0, 92, 0.15)' : 'rgba(0, 255, 198, 0.15)',
-              boxShadow: bettingWindowClosed ? '0 0 20px rgba(255, 0, 92, 0.3)' : '0 0 20px rgba(0, 255, 198, 0.3)'
-            }}
-          >
-            {bettingWindowClosed ? 'BETTING CLOSED' : 'BETTING OPEN'}
-          </div>
-        </div>
-
         {/* Main Game Area */}
         <div className="flex-1 flex items-center gap-2 sm:gap-6 min-h-0 px-2 sm:px-8">
           {/* Left Panel - Heads Selection */}
@@ -902,6 +887,21 @@ export default function CoinTossRoom() {
             <span className="text-base sm:text-lg font-mono font-bold text-neo-accent">
               {playerChips ?? 0}
             </span>
+          </div>
+
+          {/* Status */}
+          <div className="text-center">
+            <div 
+              className="inline-block px-3 sm:px-6 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold tracking-widest"
+              style={{
+                border: bettingWindowClosed ? '2px solid #FF005C' : '2px solid #00FFC6',
+                color: bettingWindowClosed ? '#FF005C' : '#00FFC6',
+                background: bettingWindowClosed ? 'rgba(255, 0, 92, 0.15)' : 'rgba(0, 255, 198, 0.15)',
+                boxShadow: bettingWindowClosed ? '0 0 20px rgba(255, 0, 92, 0.3)' : '0 0 20px rgba(0, 255, 198, 0.3)'
+              }}
+            >
+              {bettingWindowClosed ? 'BETTING CLOSED' : 'BETTING OPEN'}
+            </div>
           </div>
 
           {/* Bet Amount & Place Bet */}
