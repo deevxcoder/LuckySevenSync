@@ -40,8 +40,8 @@ export class CoinTossManager {
   private playerRooms: Map<string, string>;
   private countdownIntervals: Map<string, NodeJS.Timeout>;
   private adminOverrides: Map<number, 'heads' | 'tails'>;
-  private lockedBets: Map<number, { betType: 'heads' | 'tails'; amount: number; socketId: string }>;
-  private unlockedBets: Map<string, { betType: 'heads' | 'tails'; amount: number; playerId: number; betId: number }>;
+  private lockedBets: Map<number, Array<{ betType: 'heads' | 'tails'; amount: number; betId: number }>>;
+  private unlockedBets: Map<string, Array<{ betType: 'heads' | 'tails'; amount: number; playerId: number; betId: number }>>;
 
   constructor(io: Server) {
     this.io = io;
@@ -130,13 +130,8 @@ export class CoinTossManager {
       return;
     }
 
-    if (this.unlockedBets.has(socket.id)) {
-      socket.emit('coin-toss-bet-error', { message: 'You already have a bet. Please lock or cancel it first.' });
-      return;
-    }
-
     if (this.lockedBets.has(player.dbId)) {
-      socket.emit('coin-toss-bet-error', { message: 'You already have a locked bet. Locked bets cannot be changed.' });
+      socket.emit('coin-toss-bet-error', { message: 'You have locked bets. Locked bets cannot be changed.' });
       return;
     }
 
@@ -165,8 +160,11 @@ export class CoinTossManager {
 
       player.chips = result.updatedPlayer.chips;
 
-      // Track as unlocked bet for potential cancellation on disconnect
-      this.unlockedBets.set(socket.id, {
+      // Add to unlocked bets array for potential cancellation
+      if (!this.unlockedBets.has(socket.id)) {
+        this.unlockedBets.set(socket.id, []);
+      }
+      this.unlockedBets.get(socket.id)!.push({
         betType: data.betType as 'heads' | 'tails',
         amount: data.amount,
         playerId: player.dbId,
@@ -187,18 +185,18 @@ export class CoinTossManager {
       });
 
       socket.emit('coin-toss-bet-placed', {
-        bet: { betType: data.betType, amount: data.amount, locked: false },
+        bet: { betType: data.betType, amount: data.amount, locked: false, betId: result.bet.id },
         remainingChips: result.updatedPlayer.chips
       });
 
-      console.log(`Coin toss bet placed immediately: ${player.name} placed ${data.amount} on ${data.betType} (bet ID: ${result.bet.id})`);
+      console.log(`Coin toss bet placed: ${player.name} placed ${data.amount} on ${data.betType} (bet ID: ${result.bet.id})`);
     } catch (error: any) {
       console.error('Error placing coin toss bet:', error);
       socket.emit('coin-toss-bet-error', { message: error.message });
     }
   }
 
-  async handleLockBet(socket: Socket, data: { roomId: string; betType?: string; amount?: number }) {
+  async handleLockBet(socket: Socket, data: { roomId: string }) {
     const player = this.globalRoom.players.find(p => p.socketId === socket.id);
     if (!player || !player.dbId) {
       socket.emit('coin-toss-bet-error', { message: 'Player not found' });
@@ -211,36 +209,36 @@ export class CoinTossManager {
     }
 
     if (this.lockedBets.has(player.dbId)) {
-      socket.emit('coin-toss-bet-error', { message: 'You already have a locked bet. Locked bets cannot be changed.' });
+      socket.emit('coin-toss-bet-error', { message: 'You already have locked bets. Locked bets cannot be changed.' });
       return;
     }
 
     try {
-      const betToLock = this.unlockedBets.get(socket.id);
+      const betsToLock = this.unlockedBets.get(socket.id);
       
-      if (!betToLock) {
-        socket.emit('coin-toss-bet-error', { message: 'No bet to lock. Please place a bet first.' });
+      if (!betsToLock || betsToLock.length === 0) {
+        socket.emit('coin-toss-bet-error', { message: 'No bets to lock. Please place a bet first.' });
         return;
       }
 
-      // Mark bet as locked for persistence (bet is already placed in DB)
-      this.lockedBets.set(player.dbId, {
-        betType: betToLock.betType,
-        amount: betToLock.amount,
-        socketId: socket.id
-      });
+      // Mark all bets as locked for persistence (bets are already placed in DB)
+      this.lockedBets.set(player.dbId, betsToLock.map(bet => ({
+        betType: bet.betType,
+        amount: bet.amount,
+        betId: bet.betId
+      })));
 
       // Remove from unlocked bets
       this.unlockedBets.delete(socket.id);
 
-      socket.emit('coin-toss-bet-locked', {
-        bet: { betType: betToLock.betType, betAmount: betToLock.amount, locked: true },
+      socket.emit('coin-toss-bets-locked', {
+        bets: betsToLock.map(bet => ({ betType: bet.betType, betAmount: bet.amount, betId: bet.betId, locked: true })),
         remainingChips: player.chips || 0
       });
 
-      console.log(`Coin toss bet locked for persistence: ${player.name} locked ${betToLock.amount} on ${betToLock.betType} (bet already placed)`);
+      console.log(`Coin toss bets locked for persistence: ${player.name} locked ${betsToLock.length} bet(s)`);
     } catch (error: any) {
-      console.error('Error locking coin toss bet:', error);
+      console.error('Error locking coin toss bets:', error);
       socket.emit('coin-toss-bet-error', { message: error.message });
     }
   }
@@ -253,49 +251,56 @@ export class CoinTossManager {
     }
 
     if (this.lockedBets.has(player.dbId)) {
-      socket.emit('coin-toss-bet-error', { message: 'Cannot cancel a locked bet' });
+      socket.emit('coin-toss-bet-error', { message: 'Cannot cancel locked bets' });
       return;
     }
 
-    const unlockedBet = this.unlockedBets.get(socket.id);
-    if (!unlockedBet) {
-      socket.emit('coin-toss-bet-error', { message: 'No bet to cancel' });
+    const unlockedBets = this.unlockedBets.get(socket.id);
+    if (!unlockedBets || unlockedBets.length === 0) {
+      socket.emit('coin-toss-bet-error', { message: 'No bets to cancel' });
       return;
     }
 
     try {
-      // Delete the bet from the database
-      await storage.deleteCoinTossBet(unlockedBet.betId);
-      
-      // Refund the player
-      const dbPlayer = await storage.getPlayer(player.dbId);
-      if (dbPlayer) {
-        await storage.updatePlayerChips(player.dbId, dbPlayer.chips + unlockedBet.amount);
-        player.chips = dbPlayer.chips + unlockedBet.amount;
+      let totalRefund = 0;
+
+      // Delete all unlocked bets from the database and calculate total refund
+      for (const bet of unlockedBets) {
+        await storage.deleteCoinTossBet(bet.betId);
+        totalRefund += bet.amount;
         
-        // Remove the bet from active bets
+        // Remove from active bets
         const playerBets = this.globalRoom.activeBets?.get(socket.id);
         if (playerBets) {
-          const betIndex = playerBets.findIndex(b => b.betId === unlockedBet.betId);
+          const betIndex = playerBets.findIndex(b => b.betId === bet.betId);
           if (betIndex !== -1) {
             playerBets.splice(betIndex, 1);
-            if (playerBets.length === 0) {
-              this.globalRoom.activeBets?.delete(socket.id);
-            }
           }
         }
       }
 
+      // Remove active bets entry if empty
+      if (this.globalRoom.activeBets?.get(socket.id)?.length === 0) {
+        this.globalRoom.activeBets.delete(socket.id);
+      }
+
+      // Refund the player
+      const dbPlayer = await storage.getPlayer(player.dbId);
+      if (dbPlayer) {
+        await storage.updatePlayerChips(player.dbId, dbPlayer.chips + totalRefund);
+        player.chips = dbPlayer.chips + totalRefund;
+      }
+
       this.unlockedBets.delete(socket.id);
 
-      socket.emit('coin-toss-bet-cancelled', {
-        message: 'Bet cancelled and refunded successfully',
+      socket.emit('coin-toss-bets-cancelled', {
+        message: `${unlockedBets.length} bet(s) cancelled and refunded successfully`,
         remainingChips: player.chips
       });
 
-      console.log(`Coin toss bet cancelled and refunded: ${player.name} cancelled ${unlockedBet.amount} on ${unlockedBet.betType}`);
+      console.log(`Coin toss bets cancelled and refunded: ${player.name} cancelled ${unlockedBets.length} bet(s), total refund: ${totalRefund}`);
     } catch (error: any) {
-      console.error('Error cancelling coin toss bet:', error);
+      console.error('Error cancelling coin toss bets:', error);
       socket.emit('coin-toss-bet-error', { message: error.message });
     }
   }
@@ -311,19 +316,12 @@ export class CoinTossManager {
     }
 
     let activeBets: any[] = [];
-    let lockedBet: { betType: 'heads' | 'tails'; amount: number } | null = null;
+    let lockedBets: Array<{ betType: 'heads' | 'tails'; amount: number; betId: number }> = [];
 
     if (player.dbId && this.lockedBets.has(player.dbId)) {
-      const existingLockedBet = this.lockedBets.get(player.dbId)!;
-      this.lockedBets.set(player.dbId, {
-        ...existingLockedBet,
-        socketId: socket.id
-      });
-      lockedBet = {
-        betType: existingLockedBet.betType,
-        amount: existingLockedBet.amount
-      };
-      console.log(`Restored locked bet for ${player.name}: ${lockedBet.amount} on ${lockedBet.betType}`);
+      const existingLockedBets = this.lockedBets.get(player.dbId)!;
+      lockedBets = existingLockedBets;
+      console.log(`Restored ${lockedBets.length} locked bet(s) for ${player.name}`);
     }
 
     if (this.globalRoom.currentGameId && player.dbId) {
@@ -354,7 +352,7 @@ export class CoinTossManager {
       room: this.sanitizeRoomForBroadcast(this.globalRoom),
       player,
       activeBets,
-      lockedBet,
+      lockedBets,
       countdownTime: this.globalRoom.countdownTime
     });
 
@@ -373,35 +371,42 @@ export class CoinTossManager {
     
     // Auto-cancel and refund unlocked bets when player exits
     if (this.unlockedBets.has(socket.id)) {
-      const unlockedBet = this.unlockedBets.get(socket.id)!;
+      const unlockedBets = this.unlockedBets.get(socket.id)!;
       
       try {
-        // Delete the bet from the database
-        await storage.deleteCoinTossBet(unlockedBet.betId);
+        let totalRefund = 0;
         
-        if (player?.dbId) {
+        // Delete all unlocked bets from the database
+        for (const bet of unlockedBets) {
+          await storage.deleteCoinTossBet(bet.betId);
+          totalRefund += bet.amount;
+          
+          // Remove from active bets
+          const playerBets = this.globalRoom.activeBets?.get(socket.id);
+          if (playerBets) {
+            const betIndex = playerBets.findIndex(b => b.betId === bet.betId);
+            if (betIndex !== -1) {
+              playerBets.splice(betIndex, 1);
+            }
+          }
+        }
+        
+        // Remove active bets entry if empty
+        if (this.globalRoom.activeBets?.get(socket.id)?.length === 0) {
+          this.globalRoom.activeBets.delete(socket.id);
+        }
+        
+        if (player?.dbId && totalRefund > 0) {
           const dbPlayer = await storage.getPlayer(player.dbId);
           if (dbPlayer) {
             // Refund the player
-            await storage.updatePlayerChips(player.dbId, dbPlayer.chips + unlockedBet.amount);
+            await storage.updatePlayerChips(player.dbId, dbPlayer.chips + totalRefund);
             
-            // Remove bet from active bets
-            const playerBets = this.globalRoom.activeBets?.get(socket.id);
-            if (playerBets) {
-              const betIndex = playerBets.findIndex(b => b.betId === unlockedBet.betId);
-              if (betIndex !== -1) {
-                playerBets.splice(betIndex, 1);
-                if (playerBets.length === 0) {
-                  this.globalRoom.activeBets?.delete(socket.id);
-                }
-              }
-            }
-            
-            console.log(`Unlocked bet auto-cancelled and refunded for disconnected player ${player?.name || socket.id}: ${unlockedBet.amount} on ${unlockedBet.betType}`);
+            console.log(`${unlockedBets.length} unlocked bet(s) auto-cancelled and refunded for disconnected player ${player?.name || socket.id}, total refund: ${totalRefund}`);
           }
         }
       } catch (error) {
-        console.error('Error refunding unlocked bet on disconnect:', error);
+        console.error('Error refunding unlocked bets on disconnect:', error);
       }
       
       this.unlockedBets.delete(socket.id);
@@ -582,8 +587,11 @@ export class CoinTossManager {
     room.countdownTime = 30;
     room.currentGameId = undefined;
     room.activeBets?.clear();
+    
+    // Clear locked bets and unlocked bets to allow players to bet in the next round
     this.lockedBets.clear();
     this.unlockedBets.clear();
+    
     room.roundNumber = (room.roundNumber || 1) + 1;
 
     const sanitizedRoom = this.sanitizeRoomForBroadcast(room);

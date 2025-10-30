@@ -47,14 +47,15 @@ export default function CoinTossRoom() {
   const [totalWinAmount, setTotalWinAmount] = useState<number>(0);
   const lastValidBetsRef = useRef<any[]>([]);
   const [previousRoundBets, setPreviousRoundBets] = useState<Bet[]>([]);
-  const [lockedBet, setLockedBet] = useState<{ type: 'heads' | 'tails'; amount: number } | null>(null);
-  const [unlockedBet, setUnlockedBet] = useState<{ type: 'heads' | 'tails'; amount: number } | null>(null);
-  const unlockedBetRef = useRef<{ type: 'heads' | 'tails'; amount: number } | null>(null);
+  const [lastBetSelection, setLastBetSelection] = useState<{ type: 'heads' | 'tails'; amount: number } | null>(null);
+  const [lockedBets, setLockedBets] = useState<Array<{ type: 'heads' | 'tails'; amount: number; betId?: number }>>([]);
+  const [unlockedBets, setUnlockedBets] = useState<Array<{ type: 'heads' | 'tails'; amount: number; betId?: number }>>([]);
+  const unlockedBetsRef = useRef<Array<{ type: 'heads' | 'tails'; amount: number; betId?: number }>>([]);
 
   // Keep ref in sync with state
   useEffect(() => {
-    unlockedBetRef.current = unlockedBet;
-  }, [unlockedBet]);
+    unlockedBetsRef.current = unlockedBets;
+  }, [unlockedBets]);
 
   useEffect(() => {
     const total = currentBets.reduce((sum, bet) => sum + bet.amount, 0);
@@ -212,8 +213,9 @@ export default function CoinTossRoom() {
 
   const handlePlaceBet = () => {
     if (!canPlaceBet()) return;
-    if (unlockedBet || lockedBet) {
-      alert('You already have a bet. Please lock or cancel it first.');
+    if (!selectedBetType) return;
+    if (lockedBets.length > 0) {
+      alert('You have locked bets. Locked bets cannot be changed.');
       return;
     }
 
@@ -223,48 +225,51 @@ export default function CoinTossRoom() {
       amount: selectedAmount
     });
 
+    // Store last bet selection for repeat functionality
+    setLastBetSelection({ type: selectedBetType, amount: selectedAmount });
+
     console.log(`Placing coin toss bet: ${selectedAmount} on ${selectedBetType}`);
   };
 
   const handleCancelBet = () => {
-    if (!unlockedBet) return;
+    if (unlockedBets.length === 0) return;
 
     socket.emit('coin-toss-cancel-bet', {
       roomId: 'COIN_TOSS_GLOBAL'
     });
 
-    console.log('Cancelling unlocked bet');
+    console.log(`Cancelling ${unlockedBets.length} unlocked bet(s)`);
   };
 
   const handleRepeatBet = () => {
-    if (previousRoundBets.length === 0) return;
+    if (!lastBetSelection) return;
     if (gameStatus !== 'countdown' || countdownTime <= 10) return;
+    if (lockedBets.length > 0) return;
     
-    const totalRepeatAmount = previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0);
-    if (playerChips === null || (playerChips - totalBetAmount) < totalRepeatAmount) return;
+    const hasEnoughBalance = playerChips !== null && (playerChips - totalBetAmount) >= lastBetSelection.amount;
+    if (!hasEnoughBalance) {
+      alert('Insufficient balance to repeat last bet');
+      return;
+    }
     
-    previousRoundBets.forEach(bet => {
-      socket.emit('coin-toss-place-bet', {
-        roomId: 'COIN_TOSS_GLOBAL',
-        betType: bet.type,
-        amount: bet.amount
-      });
+    socket.emit('coin-toss-place-bet', {
+      roomId: 'COIN_TOSS_GLOBAL',
+      betType: lastBetSelection.type,
+      amount: lastBetSelection.amount
     });
 
-    console.log(`Repeating ${previousRoundBets.length} bets from previous round`);
+    console.log(`Repeating last bet: ${lastBetSelection.amount} on ${lastBetSelection.type}`);
   };
 
   const handleLockBet = () => {
-    if (!unlockedBet && (!selectedBetType || selectedAmount <= 0)) return;
+    if (unlockedBets.length === 0) return;
     if (playerChips === null) return;
 
     socket.emit('coin-toss-lock-bet', {
-      roomId: 'COIN_TOSS_GLOBAL',
-      betType: unlockedBet?.type || selectedBetType,
-      amount: unlockedBet?.amount || selectedAmount
+      roomId: 'COIN_TOSS_GLOBAL'
     });
 
-    console.log(`Locking bet: ${unlockedBet?.amount || selectedAmount} on ${unlockedBet?.type || selectedBetType}`);
+    console.log(`Locking ${unlockedBets.length} bet(s)`);
   };
 
   useEffect(() => {
@@ -325,7 +330,7 @@ export default function CoinTossRoom() {
       console.log('Disconnected from coin toss socket');
     });
 
-    socket.on('coin-toss-room-joined', (data: { room: CoinTossRoomData; player: any; activeBets?: any[]; lockedBet?: { betType: 'heads' | 'tails'; amount: number } | null; countdownTime?: number }) => {
+    socket.on('coin-toss-room-joined', (data: { room: CoinTossRoomData; player: any; activeBets?: any[]; lockedBets?: Array<{ betType: 'heads' | 'tails'; amount: number; betId?: number }>; countdownTime?: number }) => {
       console.log('Joined coin toss room:', data);
       setGameStatus(data.room.status);
       setCurrentResult(data.room.currentResult);
@@ -338,9 +343,9 @@ export default function CoinTossRoom() {
         setCountdownTime(data.countdownTime);
       }
 
-      if (data.lockedBet) {
-        console.log('Restoring locked bet:', data.lockedBet);
-        setLockedBet({ type: data.lockedBet.betType, amount: data.lockedBet.amount });
+      if (data.lockedBets && data.lockedBets.length > 0) {
+        console.log('Restoring locked bets:', data.lockedBets);
+        setLockedBets(data.lockedBets.map(bet => ({ type: bet.betType, amount: bet.amount, betId: bet.betId })));
       }
       
       if (data.activeBets && data.activeBets.length > 0) {
@@ -351,6 +356,18 @@ export default function CoinTossRoom() {
         }));
         setCurrentBets(restoredBets);
         lastValidBetsRef.current = restoredBets;
+        
+        // Restore unlocked bets (those that are in activeBets but not in lockedBets)
+        const lockedBetIds = new Set((data.lockedBets || []).map(b => b.betId));
+        const unlockedActiveBets = data.activeBets.filter(bet => !lockedBetIds.has(bet.id));
+        if (unlockedActiveBets.length > 0) {
+          console.log('Restoring unlocked bets:', unlockedActiveBets);
+          setUnlockedBets(unlockedActiveBets.map(bet => ({ 
+            type: bet.type, 
+            amount: bet.amount, 
+            betId: bet.id 
+          })));
+        }
       }
       
       fetchGameCount();
@@ -364,8 +381,8 @@ export default function CoinTossRoom() {
       setCurrentBets([]);
       setShowResultPopup(false);
       setIsFlipping(false);
-      setUnlockedBet(null);
-      setLockedBet(null);
+      setUnlockedBets([]);
+      setLockedBets([]);
     });
 
     socket.on('coin-toss-countdown-tick', (data: { time: number; room: CoinTossRoomData }) => {
@@ -428,8 +445,8 @@ export default function CoinTossRoom() {
       
       setCurrentBets([]);
       lastValidBetsRef.current = [];
-      setLockedBet(null);
-      setUnlockedBet(null);
+      setLockedBets([]);
+      setUnlockedBets([]);
 
       if (user && socket.id) {
         try {
@@ -469,40 +486,45 @@ export default function CoinTossRoom() {
       
       // Track as unlocked bet for UI controls (lock/cancel buttons)
       if (data.bet.locked === false) {
-        setUnlockedBet({ type: data.bet.betType, amount: data.bet.amount });
+        setUnlockedBets(prev => [...prev, { 
+          type: data.bet.betType, 
+          amount: data.bet.amount || data.bet.betAmount, 
+          betId: data.bet.betId 
+        }]);
       }
     });
 
     socket.on('coin-toss-bet-error', (data: { message: string }) => {
       console.error('Coin toss bet error:', data.message);
-      setUnlockedBet(null);
       alert(`Bet Error: ${data.message}`);
     });
 
-    socket.on('coin-toss-bet-locked', (data: { bet: any; remainingChips: number }) => {
-      console.log('Coin toss bet locked:', data);
+    socket.on('coin-toss-bets-locked', (data: { bets: any[]; remainingChips: number }) => {
+      console.log('Coin toss bets locked:', data);
       setPlayerChips(data.remainingChips);
-      setLockedBet({ type: data.bet.betType, amount: data.bet.betAmount });
-      setUnlockedBet(null);
+      setLockedBets(data.bets.map((bet: any) => ({ 
+        type: bet.betType, 
+        amount: bet.betAmount, 
+        betId: bet.betId 
+      })));
+      setUnlockedBets([]);
     });
 
-    socket.on('coin-toss-bet-cancelled', (data: { message: string; remainingChips?: number }) => {
-      console.log('Coin toss bet cancelled and refunded:', data.message);
+    socket.on('coin-toss-bets-cancelled', (data: { message: string; remainingChips?: number }) => {
+      console.log('Coin toss bets cancelled and refunded:', data.message);
       if (data.remainingChips !== undefined) {
         setPlayerChips(data.remainingChips);
       }
       
-      // Remove cancelled bet from current bets using ref to get current value
-      const currentUnlockedBet = unlockedBetRef.current;
-      if (currentUnlockedBet) {
-        setCurrentBets(prev => {
-          const filtered = prev.filter(bet => !(bet.type === currentUnlockedBet.type && bet.amount === currentUnlockedBet.amount));
-          lastValidBetsRef.current = filtered;
-          return filtered;
-        });
-      }
+      // Remove cancelled unlocked bets from currentBets by rebuilding from locked bets only
+      setCurrentBets(prev => {
+        // Keep only the locked bets in currentBets
+        const lockedBetsOnly = lockedBets.map(lb => ({ type: lb.type, amount: lb.amount }));
+        lastValidBetsRef.current = lockedBetsOnly;
+        return lockedBetsOnly;
+      });
       
-      setUnlockedBet(null);
+      setUnlockedBets([]);
     });
 
     socket.on('coin-toss-locked-bet-placed', (data: { bet: any }) => {
@@ -536,8 +558,8 @@ export default function CoinTossRoom() {
       socket.off('coin-toss-round-ended');
       socket.off('coin-toss-bet-placed');
       socket.off('coin-toss-bet-error');
-      socket.off('coin-toss-bet-locked');
-      socket.off('coin-toss-bet-cancelled');
+      socket.off('coin-toss-bets-locked');
+      socket.off('coin-toss-bets-cancelled');
       socket.off('coin-toss-locked-bet-placed');
     };
   }, [user, socketId]);
@@ -794,29 +816,42 @@ export default function CoinTossRoom() {
         {/* Bottom Controls */}
         <div className="space-y-1.5 sm:space-y-3 px-2 sm:px-4">
           {/* Bet Status Display */}
-          {(unlockedBet || lockedBet) && (
-            <div className="text-center">
-              <div 
-                className="inline-block px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold"
-                style={{
-                  border: lockedBet ? '2px solid #EAB308' : '2px solid #FF9500',
-                  color: lockedBet ? '#EAB308' : '#FF9500',
-                  background: lockedBet ? 'rgba(234, 179, 8, 0.15)' : 'rgba(255, 149, 0, 0.15)',
-                  boxShadow: lockedBet ? '0 0 20px rgba(234, 179, 8, 0.3)' : '0 0 20px rgba(255, 149, 0, 0.3)'
-                }}
-              >
-                {lockedBet ? (
-                  <>
-                    <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                    LOCKED: {lockedBet.amount} on {lockedBet.type.toUpperCase()}
-                  </>
-                ) : (
-                  <>
-                    <LockOpen className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                    ACTIVE BET: {unlockedBet!.amount} on {unlockedBet!.type.toUpperCase()}
-                  </>
-                )}
-              </div>
+          {unlockedBets.length > 0 && (
+            <div className="text-center space-y-1">
+              {unlockedBets.map((bet, index) => (
+                <div 
+                  key={index}
+                  className="inline-block px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold mr-1 mb-1"
+                  style={{
+                    border: '2px solid #FF9500',
+                    color: '#FF9500',
+                    background: 'rgba(255, 149, 0, 0.15)',
+                    boxShadow: '0 0 20px rgba(255, 149, 0, 0.3)'
+                  }}
+                >
+                  <LockOpen className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                  ACTIVE: {bet.amount} on {bet.type.toUpperCase()}
+                </div>
+              ))}
+            </div>
+          )}
+          {lockedBets.length > 0 && (
+            <div className="text-center space-y-1">
+              {lockedBets.map((bet, index) => (
+                <div 
+                  key={index}
+                  className="inline-block px-2 sm:px-4 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold mr-1 mb-1"
+                  style={{
+                    border: '2px solid #EAB308',
+                    color: '#EAB308',
+                    background: 'rgba(234, 179, 8, 0.15)',
+                    boxShadow: '0 0 20px rgba(234, 179, 8, 0.3)'
+                  }}
+                >
+                  <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
+                  LOCKED: {bet.amount} on {bet.type.toUpperCase()}
+                </div>
+              ))}
             </div>
           )}
           
@@ -853,66 +888,92 @@ export default function CoinTossRoom() {
                 </button>
               ))}
             </div>
-            {!unlockedBet && !lockedBet && (
-              <button
-                onClick={handlePlaceBet}
-                disabled={!canPlaceBet()}
-                className={`px-4 sm:px-8 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-heading font-bold tracking-wide transition-all ${
-                  canPlaceBet()
-                    ? 'bg-neo-accent text-neo-bg border-2 border-neo-accent hover:scale-105'
-                    : 'bg-gray-700 text-gray-400 border border-gray-600 cursor-not-allowed'
-                }`}
-                style={{
-                  boxShadow: canPlaceBet() ? '0 0 30px rgba(0, 255, 198, 0.8)' : 'none',
-                  minWidth: '140px'
-                }}
-              >
-                {getPlaceBetButtonText()}
-              </button>
-            )}
-            {unlockedBet && (
-              <>
+            
+            {/* Action Buttons - Show when bet type and amount are selected */}
+            {selectedBetType && selectedAmount > 0 && lockedBets.length === 0 && (
+              <div className="flex items-center gap-2">
+                {/* Place Bet Button (Icon Only) */}
                 <button
-                  onClick={handleLockBet}
-                  disabled={bettingWindowClosed}
-                  className={`px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-heading font-bold tracking-wide transition-all ${
-                    !bettingWindowClosed
-                      ? 'bg-yellow-500/20 text-yellow-400 border-2 border-yellow-400 hover:bg-yellow-500/30 hover:scale-105'
-                      : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
+                  onClick={handlePlaceBet}
+                  disabled={!canPlaceBet()}
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
+                    canPlaceBet()
+                      ? 'bg-neo-accent text-neo-bg border-2 border-neo-accent hover:scale-110'
+                      : 'bg-gray-700 text-gray-400 border border-gray-600 cursor-not-allowed opacity-50'
                   }`}
                   style={{
-                    boxShadow: !bettingWindowClosed ? '0 0 30px rgba(234, 179, 8, 0.8)' : 'none',
-                    minWidth: '100px'
+                    boxShadow: canPlaceBet() ? '0 0 30px rgba(0, 255, 198, 0.8)' : 'none'
                   }}
-                  title="Lock bet to keep it active even if you exit the game"
+                  title={`Place Bet (${selectedAmount})`}
                 >
-                  <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                  LOCK & SAVE
+                  <DollarSign className="w-5 h-5 sm:w-6 sm:h-6" />
                 </button>
-                <button
-                  onClick={handleCancelBet}
-                  disabled={bettingWindowClosed}
-                  className={`px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-heading font-bold tracking-wide transition-all ${
-                    !bettingWindowClosed
-                      ? 'bg-red-500/20 text-red-400 border-2 border-red-400 hover:bg-red-500/30 hover:scale-105'
-                      : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
-                  }`}
-                  style={{
-                    boxShadow: !bettingWindowClosed ? '0 0 30px rgba(239, 68, 68, 0.8)' : 'none',
-                    minWidth: '100px'
-                  }}
-                  title="Cancel bet and get refund"
-                >
-                  <X className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                  CANCEL
-                </button>
-              </>
+                
+                {/* Lock Button (Icon Only) - Only show when there are unlocked bets */}
+                {unlockedBets.length > 0 && (
+                  <button
+                    onClick={handleLockBet}
+                    disabled={bettingWindowClosed}
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
+                      !bettingWindowClosed
+                        ? 'bg-yellow-500/20 text-yellow-400 border-2 border-yellow-400 hover:bg-yellow-500/30 hover:scale-110'
+                        : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
+                    }`}
+                    style={{
+                      boxShadow: !bettingWindowClosed ? '0 0 30px rgba(234, 179, 8, 0.8)' : 'none'
+                    }}
+                    title={`Lock ${unlockedBets.length} bet(s)`}
+                  >
+                    <Lock className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                )}
+                
+                {/* Cancel Button (Icon Only) - Only show when there are unlocked bets */}
+                {unlockedBets.length > 0 && (
+                  <button
+                    onClick={handleCancelBet}
+                    disabled={bettingWindowClosed}
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
+                      !bettingWindowClosed
+                        ? 'bg-red-500/20 text-red-400 border-2 border-red-400 hover:bg-red-500/30 hover:scale-110'
+                        : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
+                    }`}
+                    style={{
+                      boxShadow: !bettingWindowClosed ? '0 0 30px rgba(239, 68, 68, 0.8)' : 'none'
+                    }}
+                    title={`Cancel ${unlockedBets.length} bet(s)`}
+                  >
+                    <X className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                )}
+                
+                {/* Repeat Last Bet Button (Icon Only) */}
+                {lastBetSelection && unlockedBets.length === 0 && (
+                  <button
+                    onClick={handleRepeatBet}
+                    disabled={!lastBetSelection || bettingWindowClosed || (playerChips !== null && (playerChips - totalBetAmount) < lastBetSelection.amount)}
+                    className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all ${
+                      lastBetSelection && !bettingWindowClosed && playerChips !== null && (playerChips - totalBetAmount) >= lastBetSelection.amount
+                        ? 'bg-blue-500/20 text-blue-400 border-2 border-blue-400 hover:bg-blue-500/30 hover:scale-110'
+                        : 'bg-gray-700 text-gray-500 border border-gray-600 cursor-not-allowed opacity-50'
+                    }`}
+                    style={{
+                      boxShadow: lastBetSelection && !bettingWindowClosed ? '0 0 30px rgba(59, 130, 246, 0.8)' : 'none'
+                    }}
+                    title={lastBetSelection ? `Repeat: ${lastBetSelection.amount} on ${lastBetSelection.type}` : 'No previous bet'}
+                  >
+                    <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
+                  </button>
+                )}
+              </div>
             )}
-            {lockedBet && (
+            
+            {/* Locked Status */}
+            {lockedBets.length > 0 && (
               <div className="px-4 sm:px-8 py-1.5 sm:py-2.5 text-center">
                 <span className="text-xs sm:text-sm font-heading font-bold text-yellow-400">
                   <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                  BET LOCKED
+                  {lockedBets.length} BET(S) LOCKED
                 </span>
               </div>
             )}
