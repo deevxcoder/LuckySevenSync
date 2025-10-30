@@ -682,56 +682,52 @@ export default function GameRoom() {
               ))}
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              {/* Place Bet Button - Only show when no unlocked bets */}
-              {unlockedBets.length === 0 && (
-                <Button
-                  onClick={handlePlaceBet}
-                  disabled={!canPlaceBet()}
-                  className="flex-1 py-3 text-lg font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50"
-                >
-                  PLACE BET
-                </Button>
-              )}
+            {/* Action Buttons - All buttons visible */}
+            <div className="grid grid-cols-3 gap-2">
+              {/* Place Bet Button - Always visible */}
+              <Button
+                onClick={handlePlaceBet}
+                disabled={!canPlaceBet()}
+                className="py-3 text-sm font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50"
+              >
+                PLACE BET
+              </Button>
 
-              {/* Lock & Cancel Buttons - Show when there are unlocked bets */}
-              {unlockedBets.length > 0 && (
-                <>
-                  <Button
-                    onClick={handleLockBet}
-                    disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-                    className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                    title={`Lock ${unlockedBets.length} bet(s)`}
-                  >
-                    <Lock className="w-4 h-4 mr-1" />
-                    Lock ({unlockedBets.length})
-                  </Button>
-                  <Button
-                    onClick={handleCancelBet}
-                    disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-                    className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                    title={`Cancel ${unlockedBets.length} bet(s)`}
-                  >
-                    <X className="w-4 h-4 mr-1" />
-                    Cancel ({unlockedBets.length})
-                  </Button>
-                </>
-              )}
+              {/* Lock Button - Show when there are unlocked bets */}
+              <Button
+                onClick={handleLockBet}
+                disabled={unlockedBets.length === 0 || gameStatus !== 'countdown' || countdownTime <= 10}
+                className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                title={unlockedBets.length > 0 ? `Lock ${unlockedBets.length} bet(s)` : 'No bets to lock'}
+              >
+                <Lock className="w-4 h-4 mr-1" />
+                Lock {unlockedBets.length > 0 && `(${unlockedBets.length})`}
+              </Button>
 
-              {/* Repeat Button - Show when there are previous round bets and no current bets */}
-              {previousRoundBets.length > 0 && unlockedBets.length === 0 && lockedBets.length === 0 && (
-                <Button
-                  onClick={handleRepeatBet}
-                  disabled={gameStatus !== 'countdown' || countdownTime <= 10 || playerChips < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}
-                  className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                  title={`Repeat ${previousRoundBets.length} bet(s) - Total: ${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}`}
-                >
-                  <RotateCcw className="w-4 h-4 mr-1" />
-                  Repeat ({previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)})
-                </Button>
-              )}
+              {/* Repeat Button - Show when there are previous round bets */}
+              <Button
+                onClick={handleRepeatBet}
+                disabled={previousRoundBets.length === 0 || gameStatus !== 'countdown' || countdownTime <= 10 || playerChips < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                title={previousRoundBets.length > 0 ? `Repeat ${previousRoundBets.length} bet(s) - Total: ${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}` : 'No previous bets to repeat'}
+              >
+                <RotateCcw className="w-4 h-4 mr-1" />
+                Repeat {previousRoundBets.length > 0 && `(${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)})`}
+              </Button>
             </div>
+
+            {/* Cancel Button - Show below when there are unlocked bets */}
+            {unlockedBets.length > 0 && (
+              <Button
+                onClick={handleCancelBet}
+                disabled={gameStatus !== 'countdown' || countdownTime <= 10}
+                className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                title={`Cancel ${unlockedBets.length} bet(s)`}
+              >
+                <X className="w-4 h-4 mr-1" />
+                Cancel All Bets ({unlockedBets.length})
+              </Button>
+            )}
 
             {/* Current Bets Display */}
             {currentBets.length > 0 && (
