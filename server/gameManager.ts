@@ -269,6 +269,18 @@ export class GameManager {
     const sanitizedRoom = this.sanitizeRoomForBroadcast(room);
     this.io.to('GLOBAL').emit('room-updated', sanitizedRoom);
     
+    // Send current game state to the newly joined player
+    const currentGameState = {
+      status: room.status,
+      countdownTime: room.countdownTime,
+      currentCard: room.status === 'playing' && room.currentCard ? {
+        ...room.currentCard,
+        revealed: room.currentCard.revealed
+      } : null,
+      room: sanitizedRoom
+    };
+    socket.emit('game-state', currentGameState);
+    
     console.log(`Player ${socket.id} joined Lucky 7 game`);
 
     // Auto-start game immediately (no minimum player requirement)
