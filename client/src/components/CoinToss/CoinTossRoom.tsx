@@ -624,8 +624,21 @@ export default function CoinTossRoom() {
             </h1>
           </div>
 
-          {/* Right - Speaker & Close Button */}
+          {/* Right - Betting Status, Speaker & Close Button */}
           <div className="flex items-center gap-1 sm:gap-2">
+            {/* Betting Status */}
+            <div 
+              className="px-2 sm:px-3 py-1 rounded-md text-[10px] sm:text-xs font-heading font-bold tracking-wider"
+              style={{
+                border: bettingWindowClosed ? '1px solid #FF005C' : '1px solid #00FFC6',
+                color: bettingWindowClosed ? '#FF005C' : '#00FFC6',
+                background: bettingWindowClosed ? 'rgba(255, 0, 92, 0.15)' : 'rgba(0, 255, 198, 0.15)',
+                boxShadow: bettingWindowClosed ? '0 0 15px rgba(255, 0, 92, 0.3)' : '0 0 15px rgba(0, 255, 198, 0.3)'
+              }}
+            >
+              {bettingWindowClosed ? 'CLOSED' : 'OPEN'}
+            </div>
+            
             <button
               onClick={() => setIsSoundEnabled(!isSoundEnabled)}
               className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-neo-accent/20 hover:bg-neo-accent/30 border border-neo-accent text-neo-accent font-bold flex items-center justify-center shadow-lg transition-all"
@@ -853,21 +866,6 @@ export default function CoinTossRoom() {
               </div>
             );
           })()}
-          
-          {/* Status */}
-          <div className="text-center">
-            <div 
-              className="inline-block px-3 sm:px-6 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold tracking-widest"
-              style={{
-                border: bettingWindowClosed ? '2px solid #FF005C' : '2px solid #00FFC6',
-                color: bettingWindowClosed ? '#FF005C' : '#00FFC6',
-                background: bettingWindowClosed ? 'rgba(255, 0, 92, 0.15)' : 'rgba(0, 255, 198, 0.15)',
-                boxShadow: bettingWindowClosed ? '0 0 20px rgba(255, 0, 92, 0.3)' : '0 0 20px rgba(0, 255, 198, 0.3)'
-              }}
-            >
-              {bettingWindowClosed ? 'BETTING CLOSED' : 'BETTING OPEN'}
-            </div>
-          </div>
 
           {/* Bet Amount & Place Bet */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2">
