@@ -2,6 +2,15 @@
 
 KingGames is a real-time multiplayer casino gaming platform built with React, Express, and Socket.io. The platform features multiple games including Lucky 7 (a card betting game) and Coin Toss. Players join synchronized game rooms where they can place bets before a countdown reveals the result. The application features a comprehensive betting system with virtual chips, user authentication, game history tracking, and immersive audio/visual effects.
 
+# Recent Changes
+
+**October 30, 2025**: Added Repeat and Lock betting functionality to Lucky 7 game
+- Implemented bet locking system allowing players to lock their bets for the next round
+- Added repeat bet feature to quickly replay previous round's betting strategy
+- Enhanced GameRoom.tsx with unlocked/locked bet state management
+- Added Lock, Cancel, and Repeat buttons with conditional rendering based on bet state
+- Integrated socket event listeners for bet-placed, bets-locked, and bets-cancelled events
+
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
