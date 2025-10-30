@@ -983,7 +983,7 @@ export default function CoinTossRoom() {
                 )}
                 
                 {/* Repeat Last Bet Button (Icon Only) */}
-                {lastBetSelection && unlockedBets.length === 0 && (
+                {lastBetSelection && unlockedBets.length === 0 && lockedBets.length === 0 && (
                   <button
                     onClick={handleRepeatBet}
                     disabled={!lastBetSelection || bettingWindowClosed || (playerChips !== null && (playerChips - totalBetAmount) < lastBetSelection.amount)}

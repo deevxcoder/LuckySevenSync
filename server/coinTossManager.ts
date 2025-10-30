@@ -311,7 +311,10 @@ export class CoinTossManager {
     socket.join(roomId);
     this.playerRooms.set(socket.id, roomId);
     
-    if (!this.globalRoom.players.find(p => p.socketId === socket.id)) {
+    const existingPlayerIndex = this.globalRoom.players.findIndex(p => p.socketId === socket.id);
+    if (existingPlayerIndex !== -1) {
+      this.globalRoom.players[existingPlayerIndex] = player;
+    } else {
       this.globalRoom.players.push(player);
     }
 
