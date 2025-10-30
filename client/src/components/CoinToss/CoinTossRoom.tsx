@@ -881,14 +881,6 @@ export default function CoinTossRoom() {
             );
           })()}
           
-          {/* Balance Display - Always show current player chips */}
-          <div className="text-center">
-            <span className="text-xs sm:text-sm text-gray-400 font-mono">Balance: </span>
-            <span className="text-base sm:text-lg font-mono font-bold text-neo-accent">
-              {playerChips ?? 0}
-            </span>
-          </div>
-
           {/* Status */}
           <div className="text-center">
             <div 
