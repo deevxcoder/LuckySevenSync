@@ -428,6 +428,28 @@ export default function GameRoom() {
   }, [unlockedBets]);
 
   useEffect(() => {
+    function onGameState(data: { status: string; countdownTime: number; currentCard: CardType | null; room: GameRoom }) {
+      // Sync initial game state when joining mid-round
+      console.log('Received initial game state:', data);
+      setCurrentRoom(data.room);
+      
+      if (data.status === 'countdown') {
+        setGameStatus('countdown');
+        setGameState('countdown');
+        setCountdownTime(data.countdownTime);
+        console.log(`Joined during countdown with ${data.countdownTime}s remaining`);
+      } else if (data.status === 'playing' && data.currentCard) {
+        setGameStatus('revealed');
+        setGameState('playing');
+        setCurrentCard(data.currentCard);
+        console.log('Joined during card reveal');
+      } else {
+        setGameStatus('waiting');
+        setGameState('waiting');
+        console.log('Joined during waiting phase');
+      }
+    }
+
     function onRoomUpdated(room: GameRoom) {
       setCurrentRoom(room);
       // Update player chips from room data
@@ -478,6 +500,7 @@ export default function GameRoom() {
       fetchGameCount();
     }
 
+    socket.on('game-state', onGameState);
     socket.on('room-updated', onRoomUpdated);
     socket.on('game-starting', onGameStarting);
     socket.on('countdown-tick', onCountdownTick);
@@ -485,6 +508,7 @@ export default function GameRoom() {
     socket.on('round-ended', onRoundEnded);
 
     return () => {
+      socket.off('game-state', onGameState);
       socket.off('room-updated', onRoomUpdated);
       socket.off('game-starting', onGameStarting);
       socket.off('countdown-tick', onCountdownTick);
