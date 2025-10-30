@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { socket } from '../lib/socket';
 import { useGameStore } from '../lib/stores/useGameStore';
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { useAudio } from '../lib/stores/useAudio';
+import { Lock, RotateCcw, X } from 'lucide-react';
 
 interface BettingPanelProps {
   playerChips: number;
@@ -18,6 +19,7 @@ interface Bet {
   type: string;
   value: string;
   amount: number;
+  betId?: number;
 }
 
 const BET_TYPES = [
@@ -36,6 +38,10 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
   const [selectedAmount, setSelectedAmount] = useState<number>(5);
   const [currentBets, setCurrentBets] = useState<Bet[]>([]);
   const [totalBetAmount, setTotalBetAmount] = useState<number>(0);
+  const [lockedBets, setLockedBets] = useState<Bet[]>([]);
+  const [unlockedBets, setUnlockedBets] = useState<Bet[]>([]);
+  const [previousRoundBets, setPreviousRoundBets] = useState<Bet[]>([]);
+  const lastValidBetsRef = useRef<Bet[]>([]);
   const { playHit, playSuccess } = useAudio();
 
   // Calculate total bet amount and notify parent
@@ -51,10 +57,69 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
   // Reset bets when game starts
   useEffect(() => {
     if (gameStatus === 'revealed' || gameStatus === 'waiting') {
+      // Save current bets to previous round before clearing
+      setPreviousRoundBets(lastValidBetsRef.current);
       setCurrentBets([]);
       setSelectedBetType('');
+      setLockedBets([]);
+      setUnlockedBets([]);
     }
   }, [gameStatus]);
+
+  // Socket event listeners
+  useEffect(() => {
+    const handleBetPlaced = (data: { bet: any; chips: number; locked: boolean }) => {
+      const newBet: Bet = {
+        type: data.bet.betType,
+        value: data.bet.betValue,
+        amount: data.bet.betAmount,
+        betId: data.bet.id
+      };
+      
+      setCurrentBets(prev => {
+        const updated = [...prev, newBet];
+        lastValidBetsRef.current = updated;
+        return updated;
+      });
+
+      if (!data.locked) {
+        setUnlockedBets(prev => [...prev, newBet]);
+      }
+    };
+
+    const handleBetsLocked = (data: { bets: any[]; chips: number }) => {
+      const locked = data.bets.map(bet => ({
+        type: bet.betType,
+        value: bet.betType === 'lucky7' ? '7' : bet.betType,
+        amount: bet.betAmount,
+        betId: bet.betId
+      }));
+      setLockedBets(locked);
+      setUnlockedBets([]);
+    };
+
+    const handleBetsCancelled = (data: { message: string; chips: number }) => {
+      // Remove unlocked bets from current bets
+      setCurrentBets(prev => {
+        const updated = prev.filter(bet => 
+          !unlockedBets.some(ub => ub.betId === bet.betId)
+        );
+        lastValidBetsRef.current = updated;
+        return updated;
+      });
+      setUnlockedBets([]);
+    };
+
+    socket.on('bet-placed', handleBetPlaced);
+    socket.on('bets-locked', handleBetsLocked);
+    socket.on('bets-cancelled', handleBetsCancelled);
+
+    return () => {
+      socket.off('bet-placed', handleBetPlaced);
+      socket.off('bets-locked', handleBetsLocked);
+      socket.off('bets-cancelled', handleBetsCancelled);
+    };
+  }, [unlockedBets]);
 
   const canPlaceBet = () => {
     return gameStatus === 'countdown' && 
@@ -66,32 +131,78 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
 
   const handlePlaceBet = () => {
     if (!canPlaceBet()) return;
+    if (lockedBets.length > 0) {
+      alert('You have locked bets. Locked bets cannot be changed.');
+      return;
+    }
 
     const betType = BET_TYPES.find(type => type.id === selectedBetType);
     if (!betType) return;
 
-    const newBet: Bet = {
-      type: selectedBetType,
-      value: selectedBetType === 'lucky7' ? '7' : selectedBetType,
-      amount: selectedAmount
-    };
-
-    setCurrentBets(prev => [...prev, newBet]);
-    playHit();
-
-    // Emit bet to server
+    // Emit bet to server (server will add to currentBets via socket event)
     socket.emit('place-bet', {
       roomId,
       betType: selectedBetType,
-      betValue: newBet.value,
+      betValue: selectedBetType === 'lucky7' ? '7' : selectedBetType,
       amount: selectedAmount
     });
+
+    playHit();
 
     // Reset selection
     setSelectedBetType('');
   };
 
+  const handleLockBet = () => {
+    if (unlockedBets.length === 0) return;
+
+    socket.emit('lock-bet', {
+      roomId
+    });
+
+    console.log(`Locking ${unlockedBets.length} bet(s)`);
+  };
+
+  const handleCancelBet = () => {
+    if (unlockedBets.length === 0) return;
+
+    socket.emit('cancel-bet', {
+      roomId
+    });
+
+    console.log(`Cancelling ${unlockedBets.length} unlocked bet(s)`);
+  };
+
+  const handleRepeatBet = () => {
+    if (previousRoundBets.length === 0) return;
+    if (gameStatus !== 'countdown' || countdownTime <= 10) return;
+    if (lockedBets.length > 0) return;
+    
+    // Calculate total amount needed for all previous round bets
+    const totalPreviousBetsAmount = previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0);
+    const hasEnoughBalance = playerChips >= totalPreviousBetsAmount;
+    
+    if (!hasEnoughBalance) {
+      alert('Insufficient balance to repeat previous round bets');
+      return;
+    }
+    
+    // Place all bets from the previous round
+    previousRoundBets.forEach(bet => {
+      socket.emit('place-bet', {
+        roomId,
+        betType: bet.type,
+        betValue: bet.value,
+        amount: bet.amount
+      });
+    });
+
+    playHit();
+    console.log(`Repeating ${previousRoundBets.length} bet(s) from previous round (Total: ${totalPreviousBetsAmount})`);
+  };
+
   const handleRemoveBet = (index: number) => {
+    // This is for the old UI - keeping for compatibility but won't work with locked bets
     setCurrentBets(prev => prev.filter((_, i) => i !== index));
     playHit();
   };
@@ -234,6 +345,58 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
             'Select bet type and amount'
           }
         </Button>
+
+        {/* Action Buttons Row */}
+        <div className="flex gap-2">
+          {/* Lock Bet Button */}
+          {unlockedBets.length > 0 && (
+            <Button
+              onClick={handleLockBet}
+              disabled={gameStatus !== 'countdown' || countdownTime <= 10}
+              className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={`Lock ${unlockedBets.length} bet(s)`}
+            >
+              <Lock className="w-4 h-4 mr-1" />
+              Lock ({unlockedBets.length})
+            </Button>
+          )}
+
+          {/* Cancel Bet Button */}
+          {unlockedBets.length > 0 && (
+            <Button
+              onClick={handleCancelBet}
+              disabled={gameStatus !== 'countdown' || countdownTime <= 10}
+              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={`Cancel ${unlockedBets.length} bet(s)`}
+            >
+              <X className="w-4 h-4 mr-1" />
+              Cancel ({unlockedBets.length})
+            </Button>
+          )}
+
+          {/* Repeat Last Round Button */}
+          {previousRoundBets.length > 0 && unlockedBets.length === 0 && lockedBets.length === 0 && (
+            <Button
+              onClick={handleRepeatBet}
+              disabled={gameStatus !== 'countdown' || countdownTime <= 10 || playerChips < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              title={`Repeat ${previousRoundBets.length} bet(s) - Total: ${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}`}
+            >
+              <RotateCcw className="w-4 h-4 mr-1" />
+              Repeat Round ({previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)})
+            </Button>
+          )}
+        </div>
+
+        {/* Locked Status */}
+        {lockedBets.length > 0 && (
+          <div className="bg-yellow-600/20 border border-yellow-600 rounded p-2 text-center">
+            <span className="text-yellow-400 font-bold text-sm">
+              <Lock className="w-4 h-4 inline mr-1" />
+              {lockedBets.length} BET(S) LOCKED FOR NEXT ROUND
+            </span>
+          </div>
+        )}
 
         {/* Betting Tips */}
         <div className="text-xs text-casino-gold bg-casino-green p-2 rounded">
