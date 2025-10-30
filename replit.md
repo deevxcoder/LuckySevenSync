@@ -4,12 +4,17 @@ KingGames is a real-time multiplayer casino gaming platform built with React, Ex
 
 # Recent Changes
 
-**October 30, 2025**: Added Repeat and Lock betting functionality to Lucky 7 game
-- Implemented bet locking system allowing players to lock their bets for the next round
-- Added repeat bet feature to quickly replay previous round's betting strategy
-- Enhanced GameRoom.tsx with unlocked/locked bet state management
-- Added Lock, Cancel, and Repeat buttons with conditional rendering based on bet state
-- Integrated socket event listeners for bet-placed, bets-locked, and bets-cancelled events
+**October 30, 2025**: Enhanced Lucky 7 game with betting features and instant join
+- **Instant Join**: Players can now join mid-round and immediately see countdown/bet if time remains
+  - Server sends current game state (countdown, status, card if revealed) when player joins
+  - Client syncs state instantly via game-state socket event
+  - No more waiting for next round - join and play immediately
+- **Repeat and Lock Betting**: 
+  - Implemented bet locking system allowing players to lock their bets for the next round
+  - Added repeat bet feature to quickly replay previous round's betting strategy
+  - Enhanced GameRoom.tsx with unlocked/locked bet state management
+  - Added Lock, Cancel, and Repeat buttons visible at all times in grid layout
+  - Integrated socket event listeners for bet-placed, bets-locked, and bets-cancelled events
 
 # User Preferences
 
