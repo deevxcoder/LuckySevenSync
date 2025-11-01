@@ -776,19 +776,32 @@ export default function GameRoom() {
         <div className="mt-2 bg-black/30 rounded-lg p-2">
           <div className="text-cyan-300 text-xs mb-2 text-center font-bold">RECENT RESULTS</div>
           <div className="flex justify-center gap-2">
-            {recentResults.slice(0, 7).map((result) => (
-              <div 
-                key={result.id}
-                className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold border-3 shadow-lg ${
-                  result.cardColor === 'red' 
-                    ? 'bg-gradient-to-br from-orange-500 to-orange-700 border-orange-300 text-white shadow-orange-500/50' 
-                    : 'bg-gradient-to-br from-cyan-400 to-blue-500 border-cyan-300 text-white shadow-cyan-500/50'
-                }`}
-                title={`${result.cardNumber}`}
-              >
-                {result.cardNumber}
-              </div>
-            ))}
+            {recentResults.slice(0, 7).map((result) => {
+              const getResultDisplay = (cardNumber: number) => {
+                if (cardNumber === 7) return '&';
+                if (cardNumber >= 8 && cardNumber <= 13) return 'H';
+                return 'L';
+              };
+              
+              const getResultColor = (cardNumber: number) => {
+                if (cardNumber === 7) {
+                  return 'bg-gradient-to-br from-yellow-400 to-yellow-600 border-yellow-300 text-black shadow-yellow-500/50';
+                }
+                return result.cardColor === 'red' 
+                  ? 'bg-gradient-to-br from-orange-500 to-orange-700 border-orange-300 text-white shadow-orange-500/50' 
+                  : 'bg-gradient-to-br from-cyan-400 to-blue-500 border-cyan-300 text-white shadow-cyan-500/50';
+              };
+              
+              return (
+                <div 
+                  key={result.id}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold border-3 shadow-lg ${getResultColor(result.cardNumber)}`}
+                  title={`Card: ${result.cardNumber} (${result.cardNumber === 7 ? 'Lucky 7' : result.cardNumber >= 8 ? 'High' : 'Low'})`}
+                >
+                  {getResultDisplay(result.cardNumber)}
+                </div>
+              );
+            })}
           </div>
         </div>
 

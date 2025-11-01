@@ -50,6 +50,18 @@ export default function RoundResults() {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const getResultDisplay = (cardNumber: number) => {
+    if (cardNumber === 7) return '&';
+    if (cardNumber >= 8 && cardNumber <= 13) return 'H';
+    return 'L';
+  };
+
+  const getResultLabel = (cardNumber: number) => {
+    if (cardNumber === 7) return 'Lucky 7';
+    if (cardNumber >= 8 && cardNumber <= 13) return 'High';
+    return 'Low';
+  };
+
   return (
     <Card className="bg-casino-black border-casino-gold border-2 h-fit">
       <CardHeader>
@@ -88,9 +100,11 @@ export default function RoundResults() {
                     <span className={`text-2xl ${getCardColor(result.cardColor)}`}>
                       {getCardSymbol(result.cardColor)}
                     </span>
-                    <span>{result.cardNumber}</span>
+                    <span className={`text-xl font-bold ${result.cardNumber === 7 ? 'text-yellow-400' : ''}`}>
+                      {getResultDisplay(result.cardNumber)}
+                    </span>
                     <span className="text-xs text-casino-gold">
-                      ({result.cardColor})
+                      ({getResultLabel(result.cardNumber)} - Card {result.cardNumber})
                     </span>
                   </div>
                   <div className="text-casino-gold text-sm">
