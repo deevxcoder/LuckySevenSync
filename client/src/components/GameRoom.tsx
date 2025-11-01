@@ -161,11 +161,22 @@ export default function GameRoom() {
   }, [gameStatus, currentBets]);
 
   const canPlaceBet = () => {
+    const availableBalance = playerChips - totalBetAmount;
     return gameStatus === 'countdown' && 
            countdownTime > 10 && 
            selectedBetType && 
            selectedAmount > 0 && 
-           (playerChips - totalBetAmount) >= selectedAmount;
+           availableBalance >= selectedAmount;
+  };
+
+  const getPlaceBetButtonText = () => {
+    if (!selectedBetType) return 'SELECT BET TYPE';
+    const availableBalance = playerChips - totalBetAmount;
+    if (availableBalance < selectedAmount) {
+      return `INSUFFICIENT (${availableBalance} available)`;
+    }
+    if (gameStatus !== 'countdown' || countdownTime <= 10) return 'BETTING CLOSED';
+    return `PLACE BET (${selectedAmount})`;
   };
 
   const handlePlaceBet = () => {
@@ -712,9 +723,9 @@ export default function GameRoom() {
               <Button
                 onClick={handlePlaceBet}
                 disabled={!canPlaceBet()}
-                className="py-3 text-sm font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50"
+                className="py-3 text-[11px] font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50"
               >
-                PLACE BET
+                {getPlaceBetButtonText()}
               </Button>
 
               {/* Lock Button - Show when there are unlocked bets */}
@@ -753,10 +764,43 @@ export default function GameRoom() {
               </Button>
             )}
 
-            {/* Current Bets Display */}
+            {/* Current Bets Display - Detailed Breakdown */}
             {currentBets.length > 0 && (
-              <div className="text-cyan-300 text-xs text-center">
-                Total Bet: {totalBetAmount} chips ({currentBets.length} bet{currentBets.length > 1 ? 's' : ''})
+              <div className="bg-black/40 border border-cyan-800/50 rounded-lg p-3">
+                <div className="text-cyan-400 font-bold text-xs mb-2 text-center">YOUR BETS</div>
+                <div className="space-y-1.5 mb-2">
+                  {Object.entries(
+                    currentBets.reduce((acc, bet) => {
+                      const key = bet.type;
+                      if (!acc[key]) {
+                        acc[key] = { total: 0, count: 0, label: BET_TYPE_LABELS[key as keyof typeof BET_TYPE_LABELS] };
+                      }
+                      acc[key].total += bet.amount;
+                      acc[key].count += 1;
+                      return acc;
+                    }, {} as Record<string, { total: number; count: number; label: string }>)
+                  ).map(([betType, data]) => {
+                    const betData = data as { total: number; count: number; label: string };
+                    return (
+                      <div key={betType} className="flex justify-between items-center text-xs bg-cyan-900/20 rounded px-2 py-1">
+                        <span className="text-white font-semibold">{betData.label}</span>
+                        <span className="text-cyan-300 font-bold">{betData.total} chips {betData.count > 1 && `(${betData.count}×)`}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="border-t border-cyan-800/50 pt-2 space-y-1">
+                  <div className="flex justify-between text-xs">
+                    <span className="text-cyan-400 font-semibold">Total Bets:</span>
+                    <span className="text-white font-bold">{totalBetAmount} chips</span>
+                  </div>
+                  <div className="flex justify-between text-xs">
+                    <span className="text-cyan-400 font-semibold">Available Balance:</span>
+                    <span className={`font-bold ${(playerChips - totalBetAmount) < selectedAmount ? 'text-red-400' : 'text-green-400'}`}>
+                      {playerChips - totalBetAmount} chips
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
 
