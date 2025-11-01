@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { socket } from '../../lib/socket';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
-import { Volume2, VolumeX, X, DollarSign, Coins, Target, RotateCcw, Lock, LockOpen } from 'lucide-react';
+import { Volume2, VolumeX, X, DollarSign, Coins, Target, RotateCcw, Lock, LockOpen, Wallet } from 'lucide-react';
 
 interface CoinTossRoomData {
   id: string;
@@ -611,7 +611,7 @@ export default function CoinTossRoom() {
                 boxShadow: '0 0 20px rgba(0, 255, 198, 0.6)'
               }}
             >
-              <DollarSign className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+              <Wallet className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
             <span className="text-base sm:text-xl font-bold text-neo-accent">{playerChips ?? '...'}</span>
           </div>
