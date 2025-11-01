@@ -828,47 +828,6 @@ export default function CoinTossRoom() {
 
         {/* Bottom Controls */}
         <div className="space-y-2 sm:space-y-3 px-2 sm:px-4">
-          {/* Locked Bet Status Display - Consolidated by Type */}
-          {lockedBets.length > 0 && (() => {
-            const headsBets = lockedBets.filter(b => b.type === 'heads');
-            const tailsBets = lockedBets.filter(b => b.type === 'tails');
-            const headsTotal = headsBets.reduce((sum, bet) => sum + bet.amount, 0);
-            const tailsTotal = tailsBets.reduce((sum, bet) => sum + bet.amount, 0);
-            
-            return (
-              <div className="text-center flex flex-wrap gap-2 justify-center">
-                {headsTotal > 0 && (
-                  <div 
-                    className="inline-block px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold"
-                    style={{
-                      border: '2px solid #EAB308',
-                      color: '#EAB308',
-                      background: 'rgba(234, 179, 8, 0.2)',
-                      boxShadow: '0 0 20px rgba(234, 179, 8, 0.4)'
-                    }}
-                  >
-                    <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                    LOCKED: {headsTotal} on HEADS
-                  </div>
-                )}
-                {tailsTotal > 0 && (
-                  <div 
-                    className="inline-block px-3 sm:px-5 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-heading font-bold"
-                    style={{
-                      border: '2px solid #EAB308',
-                      color: '#EAB308',
-                      background: 'rgba(234, 179, 8, 0.2)',
-                      boxShadow: '0 0 20px rgba(234, 179, 8, 0.4)'
-                    }}
-                  >
-                    <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                    LOCKED: {tailsTotal} on TAILS
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-
           {/* Bet Amount & Place Bet */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2">
             {/* Bet Amount Buttons - Wrapped on Mobile */}
@@ -973,16 +932,6 @@ export default function CoinTossRoom() {
                     <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6" />
                   </button>
                 )}
-              </div>
-            )}
-            
-            {/* Locked Status */}
-            {lockedBets.length > 0 && (
-              <div className="px-4 sm:px-8 py-1.5 sm:py-2.5 text-center">
-                <span className="text-xs sm:text-sm font-heading font-bold text-yellow-400">
-                  <Lock className="w-3 h-3 sm:w-4 sm:h-4 inline mr-1 sm:mr-2" />
-                  {lockedBets.length} BET(S) LOCKED
-                </span>
               </div>
             )}
           </div>
