@@ -484,3 +484,40 @@ body {
     font-size: 3rem;
   }
 }
+
+/* Mobile Landscape Mode - Center Alignment */
+@media (orientation: landscape) and (max-height: 600px) {
+  /* Ensure header uses grid for perfect centering */
+  .coin-toss-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  
+  /* Left section - align to start */
+  .coin-toss-header > div:first-child {
+    justify-self: start;
+  }
+  
+  /* Center section - truly centered */
+  .coin-toss-header > div:nth-child(2) {
+    justify-self: center;
+  }
+  
+  /* Right section - align to end */
+  .coin-toss-header > div:last-child {
+    justify-self: end;
+  }
+}
+
+/* Additional mobile landscape optimizations */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* Reduce padding in landscape for more space */
+  .heading-primary {
+    font-size: 20px;
+  }
+  .heading-secondary {
+    font-size: 18px;
+  }
+}

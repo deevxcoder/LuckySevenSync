@@ -601,7 +601,7 @@ export default function CoinTossRoom() {
     >
       <div className="h-full flex flex-col p-2 sm:p-4 gap-2 sm:gap-4">
         {/* Header */}
-        <div className="flex items-center justify-between px-2 sm:px-4">
+        <div className="coin-toss-header flex items-center justify-between px-2 sm:px-4">
           {/* Left - Coin Balance */}
           <div className="flex items-center gap-1 sm:gap-2">
             <div 
