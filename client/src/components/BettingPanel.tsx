@@ -262,13 +262,14 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
       </CardHeader>
       
       <CardContent className="space-y-2">
-        {/* Current Bets - Single Line Display */}
-        {currentBets.length > 0 && (
-          <div className="bg-casino-green/20 border border-casino-gold rounded p-2">
-            <div className="flex items-center gap-2 flex-wrap">
+        {/* Bet Type Selection with Bets Display Above - 30% Smaller */}
+        <div className="bg-casino-green/10 border border-casino-gold rounded p-2 space-y-1.5">
+          {/* Current Bets Display - Inside Selection Box */}
+          {currentBets.length > 0 && (
+            <div className="flex items-center gap-1.5 flex-wrap pb-1.5 border-b border-casino-gold/30">
               <span className="text-casino-gold text-xs font-bold">Bets:</span>
               {currentBets.map((bet, index) => (
-                <div key={index} className="bg-casino-green px-2 py-1 rounded text-white text-xs font-semibold whitespace-nowrap">
+                <div key={index} className="bg-casino-green px-1.5 py-0.5 rounded text-white text-xs font-semibold whitespace-nowrap">
                   {BET_TYPES.find(t => t.id === bet.type)?.label.split(' ')[0]} {bet.amount}
                 </div>
               ))}
@@ -276,11 +277,8 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
                 = {totalBetAmount}
               </span>
             </div>
-          </div>
-        )}
-
-        {/* Bet Type Selection - Compact Single Row */}
-        <div className="space-y-1">
+          )}
+          
           <h4 className="text-casino-gold font-semibold text-xs">Type:</h4>
           <div className="flex gap-1 flex-wrap">
             {BET_TYPES.map(betType => (
@@ -290,7 +288,7 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
                 size="sm"
                 onClick={() => setSelectedBetType(betType.id)}
                 disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-                className={`px-2 py-1 h-auto text-xs ${
+                className={`px-1.5 py-0.5 h-auto text-[10px] ${
                   selectedBetType === betType.id 
                     ? 'bg-casino-red text-white border-casino-red' 
                     : 'bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black'
@@ -326,7 +324,7 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
           </div>
         </div>
 
-        {/* Action Buttons Row - Icon Only */}
+        {/* Action Buttons Row - Pure Icon Only (No Labels/Badges) */}
         <div className="flex gap-2 justify-center">
           {/* Place Bet Button - Icon Only */}
           <Button
@@ -341,54 +339,39 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
             <CheckCircle className="w-6 h-6" />
           </Button>
 
-          {/* Lock Bet Button - Icon Only */}
+          {/* Lock Bet Button - Icon Only (No Badge) */}
           {unlockedBets.length > 0 && (
             <Button
               onClick={handleLockBet}
               disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed relative"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed"
               title={`Lock ${unlockedBets.length} bet(s)`}
             >
               <Lock className="w-6 h-6" />
-              {unlockedBets.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {unlockedBets.length}
-                </span>
-              )}
             </Button>
           )}
 
-          {/* Cancel Bet Button - Icon Only */}
+          {/* Cancel Bet Button - Icon Only (No Badge) */}
           {unlockedBets.length > 0 && (
             <Button
               onClick={handleCancelBet}
               disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-              className="bg-gray-600 hover:bg-gray-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed relative"
+              className="bg-gray-600 hover:bg-gray-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed"
               title={`Cancel ${unlockedBets.length} bet(s)`}
             >
               <X className="w-6 h-6" />
-              {unlockedBets.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {unlockedBets.length}
-                </span>
-              )}
             </Button>
           )}
 
-          {/* Repeat Last Round Button - Icon Only */}
+          {/* Repeat Last Round Button - Icon Only (No Badge) */}
           {previousRoundBets.length > 0 && unlockedBets.length === 0 && lockedBets.length === 0 && (
             <Button
               onClick={handleRepeatBet}
               disabled={gameStatus !== 'countdown' || countdownTime <= 10 || playerChips < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed relative"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed"
               title={`Repeat ${previousRoundBets.length} bet(s) - Total: ${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}`}
             >
               <RotateCcw className="w-6 h-6" />
-              {previousRoundBets.length > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {previousRoundBets.length}
-                </span>
-              )}
             </Button>
           )}
         </div>
