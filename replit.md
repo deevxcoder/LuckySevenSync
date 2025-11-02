@@ -4,6 +4,20 @@ KingGames is a real-time multiplayer casino gaming platform built with React, Ex
 
 # Recent Changes
 
+**November 2, 2025**: Added WhatsApp-based deposit/withdrawal system
+- **Deposit Dialog**: Created user-facing deposit dialog accessible from dashboard header
+  - Green "Deposit" button with wallet icon in UserDashboard header
+  - Dialog displays configurable message and opens WhatsApp with pre-filled text
+  - Fetches settings from public API endpoint for seamless user experience
+- **Admin Configuration**: Added deposit settings management in Game Management page
+  - Admin can configure WhatsApp number (with country code)
+  - Customizable deposit message shown to users before contacting via WhatsApp
+  - Settings saved via authenticated admin endpoint
+- **Database Schema**: Created deposit_settings table to store WhatsApp configuration
+  - Stores whatsappNumber (varchar) and depositMessage (text)
+  - Tracks last update timestamp
+  - Database table created via db:push command
+
 **October 30, 2025**: Enhanced Lucky 7 game with betting features and instant join
 - **Instant Join**: Players can now join mid-round and immediately see countdown/bet if time remains
   - Server sends current game state (countdown, status, card if revealed) when player joins
@@ -29,7 +43,15 @@ The client is built with React and TypeScript using Vite as the build tool. The 
 The server uses Express.js with Socket.io for real-time multiplayer functionality. Game logic is centralized in a GameManager class that handles room management, synchronized countdowns, and betting mechanics. Session-based authentication is implemented with role-based access control (user/admin). The architecture separates concerns between HTTP routes for authentication/data access and WebSocket events for real-time game interactions.
 
 ## Database Design
-PostgreSQL database with Drizzle ORM handles data persistence. The schema includes users for authentication, players for game-specific data (chips, stats), games for match history, bets for wagering records, and chat messages for in-game communication. The design supports tracking bet outcomes, player statistics, and complete game audit trails.
+PostgreSQL database with Drizzle ORM handles data persistence. The schema includes:
+- **users**: Authentication credentials and role management
+- **players**: Game-specific data including chips balance and statistics
+- **games**: Match history and game outcome records
+- **bets**: Wagering records for Lucky 7 and Coin Toss games
+- **chat_messages**: In-game communication logs
+- **deposit_settings**: WhatsApp configuration for deposit/withdrawal system
+
+The design supports tracking bet outcomes, player statistics, complete game audit trails, and flexible deposit management via WhatsApp integration.
 
 ## Real-time Communication
 Socket.io manages all real-time features including room joining/leaving, synchronized countdowns, simultaneous card reveals, and live chat. Events are structured to maintain game state consistency across all connected clients, ensuring fair gameplay and synchronized experiences.
