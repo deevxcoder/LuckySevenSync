@@ -1,6 +1,6 @@
 import { 
   users, players, games, bets, chatMessages, andarBaharMatches,
-  coinTossGames, coinTossBets,
+  coinTossGames, coinTossBets, depositSettings,
   type User, type InsertUser,
   type Player, type InsertPlayer,
   type Game, type InsertGame,
@@ -8,7 +8,8 @@ import {
   type ChatMessage, type InsertChatMessage,
   type AndarBaharMatch, type InsertAndarBaharMatch,
   type CoinTossGame, type InsertCoinTossGame,
-  type CoinTossBet, type InsertCoinTossBet
+  type CoinTossBet, type InsertCoinTossBet,
+  type DepositSettings, type InsertDepositSettings
 } from "@shared/schema";
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
@@ -95,6 +96,10 @@ export interface IStorage {
   // Advanced betting operations
   placeBet(playerId: number, betAmount: number, betType: string, betValue: string | null, gameId: number): Promise<{ bet: Bet; updatedPlayer: Player }>;
   resolveBet(betId: number, won: boolean, winAmount: number): Promise<{ bet: Bet; updatedPlayer?: Player }>;
+  
+  // Deposit Settings
+  getDepositSettings(): Promise<DepositSettings | undefined>;
+  updateDepositSettings(settings: InsertDepositSettings): Promise<DepositSettings>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -857,6 +862,38 @@ export class DatabaseStorage implements IStorage {
   async deleteBet(betId: number): Promise<void> {
     await db.delete(bets)
       .where(eq(bets.id, betId));
+  }
+
+  // Deposit Settings
+  async getDepositSettings(): Promise<DepositSettings | undefined> {
+    const result = await db.select().from(depositSettings)
+      .orderBy(desc(depositSettings.updatedAt))
+      .limit(1);
+    return result[0];
+  }
+
+  async updateDepositSettings(settings: InsertDepositSettings): Promise<DepositSettings> {
+    // Check if any settings exist
+    const existing = await this.getDepositSettings();
+    
+    if (existing) {
+      // Update existing record
+      const result = await db.update(depositSettings)
+        .set({
+          whatsappNumber: settings.whatsappNumber,
+          depositMessage: settings.depositMessage,
+          updatedAt: new Date()
+        })
+        .where(eq(depositSettings.id, existing.id))
+        .returning();
+      return result[0];
+    } else {
+      // Create new record
+      const result = await db.insert(depositSettings)
+        .values(settings)
+        .returning();
+      return result[0];
+    }
   }
 }
 

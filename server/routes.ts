@@ -743,6 +743,51 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Get deposit settings (public - for users)
+  app.get("/api/deposit-settings", async (req, res) => {
+    try {
+      const settings = await storage.getDepositSettings();
+      res.json(settings || { whatsappNumber: '', depositMessage: '' });
+    } catch (error) {
+      console.error('Error fetching deposit settings:', error);
+      res.status(500).json({ message: "Failed to fetch deposit settings" });
+    }
+  });
+
+  // Get deposit settings (admin)
+  app.get("/api/admin/deposit-settings", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const settings = await storage.getDepositSettings();
+      res.json(settings || { whatsappNumber: '', depositMessage: '' });
+    } catch (error) {
+      console.error('Error fetching deposit settings:', error);
+      res.status(500).json({ message: "Failed to fetch deposit settings" });
+    }
+  });
+
+  // Update deposit settings (admin only)
+  app.post("/api/admin/deposit-settings", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { whatsappNumber, depositMessage } = req.body;
+      
+      if (!whatsappNumber || !depositMessage) {
+        return res.status(400).json({ message: "WhatsApp number and message are required" });
+      }
+
+      const settings = await storage.updateDepositSettings({ whatsappNumber, depositMessage });
+      
+      console.log(`Admin ${req.user!.username} updated deposit settings`);
+      
+      res.json({ 
+        message: "Deposit settings updated successfully",
+        settings
+      });
+    } catch (error) {
+      console.error('Error updating deposit settings:', error);
+      res.status(500).json({ message: "Failed to update deposit settings" });
+    }
+  });
+
   // Analytics endpoints
   app.get("/api/admin/analytics/overview", requireAdmin, async (req: AuthRequest, res) => {
     try {

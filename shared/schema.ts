@@ -112,6 +112,14 @@ export const coinTossBets = pgTable("coin_toss_bets", {
   createdAt: timestamp("created_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
 });
 
+// Deposit Settings table for WhatsApp deposit/withdraw configuration
+export const depositSettings = pgTable("deposit_settings", {
+  id: serial("id").primaryKey(),
+  whatsappNumber: varchar("whatsapp_number", { length: 20 }).notNull(),
+  depositMessage: text("deposit_message").notNull(),
+  updatedAt: timestamp("updated_at").default(sql`CURRENT_TIMESTAMP`).notNull(),
+});
+
 // Schema validation types
 export const insertPlayerSchema = createInsertSchema(players).pick({
   userId: true,
@@ -173,6 +181,11 @@ export const insertCoinTossBetSchema = createInsertSchema(coinTossBets).pick({
   winAmount: true,
 });
 
+export const insertDepositSettingsSchema = createInsertSchema(depositSettings).pick({
+  whatsappNumber: true,
+  depositMessage: true,
+});
+
 // Type exports
 export type Player = typeof players.$inferSelect;
 export type Game = typeof games.$inferSelect;
@@ -181,6 +194,7 @@ export type ChatMessage = typeof chatMessages.$inferSelect;
 export type AndarBaharMatch = typeof andarBaharMatches.$inferSelect;
 export type CoinTossGame = typeof coinTossGames.$inferSelect;
 export type CoinTossBet = typeof coinTossBets.$inferSelect;
+export type DepositSettings = typeof depositSettings.$inferSelect;
 
 export type InsertPlayer = z.infer<typeof insertPlayerSchema>;
 export type InsertGame = z.infer<typeof insertGameSchema>;
@@ -189,3 +203,4 @@ export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
 export type InsertAndarBaharMatch = z.infer<typeof insertAndarBaharMatchSchema>;
 export type InsertCoinTossGame = z.infer<typeof insertCoinTossGameSchema>;
 export type InsertCoinTossBet = z.infer<typeof insertCoinTossBetSchema>;
+export type InsertDepositSettings = z.infer<typeof insertDepositSettingsSchema>;

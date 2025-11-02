@@ -1,11 +1,16 @@
-import { Gamepad2, RefreshCw, History, Cog, TrendingUp, Image } from 'lucide-react';
+import { Gamepad2, RefreshCw, History, Cog, TrendingUp, Image, MessageSquare } from 'lucide-react';
 import { Button } from '../../ui/button';
-import { useState } from 'react';
+import { Input } from '../../ui/input';
+import { Textarea } from '../../ui/textarea';
+import { useState, useEffect } from 'react';
 
 export default function GamesPage() {
   const [lucky7BgUrl, setLucky7BgUrl] = useState('');
   const [cointossBgUrl, setCointossBgUrl] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [whatsappNumber, setWhatsappNumber] = useState('');
+  const [depositMessage, setDepositMessage] = useState('');
+  const [savingDepositSettings, setSavingDepositSettings] = useState(false);
 
   const handleImageUpload = async (gameType: 'lucky7' | 'cointoss', file: File) => {
     if (!file) return;
@@ -41,6 +46,59 @@ export default function GamesPage() {
     const file = event.target.files?.[0];
     if (file) {
       handleImageUpload(gameType, file);
+    }
+  };
+
+  // Fetch deposit settings on component mount
+  useEffect(() => {
+    const fetchDepositSettings = async () => {
+      try {
+        const response = await fetch('/api/admin/deposit-settings', {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setWhatsappNumber(data.whatsappNumber || '');
+          setDepositMessage(data.depositMessage || '');
+        }
+      } catch (error) {
+        console.error('Error fetching deposit settings:', error);
+      }
+    };
+
+    fetchDepositSettings();
+  }, []);
+
+  const handleSaveDepositSettings = async () => {
+    if (!whatsappNumber || !depositMessage) {
+      alert('Please fill in both WhatsApp number and deposit message');
+      return;
+    }
+
+    setSavingDepositSettings(true);
+    try {
+      const response = await fetch('/api/admin/deposit-settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          whatsappNumber,
+          depositMessage
+        })
+      });
+
+      if (response.ok) {
+        alert('Deposit settings saved successfully!');
+      } else {
+        alert('Failed to save deposit settings');
+      }
+    } catch (error) {
+      console.error('Error saving deposit settings:', error);
+      alert('Error saving deposit settings');
+    } finally {
+      setSavingDepositSettings(false);
     }
   };
 
@@ -221,6 +279,49 @@ export default function GamesPage() {
               </div>
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* Deposit/Withdraw Settings */}
+      <div className="neo-glass-card p-6 mt-6">
+        <h2 className="text-neo-accent text-xl font-heading font-bold mb-4 flex items-center gap-2">
+          <MessageSquare className="w-6 h-6" />
+          Deposit / Withdraw Settings
+        </h2>
+        <p className="text-neo-text-secondary mb-6">Configure WhatsApp contact for user deposits and withdrawals</p>
+        
+        <div className="space-y-4">
+          <div>
+            <label className="block text-neo-text font-semibold mb-2">WhatsApp Number (with country code)</label>
+            <Input
+              type="text"
+              placeholder="e.g., 919876543210"
+              value={whatsappNumber}
+              onChange={(e) => setWhatsappNumber(e.target.value)}
+              className="bg-neo-bg border-neo-border text-neo-text"
+            />
+            <p className="text-xs text-neo-text-secondary mt-1">Enter number with country code (no + or spaces)</p>
+          </div>
+
+          <div>
+            <label className="block text-neo-text font-semibold mb-2">Deposit Message</label>
+            <Textarea
+              placeholder="Enter the message users will see when they want to deposit/withdraw..."
+              value={depositMessage}
+              onChange={(e) => setDepositMessage(e.target.value)}
+              rows={4}
+              className="bg-neo-bg border-neo-border text-neo-text"
+            />
+            <p className="text-xs text-neo-text-secondary mt-1">This message will be shown to users before they contact via WhatsApp</p>
+          </div>
+
+          <Button
+            onClick={handleSaveDepositSettings}
+            disabled={savingDepositSettings || !whatsappNumber || !depositMessage}
+            className="w-full bg-neo-accent hover:bg-neo-accent/90 text-neo-bg font-heading font-semibold py-3 transition-all duration-300"
+          >
+            {savingDepositSettings ? 'Saving...' : 'Save Deposit Settings'}
+          </Button>
         </div>
       </div>
     </div>

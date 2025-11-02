@@ -5,7 +5,8 @@ import { HeaderWallet } from '../HeaderWallet';
 import { useAuthStore } from '../../lib/stores/useAuthStore';
 import { socket } from '../../lib/socket';
 import { ComprehensiveBettingHistory } from '../ComprehensiveBettingHistory';
-import { Crown, Sparkles, Play, Coins, BarChart, ArrowLeft } from 'lucide-react';
+import { Crown, Sparkles, Play, Coins, BarChart, ArrowLeft, Wallet } from 'lucide-react';
+import DepositDialog from '../DepositDialog';
 
 
 interface UserDashboardProps {
@@ -17,6 +18,7 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
   const { user, logout } = useAuthStore();
   const [socketId, setSocketId] = useState<string>('');
   const [showHistory, setShowHistory] = useState<boolean>(false);
+  const [showDepositDialog, setShowDepositDialog] = useState<boolean>(false);
 
   useEffect(() => {
     // Check if already connected
@@ -66,8 +68,17 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
             </span>
           </div>
           
-          {/* Right side - Wallet and Buttons */}
+          {/* Right side - Deposit, Wallet and Buttons */}
           <div className="flex items-center gap-1 sm:gap-2 justify-center sm:justify-end">
+            <Button
+              onClick={() => setShowDepositDialog(true)}
+              variant="outline"
+              size="sm"
+              className="border-2 border-green-500 text-green-500 hover:bg-green-500 hover:text-white font-heading transition-all duration-300 text-xs sm:text-sm px-2 sm:px-3 py-1 sm:py-2 flex items-center gap-1"
+            >
+              <Wallet className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span className="hidden sm:inline">Deposit</span>
+            </Button>
             <HeaderWallet socketId={socketId} />
             <Button
               onClick={handleLogout}
@@ -180,6 +191,12 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
           )}
         </div>
       </div>
+
+      {/* Deposit Dialog */}
+      <DepositDialog 
+        open={showDepositDialog} 
+        onOpenChange={setShowDepositDialog} 
+      />
     </div>
   );
 }
