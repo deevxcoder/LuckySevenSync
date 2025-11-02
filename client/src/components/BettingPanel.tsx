@@ -237,6 +237,13 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
     }
   };
 
+  // Calculate bet amounts by type
+  const getBetAmountByType = (betTypeId: string): number => {
+    return currentBets
+      .filter(bet => bet.type === betTypeId)
+      .reduce((sum, bet) => sum + bet.amount, 0);
+  };
+
   const getBettingMessage = () => {
     if (countdownTime <= 10 && gameStatus === 'countdown') {
       return 'Betting closed! Get ready for reveal!';
@@ -285,23 +292,33 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
           
           <h4 className="text-casino-gold font-semibold text-xs">Type:</h4>
           <div className="flex gap-1 flex-wrap">
-            {BET_TYPES.map(betType => (
-              <Button
-                key={betType.id}
-                variant={selectedBetType === betType.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedBetType(betType.id)}
-                disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-                className={`px-1.5 py-0.5 h-auto text-[10px] ${
-                  selectedBetType === betType.id 
-                    ? 'bg-casino-red text-white border-casino-red' 
-                    : 'bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black'
-                }`}
-                title={`${betType.description} (${betType.odds})`}
-              >
-                {betType.label.split(' ')[0]}
-              </Button>
-            ))}
+            {BET_TYPES.map(betType => {
+              const betAmount = getBetAmountByType(betType.id);
+              return (
+                <div key={betType.id} className="relative">
+                  {/* Bet Amount Badge Above Button */}
+                  {betAmount > 0 && (
+                    <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-casino-green text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full z-10 whitespace-nowrap shadow-lg">
+                      {betAmount}
+                    </div>
+                  )}
+                  <Button
+                    variant={selectedBetType === betType.id ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedBetType(betType.id)}
+                    disabled={gameStatus !== 'countdown' || countdownTime <= 10}
+                    className={`px-1.5 py-0.5 h-auto text-[10px] ${
+                      selectedBetType === betType.id 
+                        ? 'bg-casino-red text-white border-casino-red' 
+                        : 'bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black'
+                    }`}
+                    title={`${betType.description} (${betType.odds})${betAmount > 0 ? ` - Bet: ${betAmount}` : ''}`}
+                  >
+                    {betType.label.split(' ')[0]}
+                  </Button>
+                </div>
+              );
+            })}
           </div>
         </div>
 
