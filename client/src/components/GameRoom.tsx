@@ -221,6 +221,13 @@ export default function GameRoom() {
     console.log(`Cancelling ${unlockedBets.length} unlocked bet(s)`);
   };
 
+  const handleCancelLockedBet = () => {
+    if (lockedBets.length === 0) return;
+    
+    socket.emit('cancel-bet', { roomId: currentRoom?.id, cancelLocked: true });
+    console.log(`Cancelling ${lockedBets.length} locked bet(s)`);
+  };
+
   const handleRepeatBet = () => {
     if (previousRoundBets.length === 0) return;
     if (lockedBets.length > 0 || unlockedBets.length > 0) return;
@@ -424,16 +431,29 @@ export default function GameRoom() {
       setUnlockedBets([]);
     };
 
+    const handleLockedBetsCancelled = (data: { message: string; chips: number }) => {
+      setCurrentBets(prev => {
+        const updated = prev.filter(bet => 
+          !lockedBets.some(lb => lb.betId === bet.betId)
+        );
+        lastValidBetsRef.current = updated;
+        return updated;
+      });
+      setLockedBets([]);
+    };
+
     socket.on('bet-placed', handleBetPlaced);
     socket.on('bets-locked', handleBetsLocked);
     socket.on('bets-cancelled', handleBetsCancelled);
+    socket.on('locked-bets-cancelled', handleLockedBetsCancelled);
 
     return () => {
       socket.off('bet-placed', handleBetPlaced);
       socket.off('bets-locked', handleBetsLocked);
       socket.off('bets-cancelled', handleBetsCancelled);
+      socket.off('locked-bets-cancelled', handleLockedBetsCancelled);
     };
-  }, [unlockedBets]);
+  }, [unlockedBets, lockedBets]);
 
   useEffect(() => {
     function onGameState(data: { status: string; countdownTime: number; currentCard: CardType | null; room: GameRoom }) {
@@ -833,6 +853,18 @@ export default function GameRoom() {
                 </Button>
               )}
 
+              {/* Cancel Locked Bets Button - Icon Only */}
+              {lockedBets.length > 0 && (
+                <Button
+                  onClick={handleCancelLockedBet}
+                  disabled={gameStatus !== 'countdown' || countdownTime <= 10}
+                  className="bg-red-600 hover:bg-red-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg rounded-full"
+                  title={`Cancel ${lockedBets.length} locked bet(s)`}
+                >
+                  <XCircle className="w-5 h-5" />
+                </Button>
+              )}
+
               {/* Repeat Button - Icon Only */}
               {previousRoundBets.length > 0 && unlockedBets.length === 0 && lockedBets.length === 0 && (
                 <Button
@@ -851,7 +883,7 @@ export default function GameRoom() {
               <div className="bg-yellow-600/20 border border-yellow-600 rounded p-2 text-center">
                 <span className="text-yellow-400 font-bold text-xs flex items-center justify-center gap-1">
                   <LockKeyhole className="w-3 h-3" />
-                  {lockedBets.length} Locked
+                  {lockedBets.length} Locked - Can Cancel
                 </span>
               </div>
             )}
