@@ -129,7 +129,7 @@ function App() {
       <div className="min-h-screen bg-gradient-purple flex items-center justify-center">
         <div className="glass-card px-8 py-6 rounded-3xl">
           <div className="text-white text-xl font-bold glow-purple">
-            Connecting to KingGames...
+            Connecting to FunRep...
           </div>
         </div>
       </div>
@@ -249,7 +249,7 @@ function App() {
       <div className="absolute top-0 left-0 right-0 z-50 glass-header border-b border-purple-accent/30">
         <div className="flex justify-between items-center px-4 py-3">
           <div className="flex items-center gap-4">
-            <h2 className="text-purple-accent font-bold text-lg glow-purple">👑 KingGames</h2>
+            <h2 className="text-purple-accent font-bold text-lg glow-purple">👑 FunRep</h2>
             <span className="text-white/90">Welcome, {user?.username}</span>
           </div>
           

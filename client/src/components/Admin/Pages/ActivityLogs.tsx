@@ -142,7 +142,7 @@ export default function ActivityLogs() {
 
   const exportLogs = () => {
     const csvData = [
-      ['KingGames Activity Logs Export', new Date().toLocaleDateString()],
+      ['FunRep Activity Logs Export', new Date().toLocaleDateString()],
       [],
       ['Timestamp', 'Type', 'Category', 'Message', 'Details'],
       ...filteredLogs.map(log => [
@@ -159,7 +159,7 @@ export default function ActivityLogs() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `kinggames-logs-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `funrep-logs-${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

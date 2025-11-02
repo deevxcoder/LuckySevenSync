@@ -405,7 +405,7 @@ export default function AdminDashboard() {
               Admin Dashboard
             </h1>
             <p className="text-neo-text-secondary mt-1 text-sm sm:text-base">
-              Manage KingGames users and game oversight
+              Manage FunRep users and game oversight
             </p>
           </div>
         </div>

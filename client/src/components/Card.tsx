@@ -182,7 +182,7 @@ export default function Card({ number, suit, color, revealed, large = false }: C
       <div className={`card-flip w-full h-full relative ${isFlipped ? 'flipped' : ''}`}>
         {/* Card Back */}
         <div className="card-front absolute inset-0 bg-black border-2 border-yellow-600 rounded-xl flex items-center justify-center">
-          <div className="text-yellow-600 font-bold text-lg">KINGGAMES</div>
+          <div className="text-yellow-600 font-bold text-lg">FUNREP</div>
         </div>
         
         {/* Card Front */}

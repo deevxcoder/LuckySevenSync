@@ -58,7 +58,7 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
           <div className="flex items-center gap-2 sm:gap-4 justify-center sm:justify-start">
             <h2 className="text-neo-accent font-heading font-bold text-base sm:text-lg flex items-center gap-2">
               <Crown className="w-5 h-5" />
-              KingGames
+              FunRep
             </h2>
             <span className="text-neo-text text-sm sm:text-base hidden sm:inline">
               Welcome, {user?.username}

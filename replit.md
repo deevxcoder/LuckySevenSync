@@ -1,6 +1,6 @@
 # Overview
 
-KingGames is a real-time multiplayer casino gaming platform built with React, Express, and Socket.io. The platform features multiple games including Lucky 7 (a card betting game) and Coin Toss. Players join synchronized game rooms where they can place bets before a countdown reveals the result. The application features a comprehensive betting system with virtual chips, user authentication, game history tracking, and immersive audio/visual effects.
+FunRep is a real-time multiplayer casino gaming platform built with React, Express, and Socket.io. The platform features multiple games including Lucky 7 (a card betting game) and Coin Toss. Players join synchronized game rooms where they can place bets before a countdown reveals the result. The application features a comprehensive betting system with virtual chips, user authentication, game history tracking, and immersive audio/visual effects.
 
 # Recent Changes
 

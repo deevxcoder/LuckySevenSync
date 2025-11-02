@@ -86,7 +86,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
               <Settings className="w-8 h-8 text-neo-accent" />
               <div>
                 <h1 className="text-xl font-heading font-bold text-neo-accent">Admin Panel</h1>
-                <p className="text-xs text-neo-text-secondary">KingGames</p>
+                <p className="text-xs text-neo-text-secondary">FunRep</p>
               </div>
             </div>
 
