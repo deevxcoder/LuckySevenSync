@@ -595,11 +595,23 @@ export default function CoinTossRoom() {
     <div 
       ref={containerRef} 
       className="h-screen relative overflow-hidden"
-      style={{
-        background: '#0E0E0E'
-      }}
     >
-      <div className="h-full flex flex-col p-2 sm:p-4 gap-2 sm:gap-4">
+      {/* Casino Background with Blur */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: 'url(/cointoss-bg.jpg)',
+          filter: 'blur(8px)',
+          zIndex: 0
+        }}
+      />
+      {/* Dark Overlay for better contrast */}
+      <div 
+        className="absolute inset-0 bg-black/60"
+        style={{ zIndex: 1 }}
+      />
+      
+      <div className="h-full flex flex-col p-2 sm:p-4 gap-2 sm:gap-4 relative" style={{ zIndex: 2 }}>
         {/* Header */}
         <div className="coin-toss-header flex items-center justify-between px-2 sm:px-4">
           {/* Left - Coin Balance */}
