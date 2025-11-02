@@ -4,6 +4,28 @@ FunRep is a real-time multiplayer casino gaming platform built with React, Expre
 
 # Recent Changes
 
+**November 2, 2025 (Latest)**: Fixed Lucky 7 locked bets and UI improvements
+- **Locked Bet Cancellation**: Added ability to cancel locked bets with full refund
+  - Players can now cancel locked bets during countdown (similar to Coin Toss)
+  - New red cancel button appears when bets are locked
+  - Backend handler refunds chips and removes bets from database
+  - Client receives 'locked-bets-cancelled' event and updates state
+- **Disconnect Cleanup**: Locked and unlocked bets now clear when player leaves Lucky 7
+  - Prevents bets from processing if player exits mid-round
+  - Server clears both lockedBets and unlockedBets on disconnect
+- **Popup Auto-Close**: Win/loss popup now automatically closes after 3 seconds
+  - Improves game flow and user experience
+  - Players can still manually close popup if needed
+- **Display Fix**: Recent results now show "7" instead of "&" for Lucky 7 outcomes
+  - Makes results clearer and more readable
+
+**November 2, 2025**: Added Data Reset admin functionality
+- **Data Reset Page**: New admin page for managing database resets
+  - Three reset options: Game Data Only, User Data Only, Complete Reset
+  - Safety confirmations requiring exact phrase input
+  - Backend endpoints with authentication middleware
+  - Proper deletion order respecting foreign key constraints
+
 **November 2, 2025**: Added WhatsApp-based deposit/withdrawal system
 - **Deposit Dialog**: Created user-facing deposit dialog accessible from dashboard header
   - Green "Deposit" button with wallet icon in UserDashboard header
