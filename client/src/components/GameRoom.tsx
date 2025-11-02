@@ -181,10 +181,6 @@ export default function GameRoom() {
 
   const handlePlaceBet = () => {
     if (!canPlaceBet()) return;
-    if (lockedBets.length > 0) {
-      alert('You have locked bets. Locked bets cannot be changed.');
-      return;
-    }
 
     const newBet = {
       type: selectedBetType,
@@ -739,15 +735,17 @@ export default function GameRoom() {
 
             {/* Action Buttons - Icon Only */}
             <div className="flex gap-2 justify-center">
-              {/* Place Bet Button - Icon Only */}
-              <Button
-                onClick={handlePlaceBet}
-                disabled={!canPlaceBet()}
-                className="p-3 font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50 rounded-full"
-                title={getPlaceBetButtonText()}
-              >
-                <CheckCircle className="w-6 h-6" />
-              </Button>
+              {/* Place Bet Button - Icon Only - Hide when bets are locked */}
+              {lockedBets.length === 0 && (
+                <Button
+                  onClick={handlePlaceBet}
+                  disabled={!canPlaceBet()}
+                  className="p-3 font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50 rounded-full"
+                  title={getPlaceBetButtonText()}
+                >
+                  <CheckCircle className="w-6 h-6" />
+                </Button>
+              )}
 
               {/* Lock Button - Icon Only */}
               {unlockedBets.length > 0 && (
