@@ -697,10 +697,51 @@ export default function GameRoom() {
 
             {gameStatus === 'waiting' && (
               <div className="text-center">
-                <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-cyan-500/10 border-4 border-cyan-500/30 flex items-center justify-center">
-                  <div className="text-4xl">🃏</div>
-                </div>
-                <p className="text-cyan-300 text-sm mt-2">NEXT ROUND STARTING...</p>
+                {countdownTime > 0 ? (
+                  <>
+                    <div className="relative w-32 h-32 md:w-40 md:h-40">
+                      <svg className="transform -rotate-90 w-full h-full">
+                        <circle
+                          cx="50%"
+                          cy="50%"
+                          r="45%"
+                          stroke="rgba(6, 182, 212, 0.2)"
+                          strokeWidth="6"
+                          fill="none"
+                        />
+                        <circle
+                          cx="50%"
+                          cy="50%"
+                          r="45%"
+                          stroke="url(#gradient)"
+                          strokeWidth="6"
+                          fill="none"
+                          strokeLinecap="round"
+                          strokeDasharray={`${2 * Math.PI * 45} ${2 * Math.PI * 45}`}
+                          strokeDashoffset={2 * Math.PI * 45 * (1 - countdownTime / 30)}
+                          className="transition-all duration-1000"
+                        />
+                        <defs>
+                          <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stopColor="#06b6d4" />
+                            <stop offset="100%" stopColor="#3b82f6" />
+                          </linearGradient>
+                        </defs>
+                      </svg>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-4xl md:text-5xl font-bold text-cyan-400">{countdownTime}s</div>
+                      </div>
+                    </div>
+                    <p className="text-cyan-300 text-sm mt-2">ROUND IN PROGRESS...</p>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-32 h-32 md:w-40 md:h-40 rounded-full bg-cyan-500/10 border-4 border-cyan-500/30 flex items-center justify-center">
+                      <div className="text-4xl">🃏</div>
+                    </div>
+                    <p className="text-cyan-300 text-sm mt-2">NEXT ROUND STARTING...</p>
+                  </>
+                )}
               </div>
             )}
           </div>
