@@ -15,6 +15,7 @@ import GamesPage from './components/Admin/Pages/Games';
 import ResultsControl from './components/Admin/Pages/ResultsControl';
 import AnalyticsPage from './components/Admin/Pages/Analytics';
 import ActivityLogs from './components/Admin/Pages/ActivityLogs';
+import DataReset from './components/Admin/Pages/DataReset';
 import Lucky7Control from './components/Admin/Pages/GameControls/Lucky7Control';
 import CoinTossControl from './components/Admin/Pages/GameControls/CoinTossControl';
 import { HeaderWallet } from './components/HeaderWallet';
@@ -156,6 +157,7 @@ function App() {
           <Route path="/admin/results/cointoss" element={<AdminLayout><CoinTossControl /></AdminLayout>} />
           <Route path="/admin/analytics" element={<AdminLayout><AnalyticsPage /></AdminLayout>} />
           <Route path="/admin/logs" element={<AdminLayout><ActivityLogs /></AdminLayout>} />
+          <Route path="/admin/data-reset" element={<AdminLayout><DataReset /></AdminLayout>} />
           <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </BrowserRouter>

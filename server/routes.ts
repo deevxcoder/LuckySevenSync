@@ -788,6 +788,47 @@ export async function registerRoutes(app: Express): Promise<void> {
     }
   });
 
+  // Data Reset endpoint (admin only)
+  app.post("/api/admin/reset-data", requireAdmin, async (req: AuthRequest, res) => {
+    try {
+      const { resetType } = req.body;
+      
+      if (!resetType) {
+        return res.status(400).json({ message: "Reset type is required" });
+      }
+
+      const validResetTypes = ['all_game_data', 'all_user_data', 'complete_reset'];
+      if (!validResetTypes.includes(resetType)) {
+        return res.status(400).json({ message: "Invalid reset type" });
+      }
+
+      console.log(`Admin ${req.user!.username} initiated ${resetType} reset`);
+
+      switch (resetType) {
+        case 'all_game_data':
+          await storage.resetAllGameData();
+          console.log('All game data has been reset');
+          res.json({ message: "All game data has been successfully reset" });
+          break;
+        
+        case 'all_user_data':
+          await storage.resetAllUserData();
+          console.log('All user data has been reset');
+          res.json({ message: "All user data has been successfully reset" });
+          break;
+        
+        case 'complete_reset':
+          await storage.resetCompleteDatabase();
+          console.log('Complete database has been reset');
+          res.json({ message: "Complete database has been successfully reset" });
+          break;
+      }
+    } catch (error) {
+      console.error('Error resetting data:', error);
+      res.status(500).json({ message: "Failed to reset data" });
+    }
+  });
+
   // Analytics endpoints
   app.get("/api/admin/analytics/overview", requireAdmin, async (req: AuthRequest, res) => {
     try {

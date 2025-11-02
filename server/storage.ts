@@ -100,6 +100,11 @@ export interface IStorage {
   // Deposit Settings
   getDepositSettings(): Promise<DepositSettings | undefined>;
   updateDepositSettings(settings: InsertDepositSettings): Promise<DepositSettings>;
+  
+  // Data Reset
+  resetAllGameData(): Promise<void>;
+  resetAllUserData(): Promise<void>;
+  resetCompleteDatabase(): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -894,6 +899,36 @@ export class DatabaseStorage implements IStorage {
         .returning();
       return result[0];
     }
+  }
+
+  // Data Reset Methods
+  async resetAllGameData(): Promise<void> {
+    // Delete all game-related data but keep users
+    await db.delete(bets);
+    await db.delete(coinTossBets);
+    await db.delete(games);
+    await db.delete(coinTossGames);
+    await db.delete(chatMessages);
+    await db.delete(andarBaharMatches);
+  }
+
+  async resetAllUserData(): Promise<void> {
+    // Delete all user and player data but keep game history
+    await db.delete(players);
+    await db.delete(users);
+  }
+
+  async resetCompleteDatabase(): Promise<void> {
+    // Delete everything in correct order (respecting foreign keys)
+    await db.delete(bets);
+    await db.delete(coinTossBets);
+    await db.delete(chatMessages);
+    await db.delete(games);
+    await db.delete(coinTossGames);
+    await db.delete(andarBaharMatches);
+    await db.delete(players);
+    await db.delete(users);
+    await db.delete(depositSettings);
   }
 }
 

@@ -12,7 +12,8 @@ import {
   TrendingUp,
   Activity,
   Menu,
-  X
+  X,
+  Database
 } from 'lucide-react';
 
 interface AdminLayoutProps {
@@ -31,6 +32,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     { name: 'Results Control', href: '/admin/results', icon: Target },
     { name: 'Analytics', href: '/admin/analytics', icon: TrendingUp },
     { name: 'Activity Logs', href: '/admin/logs', icon: Activity },
+    { name: 'Data Reset', href: '/admin/data-reset', icon: Database },
   ];
 
   const isActive = (href: string) => {
