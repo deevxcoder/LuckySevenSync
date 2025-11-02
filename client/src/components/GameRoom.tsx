@@ -577,8 +577,23 @@ export default function GameRoom() {
   };
 
   return (
-    <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1f3d] to-[#1a2b4a] p-2 md:p-4">
-      <div className="max-w-7xl mx-auto h-screen flex flex-col">
+    <div ref={containerRef} className="min-h-screen relative p-2 md:p-4">
+      {/* Casino Background with Blur */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{
+          backgroundImage: 'url(/casino-bg.jpg)',
+          filter: 'blur(8px)',
+          zIndex: 0
+        }}
+      />
+      {/* Dark Overlay for better contrast */}
+      <div 
+        className="absolute inset-0 bg-black/60"
+        style={{ zIndex: 1 }}
+      />
+      
+      <div className="max-w-7xl mx-auto h-screen flex flex-col relative" style={{ zIndex: 2 }}>
         {/* Header - Compact for Landscape */}
         <div className="flex justify-between items-center mb-2">
           {/* Left: Chips */}
