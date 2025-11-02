@@ -6,7 +6,7 @@ import Card from './Card';
 import CardBack from './CardBack';
 import BetResultPopup from './BetResultPopup';
 import { Button } from './ui/button';
-import { Lock, X, RotateCcw } from 'lucide-react';
+import { LockKeyhole, XCircle, RotateCcw, CheckCircle } from 'lucide-react';
 import type { Card as CardType, GameRoom } from '../types/game';
 
 export default function GameRoom() {
@@ -572,6 +572,13 @@ export default function GameRoom() {
     return 'WAITING';
   };
 
+  // Calculate bet amounts by type
+  const getBetAmountByType = (betTypeId: string): number => {
+    return currentBets
+      .filter(bet => bet.type === betTypeId)
+      .reduce((sum, bet) => sum + bet.amount, 0);
+  };
+
   return (
     <div ref={containerRef} className="min-h-screen bg-gradient-to-br from-[#0a1628] via-[#0f1f3d] to-[#1a2b4a] p-2 md:p-4">
       <div className="max-w-7xl mx-auto h-screen flex flex-col">
@@ -684,22 +691,32 @@ export default function GameRoom() {
           <div className="flex-1 flex flex-col justify-center gap-3">
             {/* Betting Options - Compact Grid */}
             <div className="grid grid-cols-5 gap-2">
-              {BET_TYPES.map((bet) => (
-                <button
-                  key={bet.id}
-                  onClick={() => setSelectedBetType(bet.id)}
-                  className={`relative p-2 rounded-lg border-2 transition-all ${
-                    selectedBetType === bet.id
-                      ? 'border-cyan-400 bg-cyan-500/20 scale-105'
-                      : 'border-cyan-800/30 bg-gradient-to-br ' + bet.color + ' opacity-80 hover:opacity-100'
-                  }`}
-                >
-                  <div className="text-2xl mb-1">{bet.icon}</div>
-                  <div className="text-white font-bold text-xs">{bet.label}</div>
-                  <div className="text-cyan-300 text-[10px]">{bet.description}</div>
-                  <div className="text-cyan-400 text-[10px] font-semibold">{bet.odds}</div>
-                </button>
-              ))}
+              {BET_TYPES.map((bet) => {
+                const betAmount = getBetAmountByType(bet.id);
+                return (
+                  <div key={bet.id} className="relative">
+                    {/* Bet Amount Badge Above Button */}
+                    {betAmount > 0 && (
+                      <div className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-green-500 to-green-600 text-white text-xs font-bold px-2 py-0.5 rounded-full z-10 whitespace-nowrap shadow-lg border border-green-300">
+                        {betAmount}
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setSelectedBetType(bet.id)}
+                      className={`relative p-2 rounded-lg border-2 transition-all w-full ${
+                        selectedBetType === bet.id
+                          ? 'border-cyan-400 bg-cyan-500/20 scale-105'
+                          : 'border-cyan-800/30 bg-gradient-to-br ' + bet.color + ' opacity-80 hover:opacity-100'
+                      }`}
+                    >
+                      <div className="text-2xl mb-1">{bet.icon}</div>
+                      <div className="text-white font-bold text-xs">{bet.label}</div>
+                      <div className="text-cyan-300 text-[10px]">{bet.description}</div>
+                      <div className="text-cyan-400 text-[10px] font-semibold">{bet.odds}</div>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Bet Amount Selection */}
@@ -719,99 +736,61 @@ export default function GameRoom() {
               ))}
             </div>
 
-            {/* Action Buttons - All buttons visible */}
-            <div className="grid grid-cols-3 gap-2">
-              {/* Place Bet Button - Always visible */}
+            {/* Action Buttons - Icon Only */}
+            <div className="flex gap-2 justify-center">
+              {/* Place Bet Button - Icon Only */}
               <Button
                 onClick={handlePlaceBet}
                 disabled={!canPlaceBet()}
-                className="py-3 text-[11px] font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50"
+                className="p-3 font-bold bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/50 rounded-full"
+                title={getPlaceBetButtonText()}
               >
-                {getPlaceBetButtonText()}
+                <CheckCircle className="w-6 h-6" />
               </Button>
 
-              {/* Lock Button - Show when there are unlocked bets */}
-              <Button
-                onClick={handleLockBet}
-                disabled={unlockedBets.length === 0 || gameStatus !== 'countdown' || countdownTime <= 10}
-                className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                title={unlockedBets.length > 0 ? `Lock ${unlockedBets.length} bet(s)` : 'No bets to lock'}
-              >
-                <Lock className="w-4 h-4 mr-1" />
-                Lock {unlockedBets.length > 0 && `(${unlockedBets.length})`}
-              </Button>
+              {/* Lock Button - Icon Only */}
+              {unlockedBets.length > 0 && (
+                <Button
+                  onClick={handleLockBet}
+                  disabled={gameStatus !== 'countdown' || countdownTime <= 10}
+                  className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg rounded-full"
+                  title={`Lock ${unlockedBets.length} bet(s)`}
+                >
+                  <LockKeyhole className="w-5 h-5" />
+                </Button>
+              )}
 
-              {/* Repeat Button - Show when there are previous round bets */}
-              <Button
-                onClick={handleRepeatBet}
-                disabled={previousRoundBets.length === 0 || gameStatus !== 'countdown' || countdownTime <= 10 || playerChips < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                title={previousRoundBets.length > 0 ? `Repeat ${previousRoundBets.length} bet(s) - Total: ${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}` : 'No previous bets to repeat'}
-              >
-                <RotateCcw className="w-4 h-4 mr-1" />
-                Repeat {previousRoundBets.length > 0 && `(${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)})`}
-              </Button>
+              {/* Cancel Button - Icon Only */}
+              {unlockedBets.length > 0 && (
+                <Button
+                  onClick={handleCancelBet}
+                  disabled={gameStatus !== 'countdown' || countdownTime <= 10}
+                  className="bg-gray-600 hover:bg-gray-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg rounded-full"
+                  title={`Cancel ${unlockedBets.length} bet(s)`}
+                >
+                  <XCircle className="w-5 h-5" />
+                </Button>
+              )}
+
+              {/* Repeat Button - Icon Only */}
+              {previousRoundBets.length > 0 && unlockedBets.length === 0 && lockedBets.length === 0 && (
+                <Button
+                  onClick={handleRepeatBet}
+                  disabled={gameStatus !== 'countdown' || countdownTime <= 10 || playerChips < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg rounded-full"
+                  title={`Repeat ${previousRoundBets.length} bet(s) - Total: ${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}`}
+                >
+                  <RotateCcw className="w-5 h-5" />
+                </Button>
+              )}
             </div>
-
-            {/* Cancel Button - Show below when there are unlocked bets */}
-            {unlockedBets.length > 0 && (
-              <Button
-                onClick={handleCancelBet}
-                disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-                className="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 text-sm disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
-                title={`Cancel ${unlockedBets.length} bet(s)`}
-              >
-                <X className="w-4 h-4 mr-1" />
-                Cancel All Bets ({unlockedBets.length})
-              </Button>
-            )}
-
-            {/* Current Bets Display - Detailed Breakdown */}
-            {currentBets.length > 0 && (
-              <div className="bg-black/40 border border-cyan-800/50 rounded-lg p-3">
-                <div className="text-cyan-400 font-bold text-xs mb-2 text-center">YOUR BETS</div>
-                <div className="space-y-1.5 mb-2">
-                  {Object.entries(
-                    currentBets.reduce((acc, bet) => {
-                      const key = bet.type;
-                      if (!acc[key]) {
-                        acc[key] = { total: 0, count: 0, label: BET_TYPE_LABELS[key as keyof typeof BET_TYPE_LABELS] };
-                      }
-                      acc[key].total += bet.amount;
-                      acc[key].count += 1;
-                      return acc;
-                    }, {} as Record<string, { total: number; count: number; label: string }>)
-                  ).map(([betType, data]) => {
-                    const betData = data as { total: number; count: number; label: string };
-                    return (
-                      <div key={betType} className="flex justify-between items-center text-xs bg-cyan-900/20 rounded px-2 py-1">
-                        <span className="text-white font-semibold">{betData.label}</span>
-                        <span className="text-cyan-300 font-bold">{betData.total} chips {betData.count > 1 && `(${betData.count}×)`}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="border-t border-cyan-800/50 pt-2 space-y-1">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-cyan-400 font-semibold">Total Bets:</span>
-                    <span className="text-white font-bold">{totalBetAmount} chips</span>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-cyan-400 font-semibold">Available Balance:</span>
-                    <span className={`font-bold ${(playerChips - totalBetAmount) < selectedAmount ? 'text-red-400' : 'text-green-400'}`}>
-                      {playerChips - totalBetAmount} chips
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
 
             {/* Locked Status */}
             {lockedBets.length > 0 && (
               <div className="bg-yellow-600/20 border border-yellow-600 rounded p-2 text-center">
-                <span className="text-yellow-400 font-bold text-xs">
-                  <Lock className="w-4 h-4 inline mr-1" />
-                  {lockedBets.length} BET(S) LOCKED FOR NEXT ROUND
+                <span className="text-yellow-400 font-bold text-xs flex items-center justify-center gap-1">
+                  <LockKeyhole className="w-3 h-3" />
+                  {lockedBets.length} Locked
                 </span>
               </div>
             )}
