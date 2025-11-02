@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { useAudio } from '../lib/stores/useAudio';
-import { Lock, RotateCcw, X, CheckCircle } from 'lucide-react';
+import { LockKeyhole, RotateCcw, XCircle, CheckCircle } from 'lucide-react';
 
 interface BettingPanelProps {
   playerChips: number;
@@ -273,23 +273,8 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
       </CardHeader>
       
       <CardContent className="space-y-2">
-        {/* Bet Type Selection with Bets Display Above - 30% Smaller */}
+        {/* Bet Type Selection - 30% Smaller */}
         <div className="bg-casino-green/10 border border-casino-gold rounded p-2 space-y-1.5">
-          {/* Current Bets Display - Inside Selection Box */}
-          {currentBets.length > 0 && (
-            <div className="flex items-center gap-1.5 flex-wrap pb-1.5 border-b border-casino-gold/30">
-              <span className="text-casino-gold text-xs font-bold">Bets:</span>
-              {currentBets.map((bet, index) => (
-                <div key={index} className="bg-casino-green px-1.5 py-0.5 rounded text-white text-xs font-semibold whitespace-nowrap">
-                  {BET_TYPES.find(t => t.id === bet.type)?.label.split(' ')[0]} {bet.amount}
-                </div>
-              ))}
-              <span className="text-casino-gold text-xs font-bold ml-auto">
-                = {totalBetAmount}
-              </span>
-            </div>
-          )}
-          
           <h4 className="text-casino-gold font-semibold text-xs">Type:</h4>
           <div className="flex gap-1 flex-wrap">
             {BET_TYPES.map(betType => {
@@ -365,10 +350,10 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
             <Button
               onClick={handleLockBet}
               disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed rounded-full"
               title={`Lock ${unlockedBets.length} bet(s)`}
             >
-              <Lock className="w-6 h-6" />
+              <LockKeyhole className="w-5 h-5" />
             </Button>
           )}
 
@@ -377,10 +362,10 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
             <Button
               onClick={handleCancelBet}
               disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-              className="bg-gray-600 hover:bg-gray-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gray-600 hover:bg-gray-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed rounded-full"
               title={`Cancel ${unlockedBets.length} bet(s)`}
             >
-              <X className="w-6 h-6" />
+              <XCircle className="w-5 h-5" />
             </Button>
           )}
 
@@ -401,7 +386,7 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
         {lockedBets.length > 0 && (
           <div className="bg-yellow-600/20 border border-yellow-600 rounded p-1.5 text-center">
             <span className="text-yellow-400 font-bold text-xs flex items-center justify-center gap-1">
-              <Lock className="w-3 h-3" />
+              <LockKeyhole className="w-3 h-3" />
               {lockedBets.length} Locked
             </span>
           </div>
