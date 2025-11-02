@@ -1,7 +1,49 @@
-import { Gamepad2, RefreshCw, History, Cog, TrendingUp } from 'lucide-react';
+import { Gamepad2, RefreshCw, History, Cog, TrendingUp, Image } from 'lucide-react';
 import { Button } from '../../ui/button';
+import { useState } from 'react';
 
 export default function GamesPage() {
+  const [lucky7BgUrl, setLucky7BgUrl] = useState('');
+  const [cointossBgUrl, setCointossBgUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+
+  const handleImageUpload = async (gameType: 'lucky7' | 'cointoss', file: File) => {
+    if (!file) return;
+    
+    setUploading(true);
+    try {
+      const formData = new FormData();
+      formData.append('background', file);
+      formData.append('gameType', gameType);
+
+      const response = await fetch('/api/admin/game-background', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        alert(`${gameType === 'lucky7' ? 'Lucky 7' : 'CoinToss'} background updated successfully!`);
+        window.location.reload();
+      } else {
+        alert('Failed to upload background image');
+      }
+    } catch (error) {
+      console.error('Error uploading background:', error);
+      alert('Error uploading background image');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileChange = (gameType: 'lucky7' | 'cointoss', event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      handleImageUpload(gameType, file);
+    }
+  };
+
   return (
     <div className="p-8">
       <div className="mb-8">
@@ -104,6 +146,79 @@ export default function GamesPage() {
             <div className="text-right">
               <p className="text-green-400 font-semibold">Running</p>
               <p className="text-sm text-neo-text-secondary">Active players: --</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Background Settings */}
+      <div className="neo-glass-card p-6 mt-6">
+        <h2 className="text-neo-accent text-xl font-heading font-bold mb-4 flex items-center gap-2">
+          <Image className="w-6 h-6" />
+          Game Background Settings
+        </h2>
+        <p className="text-neo-text-secondary mb-6">Upload custom background images for each game (recommended size: 1920x1080px)</p>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Lucky 7 Background */}
+          <div className="border border-neo-accent/30 rounded-lg p-4">
+            <h3 className="text-neo-accent font-semibold mb-3">Lucky 7 Background</h3>
+            <div className="space-y-3">
+              <div className="relative">
+                <input
+                  type="file"
+                  id="lucky7-bg-upload"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange('lucky7', e)}
+                  className="hidden"
+                  disabled={uploading}
+                />
+                <label
+                  htmlFor="lucky7-bg-upload"
+                  className={`block w-full p-3 text-center border-2 border-dashed border-neo-accent/50 rounded-lg cursor-pointer hover:bg-neo-accent/10 transition-all ${
+                    uploading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <Image className="w-8 h-8 mx-auto mb-2 text-neo-accent" />
+                  <span className="text-neo-text text-sm">
+                    {uploading ? 'Uploading...' : 'Click to upload Lucky 7 background'}
+                  </span>
+                </label>
+              </div>
+              <div className="bg-neo-bg/50 rounded p-2 text-xs text-neo-text-secondary">
+                Current: /casino-bg.jpg
+              </div>
+            </div>
+          </div>
+
+          {/* CoinToss Background */}
+          <div className="border border-neo-accent/30 rounded-lg p-4">
+            <h3 className="text-neo-accent font-semibold mb-3">CoinToss Background</h3>
+            <div className="space-y-3">
+              <div className="relative">
+                <input
+                  type="file"
+                  id="cointoss-bg-upload"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange('cointoss', e)}
+                  className="hidden"
+                  disabled={uploading}
+                />
+                <label
+                  htmlFor="cointoss-bg-upload"
+                  className={`block w-full p-3 text-center border-2 border-dashed border-neo-accent/50 rounded-lg cursor-pointer hover:bg-neo-accent/10 transition-all ${
+                    uploading ? 'opacity-50 cursor-not-allowed' : ''
+                  }`}
+                >
+                  <Image className="w-8 h-8 mx-auto mb-2 text-neo-accent" />
+                  <span className="text-neo-text text-sm">
+                    {uploading ? 'Uploading...' : 'Click to upload CoinToss background'}
+                  </span>
+                </label>
+              </div>
+              <div className="bg-neo-bg/50 rounded p-2 text-xs text-neo-text-secondary">
+                Current: /cointoss-bg.jpg
+              </div>
             </div>
           </div>
         </div>
