@@ -454,7 +454,13 @@ export default function GameRoom() {
       } else {
         setGameStatus('waiting');
         setGameState('waiting');
-        console.log('Joined during waiting phase');
+        // Preserve countdown time even in waiting phase
+        if (data.countdownTime !== undefined && data.countdownTime > 0) {
+          setCountdownTime(data.countdownTime);
+          console.log(`Joined during waiting phase with ${data.countdownTime}s remaining`);
+        } else {
+          console.log('Joined during waiting phase');
+        }
       }
     }
 

@@ -51,7 +51,7 @@ export default function RoundResults() {
   };
 
   const getResultDisplay = (cardNumber: number) => {
-    if (cardNumber === 7) return '&';
+    if (cardNumber === 7) return '7';
     if (cardNumber >= 8 && cardNumber <= 13) return 'H';
     return 'L';
   };
@@ -100,7 +100,11 @@ export default function RoundResults() {
                     <span className={`text-2xl ${getCardColor(result.cardColor)}`}>
                       {getCardSymbol(result.cardColor)}
                     </span>
-                    <span className={`text-xl font-bold ${result.cardNumber === 7 ? 'text-yellow-400' : ''}`}>
+                    <span className={`text-xl font-bold ${
+                      result.cardNumber === 7 
+                        ? 'text-yellow-400' 
+                        : getCardColor(result.cardColor)
+                    }`}>
                       {getResultDisplay(result.cardNumber)}
                     </span>
                     <span className="text-xs text-casino-gold">
