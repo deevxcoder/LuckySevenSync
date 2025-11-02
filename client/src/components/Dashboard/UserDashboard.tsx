@@ -94,7 +94,7 @@ export default function UserDashboard({ onNavigateToGame, onNavigateToCoinToss }
       </div>
 
       {/* Dashboard Content with top padding for navigation */}
-      <div className="pt-20 sm:pt-16 p-4">
+      <div className="pt-28 sm:pt-16 p-4">
         <div className="max-w-4xl mx-auto">
           {/* Available Games */}
           <div className="mb-6">
