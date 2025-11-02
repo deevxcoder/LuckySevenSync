@@ -5,7 +5,7 @@ import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
 import { useAudio } from '../lib/stores/useAudio';
-import { Lock, RotateCcw, X } from 'lucide-react';
+import { Lock, RotateCcw, X, CheckCircle } from 'lucide-react';
 
 interface BettingPanelProps {
   playerChips: number;
@@ -261,36 +261,28 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
         </p>
       </CardHeader>
       
-      <CardContent className="space-y-4">
-        {/* Current Bets */}
+      <CardContent className="space-y-2">
+        {/* Current Bets - Single Line Display */}
         {currentBets.length > 0 && (
-          <div className="space-y-2">
-            <h4 className="text-casino-gold font-semibold text-sm">Your Bets:</h4>
-            <div className="space-y-1 max-h-32 overflow-y-auto">
+          <div className="bg-casino-green/20 border border-casino-gold rounded p-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-casino-gold text-xs font-bold">Bets:</span>
               {currentBets.map((bet, index) => (
-                <div key={index} className="flex items-center justify-between bg-casino-green p-2 rounded text-white text-sm">
-                  <span>{BET_TYPES.find(t => t.id === bet.type)?.label} - {bet.amount} chips</span>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={() => handleRemoveBet(index)}
-                    className="h-6 px-2 text-xs border-casino-red text-casino-red hover:bg-casino-red hover:text-white"
-                  >
-                    ❌
-                  </Button>
+                <div key={index} className="bg-casino-green px-2 py-1 rounded text-white text-xs font-semibold whitespace-nowrap">
+                  {BET_TYPES.find(t => t.id === bet.type)?.label.split(' ')[0]} {bet.amount}
                 </div>
               ))}
-            </div>
-            <div className="text-casino-gold font-bold text-right">
-              Total: {totalBetAmount} chips
+              <span className="text-casino-gold text-xs font-bold ml-auto">
+                = {totalBetAmount}
+              </span>
             </div>
           </div>
         )}
 
-        {/* Bet Type Selection */}
-        <div className="space-y-2">
-          <h4 className="text-casino-gold font-semibold text-sm">Select Bet Type:</h4>
-          <div className="grid grid-cols-1 gap-2">
+        {/* Bet Type Selection - Compact Single Row */}
+        <div className="space-y-1">
+          <h4 className="text-casino-gold font-semibold text-xs">Type:</h4>
+          <div className="flex gap-1 flex-wrap">
             {BET_TYPES.map(betType => (
               <Button
                 key={betType.id}
@@ -298,28 +290,23 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
                 size="sm"
                 onClick={() => setSelectedBetType(betType.id)}
                 disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-                className={`text-left justify-start h-auto py-2 px-3 ${
+                className={`px-2 py-1 h-auto text-xs ${
                   selectedBetType === betType.id 
                     ? 'bg-casino-red text-white border-casino-red' 
                     : 'bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black'
                 }`}
+                title={`${betType.description} (${betType.odds})`}
               >
-                <div className="flex flex-col">
-                  <div className="flex justify-between items-center w-full">
-                    <span className="font-semibold">{betType.label}</span>
-                    <span className="text-xs">{betType.odds}</span>
-                  </div>
-                  <span className="text-xs opacity-75">{betType.description}</span>
-                </div>
+                {betType.label.split(' ')[0]}
               </Button>
             ))}
           </div>
         </div>
 
-        {/* Bet Amount Selection */}
-        <div className="space-y-2">
-          <h4 className="text-casino-gold font-semibold text-sm">Bet Amount:</h4>
-          <div className="grid grid-cols-4 gap-2">
+        {/* Bet Amount Selection - Compact */}
+        <div className="flex gap-2 items-center">
+          <span className="text-casino-gold text-xs font-semibold">Amount:</span>
+          <div className="flex gap-1 flex-wrap flex-1">
             {BET_AMOUNTS.map(amount => (
               <Button
                 key={amount}
@@ -327,7 +314,7 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
                 size="sm"
                 onClick={() => setSelectedAmount(amount)}
                 disabled={amount > playerChips - totalBetAmount}
-                className={`${
+                className={`px-2 py-1 h-auto text-xs ${
                   selectedAmount === amount 
                     ? 'bg-casino-gold text-casino-black border-casino-gold' 
                     : 'bg-transparent border-casino-gold text-casino-gold hover:bg-casino-gold hover:text-casino-black'
@@ -337,95 +324,84 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
               </Button>
             ))}
           </div>
-          
-          {/* Quick Multipliers */}
-          <div className="flex gap-2 items-center">
-            <span className="text-casino-gold text-xs font-semibold">Quick Bet:</span>
-            {MULTIPLIERS.map(multiplier => (
-              <Button
-                key={multiplier}
-                variant="outline"
-                size="sm"
-                onClick={() => handleMultiplyBet(multiplier)}
-                disabled={selectedAmount * multiplier > playerChips - totalBetAmount}
-                className="bg-transparent border-casino-red text-casino-red hover:bg-casino-red hover:text-white disabled:opacity-30"
-              >
-                {multiplier}x
-              </Button>
-            ))}
-          </div>
         </div>
 
-        {/* Place Bet Button */}
-        <Button
-          onClick={handlePlaceBet}
-          disabled={!canPlaceBet()}
-          className="w-full bg-casino-red hover:bg-red-700 text-white font-bold py-3 glow-red disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {selectedBetType && selectedAmount ? 
-            `Place Bet: ${selectedAmount} chips on ${BET_TYPES.find(t => t.id === selectedBetType)?.label}` :
-            'Select bet type and amount'
-          }
-        </Button>
+        {/* Action Buttons Row - Icon Only */}
+        <div className="flex gap-2 justify-center">
+          {/* Place Bet Button - Icon Only */}
+          <Button
+            onClick={handlePlaceBet}
+            disabled={!canPlaceBet()}
+            className="bg-casino-red hover:bg-red-700 text-white font-bold p-3 glow-red disabled:opacity-50 disabled:cursor-not-allowed"
+            title={selectedBetType && selectedAmount ? 
+              `Place Bet: ${selectedAmount} chips on ${BET_TYPES.find(t => t.id === selectedBetType)?.label}` :
+              'Select bet type and amount'
+            }
+          >
+            <CheckCircle className="w-6 h-6" />
+          </Button>
 
-        {/* Action Buttons Row */}
-        <div className="flex gap-2">
-          {/* Lock Bet Button */}
+          {/* Lock Bet Button - Icon Only */}
           {unlockedBets.length > 0 && (
             <Button
               onClick={handleLockBet}
               disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-              className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed relative"
               title={`Lock ${unlockedBets.length} bet(s)`}
             >
-              <Lock className="w-4 h-4 mr-1" />
-              Lock ({unlockedBets.length})
+              <Lock className="w-6 h-6" />
+              {unlockedBets.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unlockedBets.length}
+                </span>
+              )}
             </Button>
           )}
 
-          {/* Cancel Bet Button */}
+          {/* Cancel Bet Button - Icon Only */}
           {unlockedBets.length > 0 && (
             <Button
               onClick={handleCancelBet}
               disabled={gameStatus !== 'countdown' || countdownTime <= 10}
-              className="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-gray-600 hover:bg-gray-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed relative"
               title={`Cancel ${unlockedBets.length} bet(s)`}
             >
-              <X className="w-4 h-4 mr-1" />
-              Cancel ({unlockedBets.length})
+              <X className="w-6 h-6" />
+              {unlockedBets.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unlockedBets.length}
+                </span>
+              )}
             </Button>
           )}
 
-          {/* Repeat Last Round Button */}
+          {/* Repeat Last Round Button - Icon Only */}
           {previousRoundBets.length > 0 && unlockedBets.length === 0 && lockedBets.length === 0 && (
             <Button
               onClick={handleRepeatBet}
               disabled={gameStatus !== 'countdown' || countdownTime <= 10 || playerChips < previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold p-3 disabled:opacity-50 disabled:cursor-not-allowed relative"
               title={`Repeat ${previousRoundBets.length} bet(s) - Total: ${previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)}`}
             >
-              <RotateCcw className="w-4 h-4 mr-1" />
-              Repeat Round ({previousRoundBets.reduce((sum, bet) => sum + bet.amount, 0)})
+              <RotateCcw className="w-6 h-6" />
+              {previousRoundBets.length > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {previousRoundBets.length}
+                </span>
+              )}
             </Button>
           )}
         </div>
 
-        {/* Locked Status */}
+        {/* Locked Status - Compact */}
         {lockedBets.length > 0 && (
-          <div className="bg-yellow-600/20 border border-yellow-600 rounded p-2 text-center">
-            <span className="text-yellow-400 font-bold text-sm">
-              <Lock className="w-4 h-4 inline mr-1" />
-              {lockedBets.length} BET(S) LOCKED FOR NEXT ROUND
+          <div className="bg-yellow-600/20 border border-yellow-600 rounded p-1.5 text-center">
+            <span className="text-yellow-400 font-bold text-xs flex items-center justify-center gap-1">
+              <Lock className="w-3 h-3" />
+              {lockedBets.length} Locked
             </span>
           </div>
         )}
-
-        {/* Betting Tips */}
-        <div className="text-xs text-casino-gold bg-casino-green p-2 rounded">
-          <p><strong>Tip:</strong> 7 is the house number - Red/Black lose on 7!</p>
-          <p>• Red/Black (loses on 7), High (8-13), Low (1-6): Even money (1:1)</p>
-          <p>• Lucky 7: High payout (11:1)</p>
-        </div>
       </CardContent>
     </Card>
   );
