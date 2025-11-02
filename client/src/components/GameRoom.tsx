@@ -212,16 +212,17 @@ export default function GameRoom() {
 
   const handleLockBet = () => {
     if (unlockedBets.length === 0) return;
+    if (playerChips === null) return;
     
-    socket.emit('lock-bets', { roomId: currentRoom?.id });
-    console.log('Locking bets:', unlockedBets);
+    socket.emit('lock-bet', { roomId: currentRoom?.id });
+    console.log(`Locking ${unlockedBets.length} bet(s)`);
   };
 
   const handleCancelBet = () => {
     if (unlockedBets.length === 0) return;
     
-    socket.emit('cancel-bets', { roomId: currentRoom?.id });
-    console.log('Cancelling bets:', unlockedBets);
+    socket.emit('cancel-bet', { roomId: currentRoom?.id });
+    console.log(`Cancelling ${unlockedBets.length} unlocked bet(s)`);
   };
 
   const handleRepeatBet = () => {
