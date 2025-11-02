@@ -545,9 +545,11 @@ export default function GameRoom() {
       case 'revealed':
         return 'Card Revealed!';
       case 'waiting':
-        return currentRoom.players.length < 2 
-          ? 'Waiting for more players...' 
-          : 'Next round starting soon...';
+        // Always show countdown even in waiting status
+        if (countdownTime > 0) {
+          return `Round in progress: ${countdownTime}s`;
+        }
+        return 'New round starting...';
       default:
         return 'Welcome to Lucky 7!';
     }

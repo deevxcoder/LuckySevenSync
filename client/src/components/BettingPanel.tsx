@@ -238,13 +238,17 @@ export default function BettingPanel({ playerChips, gameStatus, countdownTime, r
   };
 
   const getBettingMessage = () => {
-    if (gameStatus !== 'countdown') {
-      return 'Waiting for next round...';
-    }
-    if (countdownTime <= 10) {
+    if (countdownTime <= 10 && gameStatus === 'countdown') {
       return 'Betting closed! Get ready for reveal!';
     }
-    return `Place your bets! Betting time left: ${countdownTime - 10}s`;
+    if (countdownTime > 10 && gameStatus === 'countdown') {
+      return `Place your bets! Betting time left: ${countdownTime - 10}s`;
+    }
+    // Always show countdown even when not in 'countdown' status
+    if (countdownTime > 0) {
+      return `Round in progress: ${countdownTime}s remaining`;
+    }
+    return 'New round starting...';
   };
 
   return (
