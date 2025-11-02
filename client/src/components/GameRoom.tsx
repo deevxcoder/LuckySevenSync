@@ -312,6 +312,12 @@ export default function GameRoom() {
       setTotalWinAmount(totalWin);
       setShowBetResultPopup(true);
       console.log('Showing bet results popup');
+      
+      // Auto-close popup after 3 seconds
+      setTimeout(() => {
+        setShowBetResultPopup(false);
+        console.log('Auto-closed bet results popup after 3 seconds');
+      }, 3000);
     } else {
       console.log('No valid bet results to display, skipping popup');
       setShowBetResultPopup(false);
@@ -896,7 +902,7 @@ export default function GameRoom() {
           <div className="flex justify-center gap-2">
             {recentResults.slice(0, 7).map((result) => {
               const getResultDisplay = (cardNumber: number) => {
-                if (cardNumber === 7) return '&';
+                if (cardNumber === 7) return '7';
                 if (cardNumber >= 8 && cardNumber <= 13) return 'H';
                 return 'L';
               };
