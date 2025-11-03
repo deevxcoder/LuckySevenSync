@@ -8,9 +8,10 @@ import fs from "fs";
 // Session types are defined globally in server/types/session.d.ts
 
 // Configure multer for background image uploads
+// Store in persistent uploads directory (works in both dev and production)
 const backgroundStorage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), 'client', 'public');
+    const uploadDir = path.join(process.cwd(), 'uploads');
     if (!fs.existsSync(uploadDir)) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
