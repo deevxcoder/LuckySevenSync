@@ -88,6 +88,31 @@ export class GameManager {
   }
 
   private generateSmartCard(room: GameRoom): Card {
+    /**
+     * CRITICAL: This function NEVER selects number 7 automatically.
+     * Number 7 can ONLY be chosen when admin_override = true.
+     * 
+     * Color Rules:
+     * - Red: hearts ♥ or diamonds ♦
+     * - Black: spades ♠ or clubs ♣
+     * 
+     * Number Range Rules:
+     * - Low: 1-6 (excludes 7)
+     * - High: 8-13 (excludes 7)
+     * - Lucky 7: number 7 ONLY via admin override
+     * 
+     * Payout Multipliers:
+     * - red/black/low/high: 2x (even money + stake)
+     * - lucky7: 12x (11:1 + stake)
+     * 
+     * Win Conditions:
+     * - Red bets: win if color is red AND number ≠ 7
+     * - Black bets: win if color is black AND number ≠ 7
+     * - Low bets: win if number is 1-6
+     * - High bets: win if number is 8-13
+     * - Lucky7 bets: win ONLY if number is 7
+     */
+    
     // Calculate total bets on all bet types
     let lowBetTotal = 0;
     let highBetTotal = 0;
@@ -124,57 +149,72 @@ export class GameManager {
     const totalBets = lowBetTotal + highBetTotal + lucky7BetTotal + redBetTotal + blackBetTotal;
     
     if (totalBets === 0) {
-      // No bets placed - generate random number from 1-13
+      // No bets placed - generate random number from 1-13 EXCLUDING 7
       const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
       suit = suits[crypto.randomInt(0, suits.length)];
-      number = crypto.randomInt(1, 14); // 1-13
+      // Generate number from 1-13 excluding 7
+      const validNumbers = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13];
+      number = validNumbers[crypto.randomInt(0, validNumbers.length)];
       color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
-      outcome = 'No bets placed - random result';
+      outcome = 'No bets placed - random result (7 excluded)';
     } else {
       // Calculate total payout for each possible card outcome combination
       // We need to find the combination that results in MINIMUM total payout
-      // Payout multipliers: red/black/low/high = 2x, lucky7 = 12x
+      // NUMBER 7 IS EXCLUDED - it can only be chosen via admin override
+      // 
+      // When 7 is NOT chosen, lucky7 bets always lose (no payout)
+      // Other bets win based on their conditions:
       const outcomes = [
-        // Red Low (1-6): Red + Low win
-        { type: 'red-low', totalPayout: (redBetTotal * 2) + (lowBetTotal * 2), color: 'red' as const, numberRange: [1, 7] },
-        // Red High (8-13): Red + High win
-        { type: 'red-high', totalPayout: (redBetTotal * 2) + (highBetTotal * 2), color: 'red' as const, numberRange: [8, 14] },
-        // Black Low (1-6): Black + Low win
-        { type: 'black-low', totalPayout: (blackBetTotal * 2) + (lowBetTotal * 2), color: 'black' as const, numberRange: [1, 7] },
-        // Black High (8-13): Black + High win
-        { type: 'black-high', totalPayout: (blackBetTotal * 2) + (highBetTotal * 2), color: 'black' as const, numberRange: [8, 14] },
-        // Lucky 7: Only Lucky7 wins (red/black/low/high all lose)
-        { type: 'lucky7', totalPayout: lucky7BetTotal * 12, color: null, numberRange: [7, 8] }
+        // Red Low (1-6): Red + Low win, Lucky7 loses, Black + High lose
+        { type: 'red-low', totalPayout: (redBetTotal * 2) + (lowBetTotal * 2), color: 'red' as const, validNumbers: [1, 2, 3, 4, 5, 6] },
+        // Red High (8-13): Red + High win, Lucky7 loses, Black + Low lose
+        { type: 'red-high', totalPayout: (redBetTotal * 2) + (highBetTotal * 2), color: 'red' as const, validNumbers: [8, 9, 10, 11, 12, 13] },
+        // Black Low (1-6): Black + Low win, Lucky7 loses, Red + High lose
+        { type: 'black-low', totalPayout: (blackBetTotal * 2) + (lowBetTotal * 2), color: 'black' as const, validNumbers: [1, 2, 3, 4, 5, 6] },
+        // Black High (8-13): Black + High win, Lucky7 loses, Red + Low lose
+        { type: 'black-high', totalPayout: (blackBetTotal * 2) + (highBetTotal * 2), color: 'black' as const, validNumbers: [8, 9, 10, 11, 12, 13] }
+        // NOTE: Lucky 7 outcome is EXCLUDED - it's only available via admin override
       ];
       
-      // Sort by totalPayout to find the combination with lowest payout (maximize house profit)
-      outcomes.sort((a, b) => a.totalPayout - b.totalPayout);
-      const bestOutcome = outcomes[0];
+      // Find the minimum payout
+      const minPayout = Math.min(...outcomes.map(o => o.totalPayout));
       
-      // Generate card based on the best outcome
-      if (bestOutcome.type === 'lucky7') {
-        number = 7;
-        const suits = ['spades', 'hearts', 'diamonds', 'clubs'] as const;
-        suit = suits[crypto.randomInt(0, suits.length)];
-        color = (suit === 'hearts' || suit === 'diamonds') ? 'red' : 'black';
-        outcome = `Lucky 7 (payout: ${bestOutcome.totalPayout})`;
+      // Get all outcomes that have the minimum payout (for tie-breaking)
+      const minPayoutOutcomes = outcomes.filter(o => o.totalPayout === minPayout);
+      
+      console.log(`Found ${minPayoutOutcomes.length} outcome(s) with minimum payout of ${minPayout}`);
+      
+      // Deterministic tie-breaker: use game ID + stable game start time as seed
+      // This ensures the same outcome is always selected for the same tied scenario
+      let selectedOutcome;
+      if (minPayoutOutcomes.length === 1) {
+        selectedOutcome = minPayoutOutcomes[0];
       } else {
-        // Generate number in the specified range
-        number = crypto.randomInt(bestOutcome.numberRange[0], bestOutcome.numberRange[1]);
-        
-        // Set color and suit
-        if (bestOutcome.color === 'red') {
-          const redSuits = ['hearts', 'diamonds'] as const;
-          suit = redSuits[crypto.randomInt(0, redSuits.length)];
-          color = 'red';
-        } else {
-          const blackSuits = ['spades', 'clubs'] as const;
-          suit = blackSuits[crypto.randomInt(0, blackSuits.length)];
-          color = 'black';
-        }
-        
-        outcome = `${bestOutcome.type} (payout: ${bestOutcome.totalPayout})`;
+        // Use seeded random selection for deterministic tie-breaking
+        // Seed based on current game ID and gameStartTime (stable per round)
+        const seed = (room.currentGameId || 0) + (room.gameStartTime || 0);
+        const seedBuffer = Buffer.from(seed.toString());
+        const hash = crypto.createHash('sha256').update(seedBuffer).digest();
+        const randomIndex = hash.readUInt32BE(0) % minPayoutOutcomes.length;
+        selectedOutcome = minPayoutOutcomes[randomIndex];
+        console.log(`Tie-breaker: selected outcome ${randomIndex} (${selectedOutcome.type}) from ${minPayoutOutcomes.length} tied outcomes using seed ${seed}`);
       }
+      
+      // Generate number from the valid numbers for this outcome
+      number = selectedOutcome.validNumbers[crypto.randomInt(0, selectedOutcome.validNumbers.length)];
+      
+      // Set color and suit based on outcome
+      if (selectedOutcome.color === 'red') {
+        const redSuits = ['hearts', 'diamonds'] as const;
+        suit = redSuits[crypto.randomInt(0, redSuits.length)];
+        color = 'red';
+      } else {
+        const blackSuits = ['spades', 'clubs'] as const;
+        suit = blackSuits[crypto.randomInt(0, blackSuits.length)];
+        color = 'black';
+      }
+      
+      outcome = `${selectedOutcome.type} (payout: ${selectedOutcome.totalPayout})`;
     }
     
     console.log(`Smart card generated: ${number} ${color} ${suit} - ${outcome}`);
