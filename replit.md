@@ -4,7 +4,26 @@ FunRep is a real-time multiplayer casino gaming platform built with React, Expre
 
 # Recent Changes
 
-**November 2, 2025 (Latest)**: Fixed Lucky 7 locked bets and UI improvements
+**November 3, 2025 (Latest)**: Implemented house-optimized Lucky 7 result logic
+- **Payout Minimization**: System now automatically selects card outcomes that minimize total payout to players
+  - Analyzes all active bets (red, black, low, high, lucky7) and calculates payout for each possible outcome
+  - Selects outcome category (red-low, red-high, black-low, black-high) with minimum total payout
+  - When multiple outcomes tie for minimum payout, uses deterministic tie-breaker (SHA-256 hash of gameId + gameStartTime)
+- **Number 7 Protection**: Number 7 can NEVER be selected automatically by the system
+  - Excluded from all automatic outcome generation (both with bets and without bets)
+  - Can ONLY appear when admin explicitly sets override to "lucky7"
+  - Lucky7 bets always lose unless admin forces the result
+- **Clear Game Rules**: Comprehensive documentation of color and number range rules
+  - Red: hearts ♥ or diamonds ♦ (numbers 1-6, 8-13 only)
+  - Black: spades ♠ or clubs ♣ (numbers 1-6, 8-13 only)
+  - Low: 1-6, High: 8-13, Lucky 7: only via admin override
+  - Payout multipliers: 2x for red/black/low/high, 12x for lucky7
+- **Deterministic & Auditable**: All outcome selections are reproducible and logged
+  - Tie-breaker seed logged for each round with tied minimum payouts
+  - Complete bet analysis and payout calculations logged to console
+  - System maintains fairness while maximizing house edge
+
+**November 2, 2025**: Fixed Lucky 7 locked bets and UI improvements
 - **Locked Bet Cancellation**: Added ability to cancel locked bets with full refund
   - Players can now cancel locked bets during countdown (similar to Coin Toss)
   - New red cancel button appears when bets are locked
