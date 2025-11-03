@@ -17,10 +17,9 @@ const backgroundStorage = multer.diskStorage({
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const gameType = (req.body.gameType || 'unknown') as string;
-    const ext = path.extname(file.originalname);
-    const filename = gameType === 'lucky7' ? 'casino-bg.jpg' : 'cointoss-bg.jpg';
-    cb(null, filename);
+    // Use a temporary filename - we'll rename it after we know the gameType
+    const timestamp = Date.now();
+    cb(null, `temp-bg-${timestamp}.jpg`);
   }
 });
 
@@ -727,18 +726,37 @@ export async function registerRoutes(app: Express): Promise<void> {
         return res.status(400).json({ message: "No file uploaded" });
       }
 
-      const filename = gameType === 'lucky7' ? 'casino-bg.jpg' : 'cointoss-bg.jpg';
+      // Determine the correct filename based on gameType
+      const targetFilename = gameType === 'lucky7' ? 'casino-bg.jpg' : 'cointoss-bg.jpg';
       
-      console.log(`Admin ${req.user!.username} uploaded new background for ${gameType}: ${filename}`);
+      // Get paths
+      const uploadDir = path.join(process.cwd(), 'client', 'public');
+      const tempPath = req.file.path;
+      const targetPath = path.join(uploadDir, targetFilename);
+      
+      // Rename the temporary file to the correct target filename
+      fs.renameSync(tempPath, targetPath);
+      
+      console.log(`Admin ${req.user!.username} uploaded new background for ${gameType}: ${targetFilename}`);
       
       res.json({ 
         message: "Background image uploaded successfully",
         gameType: gameType,
-        filename: filename,
-        path: `/${filename}`
+        filename: targetFilename,
+        path: `/${targetFilename}`
       });
     } catch (error) {
       console.error('Error uploading background image:', error);
+      
+      // Clean up temp file if it exists
+      if (req.file?.path && fs.existsSync(req.file.path)) {
+        try {
+          fs.unlinkSync(req.file.path);
+        } catch (unlinkError) {
+          console.error('Error removing temp file:', unlinkError);
+        }
+      }
+      
       res.status(500).json({ message: "Failed to upload background image" });
     }
   });
