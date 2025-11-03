@@ -23,6 +23,7 @@ import { useGameStore } from './lib/stores/useGameStore';
 import { useAudio } from './lib/stores/useAudio';
 import { useAuthStore } from './lib/stores/useAuthStore';
 import { Button } from './components/ui/button';
+import { Toaster } from 'sonner';
 
 function App() {
   const [isConnected, setIsConnected] = useState(false);
@@ -147,20 +148,35 @@ function App() {
 
   if (currentView === 'adminDashboard') {
     return (
-      <BrowserRouter>
-        <Routes>
-          <Route path="/admin" element={<AdminLayout><Overview /></AdminLayout>} />
-          <Route path="/admin/users" element={<AdminLayout><UsersPage /></AdminLayout>} />
-          <Route path="/admin/games" element={<AdminLayout><GamesPage /></AdminLayout>} />
-          <Route path="/admin/results" element={<AdminLayout><ResultsControl /></AdminLayout>} />
-          <Route path="/admin/results/lucky7" element={<AdminLayout><Lucky7Control /></AdminLayout>} />
-          <Route path="/admin/results/cointoss" element={<AdminLayout><CoinTossControl /></AdminLayout>} />
-          <Route path="/admin/analytics" element={<AdminLayout><AnalyticsPage /></AdminLayout>} />
-          <Route path="/admin/logs" element={<AdminLayout><ActivityLogs /></AdminLayout>} />
-          <Route path="/admin/data-reset" element={<AdminLayout><DataReset /></AdminLayout>} />
-          <Route path="*" element={<Navigate to="/admin" replace />} />
-        </Routes>
-      </BrowserRouter>
+      <>
+        <Toaster 
+          position="top-center" 
+          richColors 
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: 'rgba(20, 20, 30, 0.95)',
+              border: '1px solid rgba(0, 255, 198, 0.3)',
+              color: '#00FFC6',
+              backdropFilter: 'blur(10px)'
+            }
+          }}
+        />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/admin" element={<AdminLayout><Overview /></AdminLayout>} />
+            <Route path="/admin/users" element={<AdminLayout><UsersPage /></AdminLayout>} />
+            <Route path="/admin/games" element={<AdminLayout><GamesPage /></AdminLayout>} />
+            <Route path="/admin/results" element={<AdminLayout><ResultsControl /></AdminLayout>} />
+            <Route path="/admin/results/lucky7" element={<AdminLayout><Lucky7Control /></AdminLayout>} />
+            <Route path="/admin/results/cointoss" element={<AdminLayout><CoinTossControl /></AdminLayout>} />
+            <Route path="/admin/analytics" element={<AdminLayout><AnalyticsPage /></AdminLayout>} />
+            <Route path="/admin/logs" element={<AdminLayout><ActivityLogs /></AdminLayout>} />
+            <Route path="/admin/data-reset" element={<AdminLayout><DataReset /></AdminLayout>} />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </>
     );
   }
 
@@ -207,11 +223,80 @@ function App() {
   // Show Coin Toss game view
   if (currentView === 'coinToss') {
     return (
+      <>
+        <Toaster 
+          position="top-center" 
+          richColors 
+          theme="dark"
+          toastOptions={{
+            style: {
+              background: 'rgba(20, 20, 30, 0.95)',
+              border: '1px solid rgba(0, 255, 198, 0.3)',
+              color: '#00FFC6',
+              backdropFilter: 'blur(10px)'
+            }
+          }}
+        />
+        <div className="min-h-screen bg-gradient-purple relative">
+          <div className="absolute top-0 left-0 right-0 z-50 glass-header border-b border-purple-accent/30">
+            <div className="flex justify-between items-center px-4 py-3">
+              <div className="flex items-center gap-4">
+                <h2 className="text-purple-accent font-bold text-lg glow-purple">🪙 Coin Toss</h2>
+                <span className="text-white/90">Welcome, {user?.username}</span>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <HeaderWallet socketId={socketId} />
+                <Button
+                  onClick={() => setCurrentView('userDashboard')}
+                  variant="outline"
+                  size="sm"
+                  className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
+                >
+                  📊 Dashboard
+                </Button>
+                <Button
+                  onClick={toggleMute}
+                  variant="outline"
+                  size="sm"
+                  className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
+                >
+                  {isMuted ? '🔇' : '🔊'}
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          <div className="pt-16">
+            <CoinTossRoom />
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  // Show main game interface with navigation (only for regular users)
+  return (
+    <>
+      <Toaster 
+        position="top-center" 
+        richColors 
+        theme="dark"
+        toastOptions={{
+          style: {
+            background: 'rgba(20, 20, 30, 0.95)',
+            border: '1px solid rgba(0, 255, 198, 0.3)',
+            color: '#00FFC6',
+            backdropFilter: 'blur(10px)'
+          }
+        }}
+      />
       <div className="min-h-screen bg-gradient-purple relative">
+        {/* Top Navigation Bar */}
         <div className="absolute top-0 left-0 right-0 z-50 glass-header border-b border-purple-accent/30">
           <div className="flex justify-between items-center px-4 py-3">
             <div className="flex items-center gap-4">
-              <h2 className="text-purple-accent font-bold text-lg glow-purple">🪙 Coin Toss</h2>
+              <h2 className="text-purple-accent font-bold text-lg glow-purple">👑 FunRep</h2>
               <span className="text-white/90">Welcome, {user?.username}</span>
             </div>
             
@@ -237,51 +322,12 @@ function App() {
           </div>
         </div>
         
+        {/* Game Content with top padding for navigation */}
         <div className="pt-16">
-          <CoinTossRoom />
+          {currentRoom ? <GameRoom /> : <GameLobby />}
         </div>
       </div>
-    );
-  }
-
-  // Show main game interface with navigation (only for regular users)
-  return (
-    <div className="min-h-screen bg-gradient-purple relative">
-      {/* Top Navigation Bar */}
-      <div className="absolute top-0 left-0 right-0 z-50 glass-header border-b border-purple-accent/30">
-        <div className="flex justify-between items-center px-4 py-3">
-          <div className="flex items-center gap-4">
-            <h2 className="text-purple-accent font-bold text-lg glow-purple">👑 FunRep</h2>
-            <span className="text-white/90">Welcome, {user?.username}</span>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <HeaderWallet socketId={socketId} />
-            <Button
-              onClick={() => setCurrentView('userDashboard')}
-              variant="outline"
-              size="sm"
-              className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
-            >
-              📊 Dashboard
-            </Button>
-            <Button
-              onClick={toggleMute}
-              variant="outline"
-              size="sm"
-              className="glass-button border-purple-accent/50 text-white hover:border-purple-accent"
-            >
-              {isMuted ? '🔇' : '🔊'}
-            </Button>
-          </div>
-        </div>
-      </div>
-      
-      {/* Game Content with top padding for navigation */}
-      <div className="pt-16">
-        {currentRoom ? <GameRoom /> : <GameLobby />}
-      </div>
-    </div>
+    </>
   );
 }
 

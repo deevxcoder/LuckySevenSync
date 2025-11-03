@@ -2,6 +2,7 @@ import { Gamepad2, RefreshCw, History, Cog, TrendingUp, Image, MessageSquare } f
 import { Button } from '../../ui/button';
 import { Input } from '../../ui/input';
 import { Textarea } from '../../ui/textarea';
+import { toast } from 'sonner';
 import { useState, useEffect } from 'react';
 
 export default function GamesPage() {
@@ -16,6 +17,8 @@ export default function GamesPage() {
     if (!file) return;
     
     setUploading(true);
+    const uploadToast = toast.loading(`Uploading ${gameType === 'lucky7' ? 'Lucky 7' : 'CoinToss'} background...`);
+    
     try {
       const formData = new FormData();
       formData.append('background', file);
@@ -29,14 +32,31 @@ export default function GamesPage() {
 
       if (response.ok) {
         const data = await response.json();
-        alert(`${gameType === 'lucky7' ? 'Lucky 7' : 'CoinToss'} background updated successfully!`);
-        window.location.reload();
+        toast.success(`${gameType === 'lucky7' ? 'Lucky 7' : 'CoinToss'} background updated successfully!`, {
+          id: uploadToast,
+          description: 'Your changes will be visible immediately in the game.',
+          duration: 3000
+        });
+        
+        // Force cache bust by reloading after a brief delay
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
       } else {
-        alert('Failed to upload background image');
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        toast.error('Failed to upload background image', {
+          id: uploadToast,
+          description: errorData.message || 'Please try again',
+          duration: 4000
+        });
       }
     } catch (error) {
       console.error('Error uploading background:', error);
-      alert('Error uploading background image');
+      toast.error('Error uploading background image', {
+        id: uploadToast,
+        description: 'Please check your connection and try again',
+        duration: 4000
+      });
     } finally {
       setUploading(false);
     }
@@ -71,11 +91,16 @@ export default function GamesPage() {
 
   const handleSaveDepositSettings = async () => {
     if (!whatsappNumber || !depositMessage) {
-      alert('Please fill in both WhatsApp number and deposit message');
+      toast.error('Missing Information', {
+        description: 'Please fill in both WhatsApp number and deposit message',
+        duration: 3000
+      });
       return;
     }
 
     setSavingDepositSettings(true);
+    const saveToast = toast.loading('Saving deposit settings...');
+    
     try {
       const response = await fetch('/api/admin/deposit-settings', {
         method: 'POST',
@@ -90,13 +115,26 @@ export default function GamesPage() {
       });
 
       if (response.ok) {
-        alert('Deposit settings saved successfully!');
+        toast.success('Deposit settings saved successfully!', {
+          id: saveToast,
+          description: 'Users will now see your WhatsApp contact for deposits/withdrawals',
+          duration: 3000
+        });
       } else {
-        alert('Failed to save deposit settings');
+        const errorData = await response.json().catch(() => ({ message: 'Unknown error' }));
+        toast.error('Failed to save deposit settings', {
+          id: saveToast,
+          description: errorData.message || 'Please try again',
+          duration: 4000
+        });
       }
     } catch (error) {
       console.error('Error saving deposit settings:', error);
-      alert('Error saving deposit settings');
+      toast.error('Error saving deposit settings', {
+        id: saveToast,
+        description: 'Please check your connection and try again',
+        duration: 4000
+      });
     } finally {
       setSavingDepositSettings(false);
     }

@@ -614,7 +614,7 @@ export default function GameRoom() {
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: 'url(/casino-bg.jpg)',
+          backgroundImage: `url(/casino-bg.jpg?v=${Date.now()})`,
           filter: 'blur(8px)',
           zIndex: 0
         }}

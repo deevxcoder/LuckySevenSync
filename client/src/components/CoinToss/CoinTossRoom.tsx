@@ -600,7 +600,7 @@ export default function CoinTossRoom() {
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: 'url(/cointoss-bg.jpg)',
+          backgroundImage: `url(/cointoss-bg.jpg?v=${Date.now()})`,
           filter: 'blur(8px)',
           zIndex: 0
         }}
