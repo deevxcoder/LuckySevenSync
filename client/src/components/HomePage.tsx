@@ -17,7 +17,7 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
         <div className="max-w-6xl mx-auto text-center">
           <h1 className="text-6xl font-heading font-extrabold text-neo-accent mb-4 flex items-center justify-center gap-4">
             <Crown className="w-16 h-16" />
-            King Games
+            FunRep
           </h1>
           <p className="text-2xl text-neo-text mb-8 font-heading">
             The Premier Gaming Platform for Synchronized Card Games
@@ -187,24 +187,24 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
         </div>
       </div>
 
-      {/* About King Games */}
+      {/* About FunRep */}
       <div className="py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-4xl font-heading font-bold text-neo-accent mb-8 flex items-center justify-center gap-3">
             <Crown className="w-10 h-10" />
-            About King Games
+            About FunRep
           </h2>
           
           <div className="neo-glass-card p-10">
             <p className="text-neo-text text-lg mb-6 leading-relaxed">
-              Founded with a passion for creating unforgettable gaming experiences, King Games has become 
+              Founded with a passion for creating unforgettable gaming experiences, FunRep has become 
               the premier destination for synchronized multiplayer card games. Our innovative platform 
               combines cutting-edge technology with classic game mechanics to deliver experiences that 
               are both familiar and revolutionary.
             </p>
             
             <p className="text-neo-text text-lg mb-8 leading-relaxed">
-              At King Games, we believe that the best games are those shared with others. That's why we've 
+              At FunRep, we believe that the best games are those shared with others. That's why we've 
               built our platform from the ground up to ensure perfect synchronization, fair play, and 
               maximum excitement for every single player.
             </p>
@@ -264,10 +264,10 @@ export default function HomePage({ onLoginClick, onSignupClick }: HomePageProps)
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-neo-accent text-lg font-heading font-bold mb-2 flex items-center justify-center gap-2">
             <Crown className="w-6 h-6" />
-            King Games - Where Every Game is Royal
+            FunRep - Where Every Game is Royal
           </p>
           <p className="text-neo-text-secondary text-sm">
-            © 2024 King Games. All rights reserved. Play responsibly.
+            © 2024 FunRep. All rights reserved. Play responsibly.
           </p>
         </div>
       </div>
