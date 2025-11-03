@@ -36,6 +36,7 @@ export default function CoinTossRoom() {
   const lastBeepTimeRef = useRef<number>(0);
   const [isSoundEnabled, setIsSoundEnabled] = useState<boolean>(true);
   const audioContextRef = useRef<AudioContext | null>(null);
+  const [bgVersion] = useState<number>(Date.now());
 
   // Betting state
   const [selectedBetType, setSelectedBetType] = useState<'heads' | 'tails' | ''>('');
@@ -600,7 +601,7 @@ export default function CoinTossRoom() {
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url(/cointoss-bg.jpg?v=${Date.now()})`,
+          backgroundImage: `url(/cointoss-bg.jpg?v=${bgVersion})`,
           filter: 'blur(8px)',
           zIndex: 0
         }}

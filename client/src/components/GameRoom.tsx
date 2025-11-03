@@ -27,6 +27,7 @@ export default function GameRoom() {
   const { playSuccess, playHit } = useAudio();
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [bgVersion] = useState<number>(Date.now());
   
   // Inline betting state
   const [selectedBetType, setSelectedBetType] = useState<string>('');
@@ -614,7 +615,7 @@ export default function GameRoom() {
       <div 
         className="absolute inset-0 bg-cover bg-center"
         style={{
-          backgroundImage: `url(/casino-bg.jpg?v=${Date.now()})`,
+          backgroundImage: `url(/casino-bg.jpg?v=${bgVersion})`,
           filter: 'blur(8px)',
           zIndex: 0
         }}

@@ -12,6 +12,7 @@ export default function GamesPage() {
   const [whatsappNumber, setWhatsappNumber] = useState('');
   const [depositMessage, setDepositMessage] = useState('');
   const [savingDepositSettings, setSavingDepositSettings] = useState(false);
+  const [bgImageVersion, setBgImageVersion] = useState<number>(Date.now());
 
   const handleImageUpload = async (gameType: 'lucky7' | 'cointoss', file: File) => {
     if (!file) return;
@@ -32,6 +33,10 @@ export default function GamesPage() {
 
       if (response.ok) {
         const data = await response.json();
+        
+        // Update the image version to force preview refresh
+        setBgImageVersion(Date.now());
+        
         toast.success(`${gameType === 'lucky7' ? 'Lucky 7' : 'CoinToss'} background updated successfully!`, {
           id: uploadToast,
           description: 'Your changes will be visible immediately in the game.',
@@ -260,6 +265,19 @@ export default function GamesPage() {
           <div className="border border-neo-accent/30 rounded-lg p-4">
             <h3 className="text-neo-accent font-semibold mb-3">Lucky 7 Background</h3>
             <div className="space-y-3">
+              {/* Image Preview */}
+              <div className="aspect-video w-full border-2 border-neo-accent/20 rounded-lg overflow-hidden bg-neo-bg/50">
+                <img 
+                  src={`/casino-bg.jpg?v=${bgImageVersion}`} 
+                  alt="Lucky 7 Background Preview"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="225"%3E%3Crect fill="%23141420" width="400" height="225"/%3E%3Ctext fill="%2300FFC6" font-family="Arial" font-size="16" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3ENo image uploaded yet%3C/text%3E%3C/svg%3E';
+                  }}
+                />
+              </div>
+              
               <div className="relative">
                 <input
                   type="file"
@@ -282,7 +300,7 @@ export default function GamesPage() {
                 </label>
               </div>
               <div className="bg-neo-bg/50 rounded p-2 text-xs text-neo-text-secondary">
-                Current: /casino-bg.jpg
+                File: casino-bg.jpg
               </div>
             </div>
           </div>
@@ -291,6 +309,19 @@ export default function GamesPage() {
           <div className="border border-neo-accent/30 rounded-lg p-4">
             <h3 className="text-neo-accent font-semibold mb-3">CoinToss Background</h3>
             <div className="space-y-3">
+              {/* Image Preview */}
+              <div className="aspect-video w-full border-2 border-neo-accent/20 rounded-lg overflow-hidden bg-neo-bg/50">
+                <img 
+                  src={`/cointoss-bg.jpg?v=${bgImageVersion}`} 
+                  alt="CoinToss Background Preview"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="225"%3E%3Crect fill="%23141420" width="400" height="225"/%3E%3Ctext fill="%2300FFC6" font-family="Arial" font-size="16" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3ENo image uploaded yet%3C/text%3E%3C/svg%3E';
+                  }}
+                />
+              </div>
+              
               <div className="relative">
                 <input
                   type="file"
@@ -313,7 +344,7 @@ export default function GamesPage() {
                 </label>
               </div>
               <div className="bg-neo-bg/50 rounded p-2 text-xs text-neo-text-secondary">
-                Current: /cointoss-bg.jpg
+                File: cointoss-bg.jpg
               </div>
             </div>
           </div>
